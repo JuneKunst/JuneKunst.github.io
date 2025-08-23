@@ -1,0 +1,145 @@
+// Minimal Design Override - Inspired by agileup.me
+// 기존 스타일을 오버라이드하여 미니멀 디자인 적용
+
+// 컨테이너 스타일 개선
+.container {
+  margin-top: 0px !important;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 60px 40px;
+}
+
+// 헤더 영역 미니멀 스타일
+.header-container {
+  margin-top: 0px !important;
+  margin-bottom: 80px;
+  text-align: center;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 50px;
+}
+
+.header-left {
+  margin-top: 0px !important;
+  text-align: center;
+  
+  h1 {
+    font-size: 4rem !important;
+    font-weight: 100 !important;
+    margin-bottom: 15px !important;
+    color: #2c3e50 !important;
+    letter-spacing: -2px;
+    line-height: 1.1;
+  }
+}
+
+.header-right {
+  text-align: center !important;
+  margin-top: 20px;
+  
+  p {
+    font-size: 1.4rem !important;
+    text-align: center !important;
+    color: #7f8c8d;
+    font-weight: 300;
+    margin-bottom: 5px;
+  }
+}
+
+// 섹션 제목 스타일
+.list-container h3 {
+  font-size: 2.2rem !important;
+  font-weight: 300 !important;
+  color: #2c3e50 !important;
+  margin-bottom: 30px !important;
+  margin-top: 60px !important;
+  text-align: left;
+  letter-spacing: -0.5px;
+}
+
+// 레이아웃 간격 조정
+.layout {
+  margin-top: 2rem !important;
+  margin-bottom: 3rem;
+  
+  .details {
+    h4 {
+      font-size: 1.8rem !important;
+      font-weight: 400 !important;
+      color: #34495e !important;
+      margin-bottom: 8px !important;
+    }
+    
+    p {
+      font-size: 1.4rem !important;
+      color: #7f8c8d !important;
+      line-height: 1.7;
+      margin-bottom: 15px !important;
+    }
+  }
+}
+
+// 인용구 스타일 미니멀화
+p.quote {
+  font-size: 1.3rem !important;
+  font-style: normal !important;
+  padding: 0 !important;
+  text-align: left !important;
+  color: #95a5a6 !important;
+  margin-bottom: 15px !important;
+  font-weight: 300;
+}
+
+// 경계선 스타일 개선
+.border-weak {
+  padding-bottom: 30px !important;
+  border-bottom: 1px solid #ecf0f1 !important;
+  margin-bottom: 30px;
+}
+
+// 푸터 스타일
+.footer-container {
+  margin-top: 80px !important;
+  border-top: 1px solid #f0f0f0;
+  padding-top: 30px;
+  
+  p {
+    color: #bdc3c7 !important;
+    font-size: 1.2rem !important;
+  }
+}
+
+// 모바일 반응형
+@media screen and (max-width: 767px) {
+  .container {
+    padding: 40px 20px;
+  }
+  
+  .header-left h1 {
+    font-size: 3rem !important;
+  }
+  
+  .list-container h3 {
+    font-size: 2rem !important;
+    text-align: center;
+  }
+}
+
+// 다크모드 지원 (선택사항)
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #1a1a1a !important;
+    color: #e8e8e8 !important;
+  }
+  
+  .header-left h1 {
+    color: #ffffff !important;
+  }
+  
+  .list-container h3 {
+    color: #ffffff !important;
+  }
+  
+  .header-container {
+    border-bottom-color: #333 !important;
+  }
+}

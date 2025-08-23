@@ -1,0 +1,176 @@
+{
+  "main": {
+    "id": "589c1771ff09d6d6",
+    "type": "split",
+    "children": [
+      {
+        "id": "203d3006e780d683",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "fdbec77463c93a38",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "새 탭"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "466809b7d708e339",
+    "type": "split",
+    "children": [
+      {
+        "id": "95eef6b82197c7cc",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "773aa54949a9d25d",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "파일 탐색기"
+            }
+          },
+          {
+            "id": "d9579d3309269ec9",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "검색"
+            }
+          },
+          {
+            "id": "4b8ec13b56e12909",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "북마크"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 210.5
+  },
+  "right": {
+    "id": "46e35762f09993da",
+    "type": "split",
+    "children": [
+      {
+        "id": "bd53b471dbae45b5",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "a3d00bda81897a95",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "_test/images/landscape-trees.jpg",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "landscape-trees 의 백링크"
+            }
+          },
+          {
+            "id": "8d5881d4ba007a7d",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "_test/images/landscape-trees.jpg",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "landscape-trees 의 나가는 링크"
+            }
+          },
+          {
+            "id": "7d14849f005a1d7b",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "태그"
+            }
+          },
+          {
+            "id": "bace5df8d59e7168",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "_test/images/landscape-trees.jpg",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "landscape-trees 의 개요"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:빠른 전환기 열기": false,
+      "graph:그래프 뷰 열기": false,
+      "canvas:새 캔버스 만들기": false,
+      "daily-notes:오늘의 일일 노트 열기": false,
+      "templates:템플릿 삽입": false,
+      "command-palette:명령어 팔레트 열기": false
+    }
+  },
+  "active": "fdbec77463c93a38",
+  "lastOpenFiles": [
+    "_sass/minimal-style.scss",
+    "무제.md",
+    "screenshot.png",
+    "README.md",
+    "CODE_OF_CONDUCT.md",
+    "index.md"
+  ]
+}
