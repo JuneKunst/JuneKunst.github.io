@@ -1,8 +1,14 @@
 <div class="container header-container">
   <div class="row">
     <div class="col-xs-12 col-sm-6 col-md-6 col-lg-8 header-left">
-      <h1>{{ site.name | escape }}</h1>
-      <h2>{{ site.title | escape }}</h2>
+      <h1>
+        <span data-lang-ko>{{ site.name | escape }}</span>
+        <span data-lang-en style="display: none;">{{ site.name_en | escape }}</span>
+      </h1>
+      <h2>
+        <span data-lang-ko>{{ site.title | escape }}</span>
+        <span data-lang-en style="display: none;">{{ site.title_en | escape }}</span>
+      </h2>
     </div>
     <div class="col-xs-12 col-sm-6 col-md-6 col-lg-4 header-right">
       <div class="language-toggle">

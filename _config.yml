@@ -6,8 +6,10 @@ repository: JuneKunst/JuneKunst.github.io
 version: 2
 
 # Personal info
-name: '<span data-lang-ko>권형중 (June)</span><span data-lang-en style="display: none;">Hyeongjung Kwon (June)</span>'
-title: '<span data-lang-ko>Frontend Engineer</span><span data-lang-en style="display: none;">Frontend Engineer</span>'
+name: 권형중 (June)
+name_en: Hyeongjung Kwon (June)
+title: Frontend Engineer
+title_en: Frontend Engineer
 email: hjkwon9401@gmail.com
 # email_title: Email (Email title override)
 # phone: # Add your phone if desired
@@ -53,7 +55,6 @@ additional_links:
 # about_title: About Me (Use this to override about section title)
 # about_profile_image: Directory of profile image (eg. images/profile.jpg)
 about_content: | # this will include new lines to allow paragraphs
-  <div data-lang-ko>
   **MVP부터 누적 사용자 70만명 규모까지** 성장한 중고 패션 이커머스 플랫폼을 3년간 개발한 프론트엔드 엔지니어입니다.
 
   **멀티플랫폼 생태계** (Flutter 모바일앱, React 웹앱, WMS 관리자) 설계 및 구현 경험과  
@@ -63,9 +64,8 @@ about_content: | # this will include new lines to allow paragraphs
   - **Frontend**: Flutter (BLoC), React (TypeScript), PWA
   - **Architecture**: Clean Architecture, Server-Driven UI, Multi-platform
   - **Performance**: 가상화, 캐싱, 이미지 최적화, Bundle splitting
-  </div>
-  
-  <div data-lang-en style="display: none;">
+
+about_content_en: | # this will include new lines to allow paragraphs
   Frontend Engineer with **3 years of experience** developing a fashion e-commerce platform that grew **from MVP to 700K+ users**.
 
   Specialized in **multi-platform ecosystem** design (Flutter mobile, React web, WMS admin) and solving complex **e-commerce domain challenges** to drive **business impact**.
@@ -74,19 +74,20 @@ about_content: | # this will include new lines to allow paragraphs
   - **Frontend**: Flutter (BLoC), React (TypeScript), PWA
   - **Architecture**: Clean Architecture, Server-Driven UI, Multi-platform
   - **Performance**: Virtualization, Caching, Image Optimization, Bundle Splitting
-  </div>
 
 content:
   - title: Work Experience
     layout: list
     content:
       - layout: left
-        title: '<span data-lang-ko>Mine.is (차란)</span><span data-lang-en style="display: none;">Mine.is (Charan)</span>'
-        sub_title: '<span data-lang-ko>Frontend Engineer</span><span data-lang-en style="display: none;">Frontend Engineer</span>'
+        title: Mine.is (차란)
+        title_en: Mine.is (Charan)
+        sub_title: Frontend Engineer
+        sub_title_en: Frontend Engineer
         caption: 2022.06 ~ 2025.08
-        quote: '<span data-lang-ko>중고 패션 이커머스 플랫폼 | 누적 사용자 70만명 | 앱스토어 이커머스 1위</span><span data-lang-en style="display: none;">Fashion E-commerce Platform | 700K+ Users | #1 E-commerce App Store</span>'
+        quote: 중고 패션 이커머스 플랫폼 | 누적 사용자 70만명 | 앱스토어 이커머스 1위
+        quote_en: Fashion E-commerce Platform | 700K+ Users | #1 E-commerce App Store
         description: |
-          <div data-lang-ko>
           **멀티플랫폼 생태계 설계 및 개발**
           - **4개 프론트엔드 앱** 동시 개발/운영 (Flutter 모바일, React 웹앱, 2개 WMS 시스템)
           - **Clean Architecture + BLoC 패턴** 기반 대규모 아키텍처 설계
@@ -103,9 +104,7 @@ content:
           - **개인화 추천 시스템** UI/UX 구현 (유사룩, 브랜드 팔로우)
           - **복합 결제 시스템** (포트원, 쿠폰, 포인트) 프론트엔드 개발
           - **실시간 재고 관리** 및 상품 상태 추적 시스템 구현
-          </div>
-          
-          <div data-lang-en style="display: none;">
+        description_en: |
           **Multi-platform Ecosystem Design & Development**
           - **4 Frontend Apps** simultaneous development/operation (Flutter mobile, React web, 2 WMS systems)
           - **Clean Architecture + BLoC Pattern** based large-scale architecture design
@@ -122,7 +121,6 @@ content:
           - **Personalized Recommendation System** UI/UX implementation (similar looks, brand follow)
           - **Complex Payment System** (Portone, coupons, points) frontend development
           - **Real-time Inventory Management** and product status tracking system implementation
-          </div>
 
   - title: Key Projects
     layout: list
