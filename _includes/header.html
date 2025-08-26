@@ -5,6 +5,11 @@
       <h2>{{ site.title | escape }}</h2>
     </div>
     <div class="col-xs-12 col-sm-6 col-md-6 col-lg-4 header-right">
+      <div class="language-toggle">
+        <button id="lang-toggle" class="lang-button">
+          <span id="lang-text">EN</span>
+        </button>
+      </div>
       <ul class="icons no-print">
         {%- if site.dribbble_username -%}
           <li>
