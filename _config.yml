@@ -12,9 +12,9 @@ title: Frontend Engineer
 title_en: Frontend Engineer
 email: hjkwon9401@gmail.com
 # email_title: Email (Email title override)
-# phone: # Add your phone if desired
+phone: 010-4679-5018
 # phone_title: Phone (Phone title override)
-website: https://junekunst.github.io
+# website: https://junekunst.github.io
 # website_title: Web (Website title override)
 
 # Dark Mode (true/false/never)
@@ -22,6 +22,7 @@ darkmode: never
 
 # Social links
 github_username: JuneKunst
+linkedin_username: hyeongjung-kwon-578aa11b5
 # Remove unused social links
 # twitter_username: jekyllrb
 # stackoverflow_username: "00000001"
@@ -29,7 +30,6 @@ github_username: JuneKunst
 # facebook_username: jekyll
 # flickr_username: jekyll
 # instagram_username: jekyll
-# linkedin_username: jekyll
 # xing_username: jekyll
 # pinterest_username: jekyll
 # youtube_username: jekyll
