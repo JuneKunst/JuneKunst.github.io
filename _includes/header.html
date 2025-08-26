@@ -1,4 +1,9 @@
 <div class="container header-container">
+  <div class="language-toggle">
+    <span id="lang-ko" class="lang-option active">KO</span>
+    <span class="lang-separator">|</span>
+    <span id="lang-en" class="lang-option">EN</span>
+  </div>
   <div class="row">
     <div class="col-xs-12 col-sm-6 col-md-6 col-lg-8 header-left">
       <h1>
@@ -111,12 +116,6 @@
           </li>
         {% endfor %}
       </ul>
-
-      <div class="language-toggle">
-        <button id="lang-toggle" class="lang-button">
-          <span id="lang-text">EN</span>
-        </button>
-      </div>
 
       {%- if site.email -%}
         <p>

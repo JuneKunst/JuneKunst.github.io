@@ -4,26 +4,41 @@ if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').match
 
 // Language toggle functionality
 document.addEventListener('DOMContentLoaded', function() {
-  const langToggle = document.getElementById('lang-toggle');
-  const langText = document.getElementById('lang-text');
+  const langKo = document.getElementById('lang-ko');
+  const langEn = document.getElementById('lang-en');
   let currentLang = localStorage.getItem('language') || 'ko';
   
   // Initialize language
   setLanguage(currentLang);
   
-  if (langToggle) {
-    langToggle.addEventListener('click', function(e) {
-      e.preventDefault();
-      currentLang = currentLang === 'ko' ? 'en' : 'ko';
-      setLanguage(currentLang);
-      localStorage.setItem('language', currentLang);
+  // Add click event listeners
+  if (langKo) {
+    langKo.addEventListener('click', function() {
+      if (currentLang !== 'ko') {
+        currentLang = 'ko';
+        setLanguage(currentLang);
+        localStorage.setItem('language', currentLang);
+      }
+    });
+  }
+  
+  if (langEn) {
+    langEn.addEventListener('click', function() {
+      if (currentLang !== 'en') {
+        currentLang = 'en';
+        setLanguage(currentLang);
+        localStorage.setItem('language', currentLang);
+      }
     });
   }
   
   function setLanguage(lang) {
-    if (langText) {
-      langText.textContent = lang === 'ko' ? 'EN' : 'KO';
+    // Update active state
+    if (langKo && langEn) {
+      langKo.classList.toggle('active', lang === 'ko');
+      langEn.classList.toggle('active', lang === 'en');
     }
+    
     document.documentElement.setAttribute('data-lang', lang);
     
     // Show/hide language specific elements
