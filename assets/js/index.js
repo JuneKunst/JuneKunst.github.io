@@ -12,7 +12,8 @@ document.addEventListener('DOMContentLoaded', function() {
   setLanguage(currentLang);
   
   if (langToggle) {
-    langToggle.addEventListener('click', function() {
+    langToggle.addEventListener('click', function(e) {
+      e.preventDefault();
       currentLang = currentLang === 'ko' ? 'en' : 'ko';
       setLanguage(currentLang);
       localStorage.setItem('language', currentLang);
@@ -20,15 +21,33 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   function setLanguage(lang) {
-    langText.textContent = lang === 'ko' ? 'EN' : 'KO';
+    if (langText) {
+      langText.textContent = lang === 'ko' ? 'EN' : 'KO';
+    }
     document.documentElement.setAttribute('data-lang', lang);
     
     // Show/hide language specific elements
-    document.querySelectorAll('[data-lang-ko]').forEach(el => {
-      el.style.display = lang === 'ko' ? 'block' : 'none';
+    const koElements = document.querySelectorAll('[data-lang-ko]');
+    const enElements = document.querySelectorAll('[data-lang-en]');
+    
+    koElements.forEach(el => {
+      if (lang === 'ko') {
+        el.style.display = '';
+        el.style.removeProperty('display');
+      } else {
+        el.style.display = 'none';
+      }
     });
-    document.querySelectorAll('[data-lang-en]').forEach(el => {
-      el.style.display = lang === 'en' ? 'block' : 'none';
+    
+    enElements.forEach(el => {
+      if (lang === 'en') {
+        el.style.display = '';
+        el.style.removeProperty('display');
+      } else {
+        el.style.display = 'none';
+      }
     });
+    
+    console.log('Language switched to:', lang);
   }
 });
