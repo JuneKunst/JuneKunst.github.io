@@ -6,8 +6,8 @@ repository: JuneKunst/JuneKunst.github.io
 version: 2
 
 # Personal info
-name: <span data-lang-ko>권형중 (June)</span><span data-lang-en style="display: none;">Hyeongjung Kwon (June)</span>
-title: <span data-lang-ko>Frontend Engineer</span><span data-lang-en style="display: none;">Frontend Engineer</span>
+name: '<span data-lang-ko>권형중 (June)</span><span data-lang-en style="display: none;">Hyeongjung Kwon (June)</span>'
+title: '<span data-lang-ko>Frontend Engineer</span><span data-lang-en style="display: none;">Frontend Engineer</span>'
 email: hjkwon9401@gmail.com
 # email_title: Email (Email title override)
 # phone: # Add your phone if desired
@@ -81,11 +81,10 @@ content:
     layout: list
     content:
       - layout: left
-        title: <span data-lang-ko>Mine.is (차란)</span><span data-lang-en style="display: none;">Mine.is (Charan)</span>
-        sub_title: <span data-lang-ko>Frontend Engineer</span><span data-lang-en style="display: none;">Frontend Engineer</span>
+        title: '<span data-lang-ko>Mine.is (차란)</span><span data-lang-en style="display: none;">Mine.is (Charan)</span>'
+        sub_title: '<span data-lang-ko>Frontend Engineer</span><span data-lang-en style="display: none;">Frontend Engineer</span>'
         caption: 2022.06 ~ 2025.08
-        quote: >
-          <span data-lang-ko>중고 패션 이커머스 플랫폼 | 누적 사용자 70만명 | 앱스토어 이커머스 1위</span><span data-lang-en style="display: none;">Fashion E-commerce Platform | 700K+ Users | #1 E-commerce App Store</span>
+        quote: '<span data-lang-ko>중고 패션 이커머스 플랫폼 | 누적 사용자 70만명 | 앱스토어 이커머스 1위</span><span data-lang-en style="display: none;">Fashion E-commerce Platform | 700K+ Users | #1 E-commerce App Store</span>'
         description: |
           <div data-lang-ko>
           **멀티플랫폼 생태계 설계 및 개발**
