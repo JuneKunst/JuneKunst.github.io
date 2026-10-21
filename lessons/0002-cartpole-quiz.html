@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cartpole 학습과 평가 · 쪽지시험 복습</title>
+<style>
+:root{color-scheme:light;--ink:#18313a;--muted:#52686d;--line:#ccdeda;--accent:#126b60;--paper:#fff;--bg:#f3f7f5}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.8 system-ui,-apple-system,sans-serif}main{max-width:900px;margin:auto;padding:24px 18px 70px}h1{font-size:clamp(1.8rem,5vw,2.6rem);line-height:1.3}h2{font-size:1.4rem;line-height:1.5}h3{font-size:1.08rem}p{margin:.75em 0}a{color:var(--accent);text-underline-offset:4px}section,.card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:clamp(16px,4vw,28px);margin:18px 0}.tag,.muted{color:var(--muted);font-size:.88rem}.note{border-left:4px solid var(--accent);background:#edf6f2;padding:12px 16px}.flow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.flow div{background:#edf6f2;padding:14px;border-radius:10px}.flow strong{display:block}.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}button,select,input,textarea{font:inherit}button{cursor:pointer;background:white;color:var(--ink);border:1px solid var(--line);border-radius:10px;min-height:44px;padding:8px 14px}button[aria-current="step"]{background:var(--accent);color:white}button:disabled{opacity:.5;cursor:default}button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #d39523;outline-offset:3px}label{display:block;margin:10px 0}input[type=number]{width:100%;padding:8px;border:1px solid var(--line);border-radius:8px}input[type=checkbox]{width:22px;height:22px;vertical-align:middle;margin-right:10px;accent-color:var(--accent)}textarea{width:100%;min-height:230px;padding:14px;border:1px solid var(--line);border-radius:10px}.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;min-width:480px}th,td{text-align:left;vertical-align:top;border-bottom:1px solid var(--line);padding:10px}code{background:#edf2f0;padding:2px 5px;border-radius:5px;overflow-wrap:anywhere}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#edf2f0;padding:16px;border-radius:10px;font-size:.85rem}summary{cursor:pointer;padding:10px 0;min-height:44px;font-weight:650}li{margin:8px 0}.calc{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}output{display:block;font-weight:700;color:var(--accent);font-size:1.2rem}[hidden]{display:none!important}.score-row{display:flex;align-items:start;gap:6px;padding:10px 0;border-bottom:1px solid var(--line)}.score-row input{flex-shrink:0;margin-top:5px}.sources li{overflow-wrap:anywhere}@media(max-width:600px){.flow,.calc{grid-template-columns:1fr}main{padding:16px 12px 50px}body{font-size:16px}}
+</style>
+</head>
+<body><main>
+<a href="../robot-architecture.html">← 로봇 학습 워크벤치</a>
+<p class="tag">2026-10-21 · 교안 26–32·52–53·57쪽과 연결 · 읽기 → 설명 → 자기 점검</p>
+<h1>Cartpole:<br>학습했다는 것과 잘한다는 것</h1>
+<p>막대를 세우는 정책을 배웠다고 합시다. 파일 하나가 저장된 것과, 처음 보는 조건에서도 막대를 세우는 것은 어떻게 구분할까요?</p>
+<div class="note"><strong>먼저 기억할 한 문장</strong><p>무작위 행동은 기준선, train은 정책 갱신, play는 저장 정책 실행입니다. 300회 갱신·체크포인트 저장만으로 성공을 판정하지 않고, 동일한 평가 조건에서 여러 에피소드의 균형 유지와 실패를 비교합니다.</p></div>
+<details class="card"><summary>쪽지시험 원문 보기 · 100점</summary><p>random_agent, PPO train, 체크포인트 play의 차이를 설명하세요. 300회 학습 갱신과 체크포인트 저장만으로 균형 유지에 성공했다고 판단할 수 있는지, 무작위 행동과 학습 후 정책을 어떤 관찰 기준·조건으로 비교할지 쓰세요. 재현을 위해 남길 실행 조건과 파일을 제시하고, VRAM 8 GB 소형 설정이나 화면 없는 실행(viz none)이 실행 성공 또는 GPU 불필요를 의미하는지도 설명하세요.</p></details>
+<section><span class="tag">이전 개념 복습</span><h2>관측 → 행동 → 보상 → 한 번의 시도</h2><p>관측은 카트 위치·속도와 막대 각도·각속도, 행동은 카트에 주는 힘입니다. 보상은 학습 신호이고, 에피소드는 초기화부터 실패 또는 시간 제한까지 한 번의 시도입니다.</p><details><summary>막대 각도가 같아도 행동이 달라질 수 있을까?</summary><p>네. 오른쪽으로 넘어가는 중인지, 왼쪽으로 돌아오는 중인지에 따라 필요한 힘이 다릅니다. 각도만 아니라 각속도도 관측하는 이유입니다. TF에서 좌표계·시각을 맞췄듯이 평가에서도 각도 단위, 기준 자세, 관측 규격을 맞춰야 합니다.</p></details></section>
+<nav class="controls" aria-label="복습 단계">
+<button data-step="0" aria-current="step">1. 세 실행</button><button data-step="1">2. 300회</button><button data-step="2">3. 비교 평가</button><button data-step="3">4. 재현</button><button data-step="4">5. GPU·화면</button>
+</nav>
+<section class="lesson" data-panel="0"><span class="tag">1 / 5</span><h2>같은 Cartpole, 서로 다른 목적</h2>
+<div class="flow"><div><strong>① random_agent</strong>무작위 행동<br>학습 없는 기준선</div><div><strong>② PPO train</strong>경험 수집 → 정책 갱신<br>체크포인트 저장</div><div><strong>③ checkpoint play</strong>저장된 정책 → 행동<br>가중치 갱신 없음</div></div>
+<p><strong>random_agent:</strong> 정해진 행동 범위에서 무작위 행동을 골라 환경이 반응하는지, 학습하지 않았을 때 어떻게 실패하는지 관찰합니다. 임의 초기화 신경망과 정확히 같은 기준선은 아닙니다.</p>
+<p><strong>PPO train:</strong> 정책으로 환경 경험을 모으고 보상·가치 추정 등을 이용해 정책을 반복 갱신합니다. PPO는 갱신 폭을 제어하는 목적함수를 쓰지만, 매 갱신의 성능 향상을 보장하지는 않습니다.</p>
+<p><strong>체크포인트 play:</strong> 저장한 가중치와 필요한 관측 정규화 상태를 불러와 행동을 생성합니다. 일반적인 play는 학습을 재개하지 않습니다. <strong>play를 실행했다는 사실만으로 정량 평가가 완료되지는 않습니다.</strong> 별도 측정 코드나 기록 절차가 필요할 수 있습니다.</p>
+<details><summary>명령을 읽는 순서 · 교안 52–53쪽</summary><pre>random_agent → --task, --num_envs, physics, --viz 확인
+train        → 위 조건 + PPO 설정, seed, 갱신 수, 로그 경로 확인
+play         → 위 조건 + 정확한 checkpoint 경로, 평가 모드 확인</pre><p><code>--checkpoint latest</code>는 나중에 다른 파일을 가리킬 수 있습니다. 재현할 때는 해석된 파일 경로와 해시를 남기세요. RL 라이브러리 선택·옵션 이름은 교안의 고정 커밋과 해당 실행 파일의 <code>--help</code>를 확인합니다. 최신 문서 명령과 섞지 않습니다.</p></details>
+<details><summary>스스로 답하기: train과 play에서 바뀌는 것은?</summary><p>train에서는 경험으로 정책 파라미터가 갱신됩니다. play에서는 저장 정책을 고정해 행동을 관찰합니다. 확률적 행동 샘플링은 가중치 갱신과 다릅니다.</p></details></section>
+<section class="lesson" data-panel="1" hidden><span class="tag">2 / 5</span><h2>300회 갱신 ≠ 300번 성공</h2><p>체크포인트는 저장 시점의 학습 상태입니다. 성능이 낮거나 학습이 불안정해도 저장할 수 있습니다. 300회라는 숫자는 학습을 얼마나 돌렸는지의 일부이고, 균형 유지 성공 횟수가 아닙니다.</p>
+<h3>‘한 번 갱신’에 경험이 얼마나 들어갈까?</h3><p>아래는 <strong>설명용 수집량 계산</strong>입니다. 수업 기본값이나 실제 실험 결과가 아닙니다. 초기 수집·중단 등이 없는 단순 rollout 가정입니다.</p>
+<div class="calc"><label>학습 반복 수 U<input id="updates" type="number" min="1" max="1000000" value="300"></label><label>병렬 환경 수 N<input id="envs" type="number" min="1" max="100000" value="16"></label><label>반복당 환경 step 수 H<input id="horizon" type="number" min="1" max="100000" value="24"></label></div>
+<output id="samples" aria-live="polite"></output><p class="muted">U × N × H는 환경 전이 수입니다. 에피소드는 여러 step으로 이루어지며 중간에 reset될 수 있습니다. PPO는 수집 데이터를 여러 epoch·minibatch에 재사용할 수도 있으므로 optimizer step 수도 이 계산과 다릅니다. 실행 도구가 말하는 iteration의 정의를 확인하세요.</p>
+<h3>증거의 단계</h3><ol><li><strong>설정:</strong> 작은 환경 수·300회 갱신을 지정했다.</li><li><strong>실행:</strong> 로그로 실제 진행·정상 종료·파일 로드를 확인했다.</li><li><strong>성능:</strong> 고정한 평가 기준에서 반복 시험을 통과했다.</li><li><strong>일반화:</strong> 학습과 다른 초기 상태·seed 등에서도 확인했다.</li></ol><p>학습 보상이 올라간 것은 개선의 단서입니다. 특정 보상 함수를 잘 이용했을 뿐 막대가 흔들리거나 카트가 이탈할 수도 있어 실제 상태 지표를 함께 봅니다.</p></section>
+<section class="lesson" data-panel="2" hidden><span class="tag">3 / 5</span><h2>무엇을 같게 두고, 무엇을 측정할까?</h2><p><strong>주요 비교에서는 행동을 고르는 방법만 바꿉니다.</strong> 같은 과제·버전·물리 백엔드·관측/행동 규격·초기 상태 분포·외란·시간 제한·실패 기준을 사용합니다. 평가 중 정책 가중치와 정규화 통계의 갱신을 끕니다.</p>
+<div class="table-wrap"><table><thead><tr><th>관찰 기준</th><th>확인할 내용</th></tr></thead><tbody><tr><td>균형 유지 시간</td><td>실패까지 시간과 제한 시간 도달 비율. step은 제어 주기와 함께 초로 환산</td></tr><tr><td>각도·각속도</td><td>직립 기준 각도 오차의 RMS·최대값, 계속 커지는 진동 여부</td></tr><tr><td>카트 위치</td><td>중앙에서 벗어난 거리와 경계 이탈 횟수</td></tr><tr><td>보상과 행동</td><td>누적 보상, 과도한 힘·행동 포화·진동. 보상만으로 성공 판정하지 않음</td></tr><tr><td>실패·종료</td><td>막대 전도, 위치 제한 위반, timeout을 구분. 자동 reset을 긴 성공처럼 세지 않음</td></tr></tbody></table></div>
+<h3>실험 설계 예시 · 공식 합격 기준 아님</h3><p>예를 들어 직립 각도 오차 <code>|θ| &lt; 10°</code>, 위치 <code>|x| &lt; 2 m</code>를 <code>10초</code> 유지하면 성공으로 미리 정합니다. 같은 평가 초기 상태 100개를 두 방법에 각각 주고 성공률·평균 유지 시간·표준편차·최악 사례를 기록합니다. 이 수치들은 <strong>학습용 제안</strong>이며 실제 task의 종료 조건·길이와 맞춰야 합니다.</p>
+<p>학습에 쓰지 않은 평가 seed 목록과 초기 상태를 저장하고 두 방법에 대응시켜 비교합니다. 같은 seed라도 행동·reset 순서가 다르면 초기 상태가 달라질 수 있으므로 실제 초기 상태도 기록하세요. 무작위 행동의 seed는 따로 남깁니다. 확률적 정책은 sampling 여부와 seed를 기록하고, 결정적 평가라면 그 선택을 명시합니다.</p>
+<p>한 번 잘 선 영상이나 가장 좋은 에피소드만 고르지 않습니다. 모든 평가 시도를 포함하고, 여유가 있으면 학습 seed도 바꿔 여러 정책의 평균과 변동을 확인합니다. 다른 백엔드·외란 시험은 기준 비교를 마친 뒤 별도 일반화 시험으로 표시합니다.</p>
+<details><summary>왜 play 화면이 멀쩡해 보여도 부족할까?</summary><p>넘어진 직후 자동 reset되어 다시 선 모습을 보고 있을 수 있습니다. 짧은 한 장면은 장기 유지와 반복 성공을 보여주지 못합니다. 에피소드별 길이·종료 이유와 시간에 따른 각도·위치를 함께 확인해야 합니다.</p></details></section>
+<section class="lesson" data-panel="3" hidden><span class="tag">4 / 5</span><h2>내일 다시 실행할 수 있는 기록</h2><p>‘300회 했다’ 대신 <strong>어떤 코드·환경·정책을 어떤 조건에서 실행했고 무엇이 나왔는지</strong>를 한 묶음으로 남깁니다.</p>
+<div class="table-wrap"><table><thead><tr><th>남길 조건</th><th>예시 파일·기록</th></tr></thead><tbody><tr><td>코드·의존성</td><td>저장소 commit, 수정 diff, Python·Lab·Sim/선택 백엔드·RL 라이브러리·PyTorch/CUDA 버전, lockfile 또는 패키지 목록</td></tr><tr><td>장치·실행</td><td>OS, GPU 모델·VRAM, 드라이버, sim/정책 device, 전체 명령, 작업 디렉터리, physics, viz, 종료 코드·로그</td></tr><tr><td>학습 설정</td><td>task ID, 환경 수, seed, dt·decimation, rollout 길이, 300회 설정·실제 완료 수, PPO hyperparameters, 보상·reset·관측 정규화 설정</td></tr><tr><td>정책</td><td>실제 checkpoint 파일·경로·SHA-256, iteration, 설정 파일, 정규화 상태. 재학습 재개가 목적이면 optimizer·지원되는 RNG 상태도 보존</td></tr><tr><td>평가</td><td>고정된 평가 코드·설정, seed·초기 상태 목록, 에피소드별 CSV/JSON, 성공 정의·시도 수·통계·종료 이유, 대표 영상과 상태 곡선</td></tr><tr><td>자원</td><td>최대 VRAM·실행 시간·처리량, OOM·NaN·오류 기록, 실제 사용 장치 확인</td></tr></tbody></table></div>
+<pre>cartpole-run/                  # 학습용 기록 구조 예시
+  manifest.json               # 버전·장치·전체 명령·실행 결과
+  code.diff / uv.lock          # 코드 변경·의존성
+  configs/                    # env·PPO·eval 설정
+  checkpoint/                 # 실제 정책·정규화 상태·해시
+  train.log / events.*        # 학습 로그·TensorBoard 등
+  eval_initial_states.json
+  eval_episodes.csv           # method, seed, return, duration_s,
+                              # angle_rms, max_abs_x, terminated,
+                              # truncated, failure_reason, success
+  summary.json / videos/</pre>
+<p class="muted">폴더·파일명은 예시입니다. 실제 도구의 산출물을 보관합니다. seed를 같게 해도 GPU·라이브러리·병렬 실행 차이로 비트 단위 동일 결과가 보장되는 것은 아닙니다.</p></section>
+<section class="lesson" data-panel="4" hidden><span class="tag">5 / 5</span><h2>작은 설정과 화면 끄기는 무엇을 뜻할까?</h2><h3>VRAM 8 GB 소형 설정</h3><p>환경 수·화면·모델 규모 등을 줄여 메모리 부담을 낮추려는 출발점입니다. <strong>8 GB라는 용량만으로 설치 호환성·실행 완료·학습 성공을 보장하지 않습니다.</strong> 백엔드, GPU 종류·지원 기능, 드라이버·버전, 다른 프로세스의 메모리 사용에 따라 달라집니다. 초기화와 실제 step·갱신·저장·재생 로그, VRAM·오류를 확인해야 합니다.</p>
+<h3><code>--viz none</code></h3><p>선택한 버전에서 시각화 창을 끄는 옵션입니다. 물리 계산과 정책 학습을 끈다는 뜻도, CPU 모드로 바꾼다는 뜻도 아닙니다. 화면 출력 부담을 줄일 수 있지만 선택한 물리·렌더링·학습 경로의 GPU 요구는 별도로 확인해야 합니다. 카메라 관측이나 영상 기록이 있으면 창 없이도 렌더링이 수행될 수 있습니다.</p>
+<div class="note"><strong>시험에서 피할 단정</strong><p>“8 GB 설정이니 성공했다”, “창이 없으니 GPU가 필요 없다”, “Newton이니 무조건 CPU에서 된다”는 결론은 낼 수 없습니다. 실제 backend·device·실행 로그로 판단합니다.</p></div><p>Mac에서 다른 CPU용 Cartpole을 학습할 수 있더라도 교안의 NVIDIA GPU 실행 경로를 재현한 것은 아닙니다. 개념 실습과 특정 실행 환경 재현을 구분합니다.</p></section>
+<div class="controls"><button id="previous" disabled>← 이전</button><span id="progress" aria-live="polite">1 / 5</span><button id="next">다음 →</button></div>
+<section><h2>답안을 내 말로 작성하기</h2><p>먼저 세 실행의 역할 → 성공 판정 → 비교 설계 → 재현 자료 → 자원 조건 순서로 써 보세요. 아래 답안은 설명 예시이며 실제 실험을 수행했다는 보고가 아닙니다.</p><label for="answer">나의 연습 답안</label><textarea id="answer" placeholder="random_agent는 … train은 … play는 …"></textarea><p id="saveStatus" class="muted" role="status"></p>
+<details><summary>서술형 답안 예시 펼치기</summary><p>random_agent는 학습 없이 무작위 행동을 선택해 환경의 반응과 기준 성능을 관찰한다. PPO train은 환경 경험을 수집하고 보상을 바탕으로 정책을 반복 갱신해 체크포인트를 저장한다. 체크포인트 play는 저장된 정책과 필요한 정규화 상태를 불러와 가중치를 갱신하지 않고 행동을 실행한다.</p><p>300회 갱신과 파일 저장은 균형 유지 성공의 증거로 충분하지 않다. 갱신 횟수는 에피소드 성공 횟수가 아니며, 낮은 성능의 정책도 저장될 수 있다. 동일한 task·버전·물리 백엔드·관측과 행동·초기 상태 분포·시간 제한·종료 조건에서 무작위 행동과 고정된 학습 정책을 비교해야 한다. 학습에 쓰지 않은 여러 평가 seed·초기 상태를 사용하고 정책의 결정적/확률적 실행 방식을 명시한다. 유지 시간과 성공률, 각도 오차와 진동, 카트 위치 이탈, 누적 보상, 종료 이유를 에피소드별로 기록하며 평균과 변동을 보고한다. 자동 reset과 한 번의 좋은 장면을 지속 성공으로 오인하지 않는다.</p><p>재현을 위해 전체 명령, 코드 commit과 수정사항, 의존성·백엔드 버전, OS·GPU·VRAM·드라이버·device, seed·환경 수·시간 간격·PPO 설정·실제 갱신 수, 체크포인트 경로와 해시·정규화 상태, 학습 로그, 평가 코드·초기 상태·CSV와 영상 등을 보관한다. latest 대신 실제 평가 파일을 특정한다.</p><p>VRAM 8 GB 소형 설정은 메모리 부담을 낮추기 위한 조건이지 실행이나 학습 성공 보장이 아니다. viz none은 시각화 창을 끄는 선택일 뿐 GPU가 불필요하다는 뜻이 아니다. 선택한 물리·학습 장치와 지원 조건을 확인하고 실제 실행 로그·자원 사용·반복 평가 결과로 판단한다.</p></details>
+<h3>100점 자기 점검 · 공식 채점 기준 아님</h3><p class="muted">내 답안에 충분한 설명이 있는 항목만 체크하세요. 합계는 체크한 항목의 가중치이며 답안 의미를 자동 채점하거나 숙달을 판정하지 않습니다.</p>
+<label class="score-row"><input type="checkbox" data-points="30"><span><strong>30점 · 실행의 차이</strong><br>random 기준선 / PPO 경험 수집·갱신 / play 고정 정책 실행을 구분했다.</span></label>
+<label class="score-row"><input type="checkbox" data-points="15"><span><strong>15점 · 성공의 증거</strong><br>300회·체크포인트만으로 부족하며 갱신·에피소드·성공을 구분했다.</span></label>
+<label class="score-row"><input type="checkbox" data-points="25"><span><strong>25점 · 공정한 평가</strong><br>같은 조건·여러 초기 상태·정책 고정·성공 정의와 상태 지표·변동을 제시했다.</span></label>
+<label class="score-row"><input type="checkbox" data-points="20"><span><strong>20점 · 재현</strong><br>버전·장치·명령·seed·학습 설정·정확한 정책 파일·평가 원자료를 제시했다.</span></label>
+<label class="score-row"><input type="checkbox" data-points="10"><span><strong>10점 · 자원 조건</strong><br>8 GB는 보장이 아니며 viz none과 GPU 사용 여부는 별개임을 설명했다.</span></label>
+<output id="score" aria-live="polite">자기 점검 합계 0 / 100</output><button id="download">연습 답안·자기 점검 TXT 저장</button><p class="muted">입력과 체크는 이 기기·브라우저에만 저장됩니다. 기존 워크벤치의 기록 백업과는 별도이며, TXT로 보관할 수 있습니다.</p></section>
+<section class="sources"><h2>교안과 공식 근거</h2><p>교안 텍스트는 워크벤치의 Isaac 메뉴에서 확인할 수 있습니다. 이번 정리는 교안 26–32·52–53·57쪽에 사용자가 제공한 쪽지시험을 연결한 보충 자료입니다. 공식 웹 문서 확인일: 2026-10-21. 현재 문서와 수업 고정 커밋의 옵션은 다를 수 있습니다.</p><ul><li><a href="https://isaac-sim.github.io/IsaacLab/develop/source/concepts/reinforcement_learning.html">Isaac Lab · 강화학습 실행과 체크포인트</a></li><li><a href="https://isaac-sim.github.io/IsaacLab/develop/source/concepts/visualization.html">Isaac Lab · 시각화와 viz none</a></li><li><a href="https://isaac-sim.github.io/IsaacLab/develop/source/workflows/index.html">Isaac Lab · 백엔드별 설치와 GPU 조건</a></li><li><a href="https://spinningup.openai.com/en/latest/algorithms/ppo.html">OpenAI Spinning Up · PPO</a></li></ul><a href="../robot-architecture.html">워크벤치로 돌아가기 →</a></section>
+</main><script>
+'use strict';
+const $=id=>document.getElementById(id),stepButtons=[...document.querySelectorAll('[data-step]')],panels=[...document.querySelectorAll('[data-panel]')];let step=0;
+function showStep(i){step=Math.min(4,Math.max(0,i));panels.forEach((p,n)=>p.hidden=n!==step);stepButtons.forEach((b,n)=>{if(n===step)b.setAttribute('aria-current','step');else b.removeAttribute('aria-current')});$('progress').textContent=(step+1)+' / 5';$('previous').disabled=step===0;$('next').disabled=step===4;}
+stepButtons.forEach(b=>b.onclick=()=>showStep(Number(b.dataset.step)));$('previous').onclick=()=>showStep(step-1);$('next').onclick=()=>showStep(step+1);
+function calculate(){const values=['updates','envs','horizon'].map(id=>$(id).valueAsNumber);const valid=values.every((v,i)=>Number.isSafeInteger(v)&&v>=1&&v<=[1000000,100000,100000][i]);const count=values.reduce((a,b)=>a*b,1);$('samples').textContent=valid&&Number.isSafeInteger(count)?values.join(' × ')+' = '+count.toLocaleString('ko-KR')+' 환경 전이':'범위 안의 양의 정수를 입력하세요.';}
+['updates','envs','horizon'].forEach(id=>$(id).oninput=calculate);calculate();
+const boxes=[...document.querySelectorAll('[data-points]')],key='cartpoleQuizPracticeV1';
+function score(){return boxes.reduce((sum,b)=>sum+(b.checked?Number(b.dataset.points):0),0)}
+function updateScore(){$('score').textContent='자기 점검 합계 '+score()+' / 100';}
+function save(){updateScore();try{localStorage.setItem(key,JSON.stringify({answer:$('answer').value,checked:boxes.map(b=>b.checked)}));$('saveStatus').textContent='이 브라우저에 저장됨 · 실제 시험 점수와 별도'}catch{$('saveStatus').textContent='브라우저 저장 불가 · TXT 저장으로 보관하세요.'}}
+try{const v=JSON.parse(localStorage.getItem(key)||'null');if(v&&typeof v.answer==='string'){$('answer').value=v.answer;boxes.forEach((b,i)=>b.checked=Array.isArray(v.checked)&&v.checked[i]===true);$('saveStatus').textContent='이 브라우저의 연습 기록을 불러왔습니다.'}}catch{$('saveStatus').textContent='저장 기록을 불러올 수 없습니다. TXT 저장으로 보관하세요.'}
+updateScore();$('answer').oninput=save;boxes.forEach(b=>b.onchange=save);
+$('download').onclick=()=>{const text='Cartpole 쪽지시험 연습 · '+new Date().toISOString()+'\n자기 점검 합계 '+score()+'/100 (공식 채점 아님)\n\n'+$('answer').value+'\n\n'+boxes.map(b=>(b.checked?'[x] ':'[ ] ')+b.parentElement.innerText.trim()).join('\n');const u=URL.createObjectURL(new Blob([text],{type:'text/plain;charset=utf-8'}));const a=document.createElement('a');a.href=u;a.download='cartpole-practice.txt';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)};
+</script></body></html>
