@@ -1,0 +1,20 @@
+{
+  "title": "BEE 전체 노드 흐름 · cuVSLAM 적용 예정",
+  "updated": "2026-10-28",
+  "archify_version": "3.2.0",
+  "components": 118,
+  "connections": 195,
+  "source_branch": "feature/mission-v5-sim",
+  "base_commit": "5e08e992e925ccd0399ed6d0efa697e6dc9ed45e",
+  "evidence_snapshot": "d4363b0c2b23a1ab58628ea91738bf1c2fd5f0c9",
+  "evidence_note": "Local working-tree snapshot, not a commit in the team remote repository.",
+  "cuVSLAM": "Planned adoption. Current branch runtime and future integration are distinguished.",
+  "artifact_sha256": "df1077b2301c09d912b1446fbdcf21dfc15640a5987954783a5c7e7e2b93872a",
+  "source_diagram_checks": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "archive": "2026-10-28.html"
+}
