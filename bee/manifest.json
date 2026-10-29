@@ -1,6 +1,6 @@
 {
   "title": "BEE 전체 노드 흐름 · cuVSLAM 적용 예정",
-  "updated": "2026-10-28",
+  "updated": "2026-10-29",
   "archify_version": "3.2.0",
   "components": 118,
   "connections": 195,
@@ -9,12 +9,20 @@
   "evidence_snapshot": "d4363b0c2b23a1ab58628ea91738bf1c2fd5f0c9",
   "evidence_note": "Local working-tree snapshot, not a commit in the team remote repository.",
   "cuVSLAM": "Planned adoption. Current branch runtime and future integration are distinguished.",
-  "artifact_sha256": "df1077b2301c09d912b1446fbdcf21dfc15640a5987954783a5c7e7e2b93872a",
+  "artifact_sha256": "ec8475d8b59cb39b969e307ed0481196e3d15db0d6d51dbff03a7898a45e1c37",
   "source_diagram_checks": {
     "validate": "pass",
     "deliver": "pass",
     "check": "pass",
     "browser-check": "pass"
   },
-  "archive": "2026-10-28.html"
+  "archive": "2026-10-28.html",
+  "viewer": "index.html",
+  "native_diagram": "diagram.html",
+  "native_artifact_sha256": "df1077b2301c09d912b1446fbdcf21dfc15640a5987954783a5c7e7e2b93872a",
+  "contract_explanations": 195,
+  "connections_with_illustrative_examples": 135,
+  "contracts_sha256": "2a616fa69f3b9dd672be83d333c828f785d1b993a6bd547e749dfe43e7914dc6",
+  "message_examples": "Illustrative, code-grounded examples; not captured runtime traffic. Partial standard messages and omitted binary arrays are labeled.",
+  "catalog": "messages.html"
 }
