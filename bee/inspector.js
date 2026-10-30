@@ -1,9 +1,9 @@
-import {contractView,el,style} from './contracts-ui.js?v=20261028-1';
+import {contractView,el,style} from './contracts-ui.js?v=20261030-slam';
 const frame=document.querySelector('#diagram');const status=document.querySelector('#status');
-const dataPromise=fetch('./contracts.json?v=20261028-1').then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()});
+const dataPromise=fetch('./contracts.json?v=20261030-slam').then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()});
 function opaqueState(){const params=new URLSearchParams(location.hash.slice(1));return params.get('reader')||location.hash.slice(1);}
 function syncFromHost(){const state=opaqueState();try{if(frame.contentWindow.location.hash.slice(1)!==state)frame.contentWindow.location.hash=state;}catch{}}
-frame.src='./diagram.html'+(opaqueState()?'#'+opaqueState():'');
+frame.src='./diagram.html?v=20261030-slam'+(opaqueState()?'#'+opaqueState():'');
 window.addEventListener('hashchange',syncFromHost);
 frame.addEventListener('load',async()=>{
  try{

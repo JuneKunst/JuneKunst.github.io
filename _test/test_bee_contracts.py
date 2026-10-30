@@ -11,7 +11,8 @@ EDGES = {edge['id']: edge for edge in DATA['edges']}
 
 class BeeContractTests(unittest.TestCase):
     def test_every_authored_relationship_has_a_unique_explanation(self):
-        self.assertEqual(len(EDGES), 195)
+        self.assertEqual(len(EDGES), 188)
+        self.assertEqual(len(DATA['nodes']), 114)
         self.assertEqual(len(EDGES), len(DATA['edges']))
         for edge in EDGES.values():
             self.assertIn(edge['from'], DATA['nodes'])
@@ -36,10 +37,10 @@ class BeeContractTests(unittest.TestCase):
         self.assertTrue(any('aligned_depth' in channel['name'] for channel in EDGES['e12']['channels']))
 
     def test_slam_database_is_not_the_grid_save_topic(self):
-        self.assertEqual(EDGES['e42']['channels'][0]['kind'], 'file')
-        self.assertEqual(EDGES['e163']['channels'][0]['name'], '/map')
-        self.assertEqual(EDGES['e163']['channels'][0]['type'], 'nav_msgs/msg/OccupancyGrid')
-        grid = EDGES['e163']['channels'][0]['example']
+        self.assertEqual(EDGES['s10']['channels'][0]['kind'], 'file')
+        self.assertEqual(EDGES['s15']['channels'][0]['name'], '/map')
+        self.assertEqual(EDGES['s15']['channels'][0]['type'], 'nav_msgs/msg/OccupancyGrid')
+        grid = EDGES['s15']['channels'][0]['example']
         self.assertEqual(len(grid['data']), grid['info']['width'] * grid['info']['height'])
         self.assertEqual(EDGES['e164']['channels'][0]['example']['request']['map_url'], '/ws/map/default/map')
 
@@ -65,11 +66,23 @@ class BeeContractTests(unittest.TestCase):
             for channel in edge['channels']:
                 if channel['kind'] == 'reference':
                     self.assertIsNone(channel['example'])
-        self.assertIsNone(EDGES['cuv-grid']['channels'][0]['example'])
+        self.assertNotIn('cuv-grid', EDGES)
+        self.assertNotIn('rtabmap', DATA['nodes'])
+        self.assertNotIn('plannedcuv', DATA['nodes'])
+        self.assertEqual(EDGES['s4']['channels'][0]['name'], '/cuvslam/odom')
+        self.assertEqual(EDGES['s12']['channels'][0]['type'], 'nvblox_msgs/srv/FilePath')
+        for i in range(1, 17):
+            self.assertEqual(EDGES[f's{i}']['status'], 'implemented')
 
-    def test_original_native_diagram_is_byte_preserved(self):
+    def test_updated_native_diagram_and_historical_archive(self):
+        manifest = json.loads((ROOT / 'manifest.json').read_text())
         self.assertEqual(hashlib.sha256((ROOT / 'diagram.html').read_bytes()).hexdigest(),
-                         hashlib.sha256((ROOT / '2026-10-28.html').read_bytes()).hexdigest())
+                         manifest['native_artifact_sha256'])
+        self.assertNotEqual((ROOT / 'diagram.html').read_bytes(),
+                            (ROOT / '2026-10-28.html').read_bytes())
+        archived = json.loads((ROOT / '2026-10-28-contracts.json').read_text())
+        self.assertIn('rtabmap', archived['nodes'])
+        self.assertIn('nvblox_node', (ROOT / 'diagram.html').read_text())
         self.assertIn('iframe', (ROOT / 'index.html').read_text())
 
 
