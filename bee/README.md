@@ -4,6 +4,7 @@
 - 학습 지도: https://junekunst.github.io/bee/skills.html
 - 순차 미션 학습: https://junekunst.github.io/bee/skills.html#mission-flow
 - 메시지·역할 사전: https://junekunst.github.io/bee/messages.html
+- 스킬·플랜 한 장 (설명용): https://junekunst.github.io/bee/skill-plan.html
 
 ## 학습 순서
 
@@ -24,7 +25,7 @@ ai-service의 human 화면은 planner의 POST /plan 요청에 사람이 응답�
 
 URDF는 적재함 칸의 위치와 로봇 구조, basket.yaml은 팔의 관절 목표 자세,
 BasketState는 현재 실린 퍽을 기록합니다. 자세표는 URDF 변경과 자동 동기화되지 않습니다.
-stand·stand_pick은 문서에 있는 예정 설계로, 현재 미션은 누운 퍽을 기록하고 건너뜁니다.
+누운 퍽은 stand → 인지로 섰는지 확인 → stand_pick으로 세워서 집습니다 (PR #48·#49, 실기 성공률은 미확인).
 DONE은 미션 흐름 종료이며 모든 퍽의 성공을 뜻하지 않습니다.
 
 ## 출처
