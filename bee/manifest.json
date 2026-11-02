@@ -28,9 +28,9 @@
   "nvblox": "Implemented in source: depth gates, TSDF/occupancy, latched /map adapter, save/load.",
   "perception": "PR #45 (feature/perception): 12-blink signal + signal_status, location_box/start_box, puck shape/yaw. Not merged; not a hardware test.",
   "skills_page": "skills.html — Archify 5개 (mission-vs-skill · mission-manager-inside · skill-structure · mission-flow · stand-flow), PR #47·#48·#49 기준 (2026-11-02, 설명용)",
-  "skill-structure_sha256": "586990e6e226c04573072d1f3e0d38ef33a826f3c50240a2eafb7e9d348a7578",
-  "mission-flow_sha256": "c5df06a21eefe29b75fe1bab3953e3357f23c347cabbd71b3f4067e40c41baf3",
-  "stand-flow_sha256": "bf644288eb25780de1d46c0d2a5cd46e24deecdca87e1711cdb985cc53982aca",
-  "mission-vs-skill_sha256": "56d0ef438ac2c2d006d76c2cb863add3a3fabec5189d9f00df39e75b1a56a60b",
-  "mission-manager-inside_sha256": "05535decf23c257476332f4b90756f7fdc450b81aa44fed3a58d47f52c2c2384"
+  "skill-structure_sha256": "1a8cd967c6a7e08f3a8bab44ed6664544916cf4104ffa47afe4e2e745a943887",
+  "mission-flow_sha256": "0d84db7b6e4e6bc2acf94fb957619bbdd794087d9ee220bcd60725e9c0f38913",
+  "stand-flow_sha256": "ffa17a808ba95ac89897090585ee6d54f8daf5fdf04f0f5be4d6e1004d56da13",
+  "mission-vs-skill_sha256": "079ba4679518b1a861d940ede1809bfc7ef04e46798f8612f8535717334f2ff5",
+  "mission-manager-inside_sha256": "6e1210702687211786bbb88e8876092f13487be739b0157beec799f6b6890128"
 }
