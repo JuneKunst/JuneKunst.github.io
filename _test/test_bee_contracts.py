@@ -52,11 +52,24 @@ class BeeContractTests(unittest.TestCase):
         self.assertEqual(set(status), {'plan_id', 'step', 'state', 'reason'})
         self.assertEqual(status['plan_id'], plan['plan_id'])
         signal = EDGES['mission-signal']['channels'][0]['example']
-        self.assertEqual(signal['state'], 2)
+        self.assertTrue(signal['ok'])
         self.assertEqual(len(signal['sequence']), 12)
-        self.assertEqual(len(signal['onsets']), 12)
-        for letter, key in [('R', 'count_r'), ('Y', 'count_y'), ('G', 'count_g')]:
-            self.assertEqual(signal['sequence'].count(letter), signal[key])
+        for color in ('red', 'yellow', 'green'):
+            self.assertEqual(signal['sequence'].count(color), signal[color])
+            self.assertTrue(1 <= signal[color] <= 6)
+        status = EDGES['signal-status']['channels'][0]
+        self.assertEqual(status['name'], '/mission/signal_status')
+        self.assertIn(status['example']['error'], {'count', 'unknown', 'range', 'unconfirmed'})
+        self.assertNotIn('mission-reset', EDGES)
+
+    def test_tracked_objects_use_box_names_from_perception(self):
+        for edge in EDGES.values():
+            for channel in edge['channels']:
+                if channel['name'] == '/tracked_objects':
+                    names = {o['class_name'] for o in channel['example']['objects']}
+                    self.assertTrue({'location_box', 'start_box'} <= names, edge['id'])
+                    self.assertNotIn('location', names)
+        self.assertEqual(EDGES['mission-facts']['channels'][1]['name'], '/mission/qr')
 
     def test_planned_and_unknown_contracts_do_not_claim_live_values(self):
         for edge in EDGES.values():

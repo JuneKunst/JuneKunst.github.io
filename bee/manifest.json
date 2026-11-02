@@ -1,12 +1,12 @@
 {
-  "title": "BEE · 전체 노드 연결 · cuVSLAM + nvblox SLAM",
-  "updated": "2026-10-30",
+  "title": "BEE · 전체 노드 연결 · cuVSLAM + nvblox SLAM · 인지 PR #45",
+  "updated": "2026-11-02",
   "archify_version": "3.2.0",
   "components": 114,
   "connections": 188,
   "source_branch": "feature/isaac (SLAM files match maintained snapshot)",
   "base_commit": "5e08e992e925ccd0399ed6d0efa697e6dc9ed45e",
-  "evidence_snapshot": "8cfe425a507d1fe593bcf1eda4defdb21d73f23f",
+  "evidence_snapshot": "329944edc7ece9274bd6c81b8b05bbce2c378472",
   "evidence_note": "Local working-tree snapshot, not a commit in the team remote repository.",
   "cuVSLAM": "Implemented in source: RGB-D tracking, map→odom, /cuvslam/odom velocity to EKF. Not a fresh hardware test.",
   "artifact_sha256": "14bb6123e81d5caf9c0b2a19410e676041797a1b020743cab25ee56deb6b576b",
@@ -19,11 +19,12 @@
   "archive": "2026-10-28.html",
   "viewer": "index.html",
   "native_diagram": "diagram.html",
-  "native_artifact_sha256": "ba6c6bb64102bbf8a4d64f95eea61673c385bbf4f1d0e8f8dc75f68b459f9feb",
+  "native_artifact_sha256": "db52a8b5f8048532441b749fbf7d2eb03646087cf1ece4a0e593f64add1997cf",
   "contract_explanations": 188,
   "connections_with_illustrative_examples": 121,
-  "contracts_sha256": "b1405372e09614871afe787fcd3e39a8d7ce69e548fb9b497ee381fae379a1d9",
+  "contracts_sha256": "a6805599489425decced7b766e2774a5343889ebdc1abd3955400a12b4f99947",
   "message_examples": "Illustrative, code-grounded examples; not captured runtime traffic. Partial standard messages and omitted binary arrays are labeled.",
   "catalog": "messages.html",
-  "nvblox": "Implemented in source: depth gates, TSDF/occupancy, latched /map adapter, save/load."
+  "nvblox": "Implemented in source: depth gates, TSDF/occupancy, latched /map adapter, save/load.",
+  "perception": "PR #45 (feature/perception): 12-blink signal + signal_status, location_box/start_box, puck shape/yaw. Not merged; not a hardware test."
 }

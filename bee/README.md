@@ -15,6 +15,15 @@
 - 매핑 종료 시 nvblox.nvblx 저장, saved 모드에서 load_map 요청. 지도 모드 전환은 실행 경로 재시작으로 표현합니다.
 - 저장 지도 로드는 자동 재위치추정의 증거가 아닙니다. 이 구현은 저장할 때와 같은 출발 위치·방향을 전제로 합니다.
 
+## 인지 PR #45 반영 (2026-11-02)
+
+visualkhh/Lv2_bee_Assignment PR #45(feature/perception, 머지 전)의 perception 패키지를 로컬 스냅샷 `329944e`에 넣어 인지 부분을 다시 그렸습니다.
+
+- /tracked_objects: puck에 shape(box|cyl)·yaw·yaw_period, 상자 `location_box`(L1~L3 놓는 곳, 태그 12~14 · 윗면 가운데 · 태그 법선 yaw)와 `start_box`(태그 없는 상자 = 퍽이 처음 있던 곳). 이전 이름 `location`은 없어졌습니다.
+- signal_decoder: 12회 점멸을 두 사이클 같게 읽으면 /mission/signal(ok · sequence · red/yellow/green 횟수)을 새 답마다 한 번 냅니다. 사이클마다 /mission/signal_status(error: count | unknown | range | unconfirmed)를 새로 냅니다. /mission/signal/reset 입력은 없어졌습니다.
+- 바코드·QR 작업 지시는 /mission/qr입니다.
+- 받는 쪽 mission_manager는 아직 옛 메시지 기준이라 해당 연결은 ‘적용 예정’으로 표시합니다. develop의 vlm_task_planner도 옛 `location`·dest_tag를 읽어 수정이 필요합니다.
+
 ## 사용하는 법
 
 노드를 선택하면 역할 분리 이유가 나타납니다. 각 연결의 ‘왜 나누었나 · 전송값 예시’를 펼치면 목적, 수신 측 처리, 타입, 필드와 근거 코드를 볼 수 있습니다. 메시지 사전에서는 전체 연결을 검색할 수 있습니다.
@@ -32,7 +41,8 @@ index.html은 원본 Archify를 iframe으로 담는 host입니다. inspector.js�
 ## 검증·재생성
 
 ```sh
-python3 _tools/update_bee_slam.py /absolute/path/to/maintained/archify/folder
+# update_bee_slam.py(10-30)는 기록용 — 보존본에서 다시 만들어 인지 반영을 지우므로 다시 돌리지 않음
+python3 _tools/update_bee_perception.py /absolute/path/to/maintained/archify/folder   # 지금 contracts.json 위에 인지 PR #45 반영 (여러 번 돌려도 같음)
 python3 _test/test_bee_contracts.py
 node --check bee/contracts-ui.js
 node --check bee/inspector.js
