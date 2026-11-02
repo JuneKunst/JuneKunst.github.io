@@ -2,7 +2,7 @@
 
 - 최신: https://junekunst.github.io/bee/
 - 전체 연결 사전: https://junekunst.github.io/bee/messages.html
-- skill·동작 흐름 (Archify 5개 — 미션 vs skill · mission_manager 안 · skill 구조 · 미션 흐름 · 세우기, PR #47·#48·#49 기준): https://junekunst.github.io/bee/skills.html · 원본 candidate: 로컬 `.archify/skills-flow-20261102/`
+- skill·동작 흐름 (Archify 5개 — 미션 vs skill · mission_manager 안 · skill 구조 · 미션 흐름 · 세우기, PR #47·#48·#49 기준 · 중단 사유·장부 확인·누운 퍽·가운데 칸 먼저 반영): https://junekunst.github.io/bee/skills.html · 원본 candidate: 로컬 `.archify/skills-flow-20261102/`
 - native Archify: https://junekunst.github.io/bee/diagram.html
 - 최초 게시 보존본(RTAB-Map): https://junekunst.github.io/bee/2026-10-28.html
 

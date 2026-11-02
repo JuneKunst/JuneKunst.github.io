@@ -5719,8 +5719,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           <h3>① 시작 · 단계 전환 / ③ skill 요청</h3>
         </div>
         <ul>
-          <li>on_command: start면 기록 초기화 후 시작 · abort면 멈춤. enter: 단계에 들어가 그 단계 함수를 부름. finish: 성공·실패로 다음 단계(mission_solver next_phase). stop: ERROR — coordinator에 정지(빈 계획) + error.json.</li>
-          <li>run: skill 목록을 계획 하나로 /task/sub_goals → /task/status로 끝을 기다림. run_retry: 실패하면 retries(2)번까지 다시. 모든 단계가 이 둘로만 coordinator와 말함.</li>
+          <li>on_command: start면 적재함 장부가 비었는지 확인(남으면 거부) → 기록 초기화 후 시작 · abort면 멈춤. enter: 단계에 들어가 그 단계 함수를 부름. finish: 성공·실패로 다음 단계(mission_solver next_phase). stop: ERROR — coordinator에 정지(빈 계획) + error.json.</li>
+          <li>run: skill 목록을 계획 하나로 /task/sub_goals → /task/status로 끝을 기다림. run_retry: 실패하면 retries(2)번까지 다시. 모든 단계가 이 둘로만 coordinator와 말함. 단, estop·manual·explore·cancelled 실패는 다시 하지 않고 stop(interrupted).</li>
         </ul>
       </div>
 
@@ -5731,8 +5731,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         </div>
         <ul>
           <li>GO_OBSERVE go_observe: pose scan · navigate / BARCODE barcode_phase: 이번에 본 바코드 → 관측 자리 / READ read_phase: 신호 판정 → L1~L3 배정.</li>
-          <li>SURVEY survey: 시작 박스 6곳 inspect x,y,z → load: pick · load next / 할당 solve_allocation: 12개 R·Y·G · 칸.</li>
-          <li>BUILD build → bring: unload 칸 또는 시작 박스에서 pick → place_check: place x,y,z · inspect · 10mm 밖·누우면 다시 / VERIFY verify: 새로 본 퍽만 판정 / RETURN go_home: pose stow · navigate/approach · 3초 정지.</li>
+          <li>SURVEY survey: 시작 박스 6곳 inspect x,y,z → load: pick · load next / 할당 solve_allocation: 12개 R·Y·G · 칸. 누운 퍽은 싣지 않고 결과에.</li>
+          <li>BUILD build → bring: 누운 퍽 건너뜀 · unload 칸 또는 시작 박스에서 pick → place_check: place x,y,z · inspect · 10mm 밖·누우면 다시 / VERIFY verify: 새로 본 퍽만 판정 / RETURN go_home: pose stow · navigate/approach · 3초 정지.</li>
         </ul>
       </div>
 

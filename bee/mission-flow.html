@@ -5789,6 +5789,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           <li>관측(바코드·신호) 실패와 복귀 실패만 ERROR — coordinator에 정지(plan_id 0 + 빈 목록).</li>
           <li>다가가기·집기·놓기·확인 실패는 retries번 다시 → 그래도 안 되면 그 퍽·장소만 결과에 남기고 다음으로.</li>
           <li>할당이 안 되면(SURVEY 결과로 12개를 못 나눔) 바로 RETURN.</li>
+          <li>estop·manual·explore·cancelled로 멈춘 skill은 다시 시도하지 않고 ERROR(interrupted) — 사람·안전 정지.</li>
+          <li>시작 때 적재함 장부에 퍽이 남아 있으면 start 거부 → 확인 뒤 /coordinator/basket_clear.</li>
         </ul>
       </div>
 
@@ -5813,6 +5815,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           <li>다가가기·물러나기·복귀 이동 앞에 항상 pose stow.</li>
           <li>Nav2로 박스 변 0.25m 앞까지 → approach로 0.085m까지 저속 직선 (Nav2는 로봇을 원 0.18m로 봄).</li>
           <li>적재함 장부는 coordinator 하나만 씀(/coordinator/basket · 파일 저장): 조사 때 pick → load next, 놓을 때 장부에서 그 tag의 칸을 찾아 unload &lt;칸&gt;.</li>
+          <li>누운 퍽(puck_lying)은 세우기 전까지 싣지·집지 않고 결과에 남김. 주사위 칸 3·5개는 가운데 칸부터.</li>
         </ul>
       </div>
     </div>
