@@ -2,6 +2,7 @@
 
 - 최신: https://junekunst.github.io/bee/
 - 전체 연결 사전: https://junekunst.github.io/bee/messages.html
+- skill·동작 흐름 (mission_manager · coordinator — PR #47·#48·#49 기준): https://junekunst.github.io/bee/skills.html
 - native Archify: https://junekunst.github.io/bee/diagram.html
 - 최초 게시 보존본(RTAB-Map): https://junekunst.github.io/bee/2026-10-28.html
 

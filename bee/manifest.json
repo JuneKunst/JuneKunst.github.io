@@ -9,7 +9,7 @@
   "evidence_snapshot": "329944edc7ece9274bd6c81b8b05bbce2c378472",
   "evidence_note": "Local working-tree snapshot, not a commit in the team remote repository.",
   "cuVSLAM": "Implemented in source: RGB-D tracking, map→odom, /cuvslam/odom velocity to EKF. Not a fresh hardware test.",
-  "artifact_sha256": "14bb6123e81d5caf9c0b2a19410e676041797a1b020743cab25ee56deb6b576b",
+  "artifact_sha256": "a8939094e5a8c17a9fb4a87562e79acd828debfb74727781074d7a135d19b0f2",
   "source_diagram_checks": {
     "validate": "pass",
     "deliver": "pass",
@@ -26,5 +26,6 @@
   "message_examples": "Illustrative, code-grounded examples; not captured runtime traffic. Partial standard messages and omitted binary arrays are labeled.",
   "catalog": "messages.html",
   "nvblox": "Implemented in source: depth gates, TSDF/occupancy, latched /map adapter, save/load.",
-  "perception": "PR #45 (feature/perception): 12-blink signal + signal_status, location_box/start_box, puck shape/yaw. Not merged; not a hardware test."
+  "perception": "PR #45 (feature/perception): 12-blink signal + signal_status, location_box/start_box, puck shape/yaw. Not merged; not a hardware test.",
+  "skills_page": "skills.html — skill·동작 흐름 (2026-11-02, PR #47·#48·#49 기준, 설명용)"
 }
