@@ -1,0 +1,533 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "BEE · 동작 실행 — coordinator와 적재함 자세표",
+    "locale": "ko",
+    "quality_profile": "showcase",
+    "output": "skill-structure.html",
+    "repository": {
+      "url": "https://github.com/visualkhh/Lv2_bee_Assignment.git",
+      "revision": "92900a52a5b453f96dc83c3dc6ec6e7bee170632",
+      "link_mode": "web"
+    }
+  },
+  "components": [
+    {
+      "id": "mm",
+      "type": "backend",
+      "label": "mission_manager",
+      "sublabel": "주사위 미션 단계",
+      "tag": "계획을 보냄",
+      "sources": [
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/mission_manager.cpp",
+          "line": 192,
+          "end_line": 198
+        }
+      ],
+      "pos": [
+        300,
+        40
+      ],
+      "size": [
+        180,
+        76
+      ]
+    },
+    {
+      "id": "vlm",
+      "type": "backend",
+      "label": "vlm_task_planner",
+      "sublabel": "일반 명령 · 템플릿",
+      "tag": "계획을 보냄",
+      "sources": [
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/vlm_task_planner.cpp",
+          "line": 422,
+          "end_line": 447
+        }
+      ],
+      "pos": [
+        560,
+        40
+      ],
+      "size": [
+        180,
+        76
+      ]
+    },
+    {
+      "id": "ais",
+      "type": "external",
+      "label": "ai-service",
+      "sublabel": "VLM · 사람 화면",
+      "pos": [
+        860,
+        40
+      ],
+      "size": [
+        180,
+        76
+      ]
+    },
+    {
+      "id": "tobj",
+      "type": "messagebus",
+      "label": "/tracked_objects",
+      "sublabel": "퍽 · location_box",
+      "pos": [
+        40,
+        200
+      ],
+      "size": [
+        200,
+        76
+      ]
+    },
+    {
+      "id": "co",
+      "type": "backend",
+      "label": "coordinator",
+      "sublabel": "계획 검증 · skill 실행",
+      "tag": "/task/status",
+      "sources": [
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/coordinator.cpp",
+          "line": 268,
+          "end_line": 324
+        },
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/coordinator.cpp",
+          "line": 336,
+          "end_line": 410
+        }
+      ],
+      "pos": [
+        40,
+        310
+      ],
+      "size": [
+        650,
+        76
+      ]
+    },
+    {
+      "id": "basket",
+      "type": "database",
+      "label": "basket.yaml",
+      "sublabel": "자세 · 적재함 12칸 표",
+      "sources": [
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/config/basket.yaml",
+          "line": 1,
+          "end_line": 12
+        }
+      ],
+      "pos": [
+        740,
+        200
+      ],
+      "size": [
+        190,
+        76
+      ]
+    },
+    {
+      "id": "stab",
+      "type": "database",
+      "label": "경유점 (A 표 · B IK)",
+      "sublabel": "stand_waypoints",
+      "tag": "예정",
+      "pos": [
+        1010,
+        200
+      ],
+      "size": [
+        200,
+        76
+      ],
+      "sources": [
+        {
+          "path": "documents/project/ros/05-arm.md",
+          "line": 272,
+          "end_line": 299
+        }
+      ]
+    },
+    {
+      "id": "s_move",
+      "type": "backend",
+      "label": "navigate · approach",
+      "sublabel": "Nav2 · 저속 직선",
+      "sources": [
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/coordinator.cpp",
+          "line": 764,
+          "end_line": 786
+        },
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/coordinator.cpp",
+          "line": 670,
+          "end_line": 685
+        }
+      ],
+      "pos": [
+        40,
+        465
+      ],
+      "size": [
+        150,
+        76
+      ]
+    },
+    {
+      "id": "s_look",
+      "type": "backend",
+      "label": "inspect · say",
+      "sublabel": "내려다보기 · 알림",
+      "sources": [
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/coordinator.cpp",
+          "line": 833,
+          "end_line": 878
+        }
+      ],
+      "pos": [
+        210,
+        465
+      ],
+      "size": [
+        150,
+        76
+      ]
+    },
+    {
+      "id": "s_pose",
+      "type": "backend",
+      "label": "pose",
+      "sublabel": "stow · carry · scan",
+      "sources": [
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/coordinator.cpp",
+          "line": 1042,
+          "end_line": 1045
+        }
+      ],
+      "pos": [
+        380,
+        465
+      ],
+      "size": [
+        150,
+        76
+      ]
+    },
+    {
+      "id": "s_pick",
+      "type": "backend",
+      "label": "pick",
+      "sublabel": "후보 · 잡기 판정",
+      "sources": [
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/coordinator.cpp",
+          "line": 806,
+          "end_line": 831
+        },
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/coordinator.cpp",
+          "line": 937,
+          "end_line": 949
+        }
+      ],
+      "pos": [
+        550,
+        465
+      ],
+      "size": [
+        150,
+        76
+      ]
+    },
+    {
+      "id": "s_tray",
+      "type": "backend",
+      "label": "load · unload",
+      "sublabel": "적재함 12칸",
+      "sources": [
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/coordinator.cpp",
+          "line": 1047,
+          "end_line": 1072
+        },
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/coordinator.cpp",
+          "line": 1074,
+          "end_line": 1105
+        },
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/coordinator.cpp",
+          "line": 966,
+          "end_line": 986
+        }
+      ],
+      "pos": [
+        720,
+        465
+      ],
+      "size": [
+        150,
+        76
+      ]
+    },
+    {
+      "id": "s_place",
+      "type": "backend",
+      "label": "place",
+      "sublabel": "상자 윗면 · x,y,z",
+      "sources": [
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/coordinator.cpp",
+          "line": 1143,
+          "end_line": 1157
+        }
+      ],
+      "pos": [
+        890,
+        465
+      ],
+      "size": [
+        150,
+        76
+      ]
+    },
+    {
+      "id": "s_stand",
+      "type": "backend",
+      "label": "stand · stand_pick",
+      "sublabel": "누운 퍽 세우기",
+      "tag": "예정",
+      "pos": [
+        1060,
+        465
+      ],
+      "size": [
+        150,
+        76
+      ],
+      "sources": [
+        {
+          "path": "documents/project/ros/05-arm.md",
+          "line": 228,
+          "end_line": 258
+        }
+      ]
+    },
+    {
+      "id": "nav2",
+      "type": "cloud",
+      "label": "Nav2",
+      "sublabel": "NavFn · DWB",
+      "pos": [
+        40,
+        680
+      ],
+      "size": [
+        150,
+        76
+      ]
+    },
+    {
+      "id": "arm",
+      "type": "backend",
+      "label": "MoveIt → arm_controller → rl_arm_correction",
+      "sublabel": "팔 궤적 실행 · 그리퍼는 별도 gripper_controller 액션",
+      "sources": [
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/coordinator.cpp",
+          "line": 593,
+          "end_line": 635
+        },
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/coordinator.cpp",
+          "line": 1159,
+          "end_line": 1240
+        }
+      ],
+      "pos": [
+        210,
+        680
+      ],
+      "size": [
+        1000,
+        76
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "coordinator skill (SubGoal 한 단계)",
+      "wraps": [
+        "s_move",
+        "s_look",
+        "s_pose",
+        "s_pick",
+        "s_tray",
+        "s_place",
+        "s_stand"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "c_mm",
+      "from": "mm",
+      "to": "co",
+      "label": "/task/sub_goals"
+    },
+    {
+      "id": "c_vlm",
+      "from": "vlm",
+      "to": "co",
+      "label": "/task/sub_goals"
+    },
+    {
+      "id": "c_ais",
+      "from": "vlm",
+      "to": "ais",
+      "label": "POST /plan"
+    },
+    {
+      "id": "c_tobj",
+      "from": "tobj",
+      "to": "co",
+      "label": "대상 위치"
+    },
+    {
+      "id": "c_basket",
+      "from": "basket",
+      "to": "s_tray",
+      "label": "칸 관절값"
+    },
+    {
+      "id": "c_stab",
+      "from": "stab",
+      "to": "s_stand",
+      "label": "경유점",
+      "variant": "dashed"
+    },
+    {
+      "id": "k_s_move",
+      "from": "co",
+      "to": "s_move"
+    },
+    {
+      "id": "k_s_look",
+      "from": "co",
+      "to": "s_look"
+    },
+    {
+      "id": "k_s_pose",
+      "from": "co",
+      "to": "s_pose"
+    },
+    {
+      "id": "k_s_pick",
+      "from": "co",
+      "to": "s_pick"
+    },
+    {
+      "id": "k_s_tray",
+      "from": "co",
+      "to": "s_tray"
+    },
+    {
+      "id": "k_s_place",
+      "from": "co",
+      "to": "s_place"
+    },
+    {
+      "id": "k_s_stand",
+      "from": "co",
+      "to": "s_stand",
+      "variant": "dashed",
+      "label": "예정"
+    },
+    {
+      "id": "x_move",
+      "from": "s_move",
+      "to": "nav2"
+    },
+    {
+      "id": "x_s_look",
+      "from": "s_look",
+      "to": "arm"
+    },
+    {
+      "id": "x_s_pose",
+      "from": "s_pose",
+      "to": "arm"
+    },
+    {
+      "id": "x_s_pick",
+      "from": "s_pick",
+      "to": "arm"
+    },
+    {
+      "id": "x_s_tray",
+      "from": "s_tray",
+      "to": "arm"
+    },
+    {
+      "id": "x_s_place",
+      "from": "s_place",
+      "to": "arm"
+    },
+    {
+      "id": "x_s_stand",
+      "from": "s_stand",
+      "to": "arm",
+      "variant": "dashed",
+      "label": "예정"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "실행의 공통 계약",
+      "items": [
+        "SubGoal 한 단계의 skill과 target을 검증하고 실행합니다. 성공·실패와 이유는 /task/status로 돌아갑니다.",
+        "팔 이동은 MoveIt의 계획·궤적 실행을 사용합니다. 그리퍼 열기·닫기는 별도 액션입니다. 기동 초기 자세와 수동 제어는 별도 경로입니다."
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "적재함 데이터 세 가지",
+      "items": [
+        "URDF basket_slot_0~11: 각 칸 바닥 중심의 위치와 로봇 구조를 정의합니다.",
+        "basket.yaml: box/cyl × 12칸의 q_over·q_low·q_lift·q_grasp, carry·stow 관절 목표 자세표입니다. 시간·속도가 정해진 궤적은 아닙니다.",
+        "/coordinator/basket (BasketState): 각 칸과 손에 든 퍽의 tag·색·모양·확인 필요 여부입니다. coordinator가 기록하고 mission_manager는 읽습니다.",
+        "자세표는 slot_table 계산 결과를 옮긴 것입니다. URDF에서 자동 동기화되지 않으므로 구조 변경 시 재생성과 검증이 필요합니다."
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "적재·회수 순서",
+      "items": [
+        "load: carry → q_over → q_low → 그리퍼 열기 → q_lift → stow. 성공하면 장부에 칸을 채웁니다.",
+        "unload: carry → 열기 → q_over → q_grasp → 닫기 → 잡기 판정 → q_over → carry. 성공하면 칸을 비우고 held로 옮깁니다.",
+        "꺼내려다 빈손이면 칸을 임의로 비우지 않고 check=true로 표시합니다. 자세표가 없으면 basket_table_missing으로 실패합니다."
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "잡기·보정·예정 기능",
+      "items": [
+        "pick/unload 기본값: 닫기 목표 0.35A, 위치 3mm 이상, 전류 0.25A 이상. effort가 NaN이면 전류 조건은 건너뜁니다. 실기 튜닝 대상입니다.",
+        "reset_sag는 팔 skill에서 보정 상태를 초기화하는 서비스입니다. 학습 모델의 성능이 검증됐다는 뜻은 아닙니다.",
+        "stand·stand_pick과 A 표/B IK는 예정 설계입니다. 현재 미션에서는 누운 퍽을 기록하고 건너뜁니다. 상세는 세우기 설계 보기를 참고하세요."
+      ]
+    }
+  ]
+}

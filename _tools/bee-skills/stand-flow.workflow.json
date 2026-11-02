@@ -1,0 +1,339 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "BEE · 세우기 설계 (예정) — stand와 stand_pick",
+    "locale": "ko",
+    "quality_profile": "showcase",
+    "output": "stand-flow.html",
+    "repository": {
+      "url": "https://github.com/visualkhh/Lv2_bee_Assignment.git",
+      "revision": "92900a52a5b453f96dc83c3dc6ec6e7bee170632",
+      "link_mode": "web"
+    }
+  },
+  "lanes": [
+    {
+      "id": "wp",
+      "label": "경유점 만들기 · 실행"
+    },
+    {
+      "id": "st",
+      "label": "stand — 세우기 (손 놓고 끝)"
+    },
+    {
+      "id": "sp",
+      "label": "stand_pick — 다시 집기"
+    }
+  ],
+  "phases": [
+    {
+      "id": "ph_in",
+      "label": "입력 · 경유점",
+      "fromCol": 0,
+      "toCol": 1
+    },
+    {
+      "id": "ph_st",
+      "label": "세우기",
+      "fromCol": 2,
+      "toCol": 4,
+      "variant": "emphasis"
+    },
+    {
+      "id": "ph_ck",
+      "label": "확인 · 다시 집기",
+      "fromCol": 5,
+      "toCol": 5
+    }
+  ],
+  "mainPath": [
+    "puck",
+    "sel",
+    "exe",
+    "s_down",
+    "s_arc",
+    "s_set",
+    "chk"
+  ],
+  "nodes": [
+    {
+      "id": "puck",
+      "lane": "wp",
+      "col": 0,
+      "type": "messagebus",
+      "label": "누운 퍽",
+      "sublabel": "위치 · 축 방향 · 모양",
+      "sources": [
+        {
+          "path": "documents/project/ros/05-arm.md",
+          "line": 228,
+          "end_line": 281
+        }
+      ]
+    },
+    {
+      "id": "sel",
+      "lane": "wp",
+      "col": 1,
+      "type": "backend",
+      "label": "경유점: A 표 | B IK",
+      "sublabel": "stand_waypoints",
+      "tag": "둘 다 비교",
+      "sources": [
+        {
+          "path": "documents/project/ros/05-arm.md",
+          "line": 228,
+          "end_line": 281
+        }
+      ]
+    },
+    {
+      "id": "exe",
+      "lane": "wp",
+      "col": 2,
+      "type": "backend",
+      "label": "ExecuteTrajectory",
+      "sublabel": "관절 경유점 한 궤적",
+      "sources": [
+        {
+          "path": "documents/project/ros/05-arm.md",
+          "line": 228,
+          "end_line": 281
+        }
+      ]
+    },
+    {
+      "id": "rl",
+      "lane": "wp",
+      "col": 3,
+      "type": "backend",
+      "label": "rl_arm_correction",
+      "sublabel": "학습 보정 연결 예정",
+      "tag": "A·B 공통",
+      "sources": [
+        {
+          "path": "documents/project/ros/05-arm.md",
+          "line": 228,
+          "end_line": 281
+        }
+      ]
+    },
+    {
+      "id": "s_down",
+      "lane": "st",
+      "col": 2,
+      "type": "backend",
+      "label": "먼 끝 위 → 내려감",
+      "sublabel": "시뮬 설계값 0.4N",
+      "sources": [
+        {
+          "path": "documents/project/ros/05-arm.md",
+          "line": 228,
+          "end_line": 281
+        }
+      ]
+    },
+    {
+      "id": "s_arc",
+      "lane": "st",
+      "col": 3,
+      "type": "backend",
+      "label": "호 0° → 120°",
+      "sublabel": "아래 모서리 축 · +10mm",
+      "sources": [
+        {
+          "path": "documents/project/ros/05-arm.md",
+          "line": 228,
+          "end_line": 281
+        }
+      ]
+    },
+    {
+      "id": "s_set",
+      "lane": "st",
+      "col": 4,
+      "type": "backend",
+      "label": "90° · 놓기",
+      "sublabel": "10mm 눌러 · 벌림 · 위로",
+      "sources": [
+        {
+          "path": "documents/project/ros/05-arm.md",
+          "line": 228,
+          "end_line": 281
+        }
+      ]
+    },
+    {
+      "id": "chk",
+      "lane": "st",
+      "col": 5,
+      "type": "security",
+      "label": "섰나?",
+      "sublabel": "인지 puck / puck_lying",
+      "sources": [
+        {
+          "path": "documents/project/ros/05-arm.md",
+          "line": 228,
+          "end_line": 281
+        }
+      ]
+    },
+    {
+      "id": "p_down",
+      "lane": "sp",
+      "col": 5,
+      "type": "backend",
+      "label": "손목 그대로 아래로",
+      "sublabel": "세운 직후 관절값",
+      "sources": [
+        {
+          "path": "documents/project/ros/05-arm.md",
+          "line": 228,
+          "end_line": 281
+        }
+      ]
+    },
+    {
+      "id": "p_close",
+      "lane": "sp",
+      "col": 4,
+      "type": "backend",
+      "label": "다시 잡기",
+      "sublabel": "잡기 판정",
+      "sources": [
+        {
+          "path": "documents/project/ros/05-arm.md",
+          "line": 228,
+          "end_line": 281
+        }
+      ]
+    },
+    {
+      "id": "p_lift",
+      "lane": "sp",
+      "col": 3,
+      "type": "backend",
+      "label": "들어올림",
+      "sublabel": "→ load next",
+      "sources": [
+        {
+          "path": "documents/project/ros/05-arm.md",
+          "line": 228,
+          "end_line": 281
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "from": "puck",
+      "to": "sel",
+      "role": "main"
+    },
+    {
+      "id": "e2",
+      "from": "sel",
+      "to": "exe",
+      "label": "경유점",
+      "role": "main",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e_rl",
+      "from": "exe",
+      "to": "rl",
+      "label": "보정",
+      "role": "branch"
+    },
+    {
+      "id": "e3",
+      "from": "exe",
+      "to": "s_down",
+      "label": "실행",
+      "role": "main"
+    },
+    {
+      "id": "e4",
+      "from": "s_down",
+      "to": "s_arc",
+      "role": "main"
+    },
+    {
+      "id": "e5",
+      "from": "s_arc",
+      "to": "s_set",
+      "role": "main"
+    },
+    {
+      "id": "e6",
+      "from": "s_set",
+      "to": "chk",
+      "role": "main"
+    },
+    {
+      "id": "e_no",
+      "from": "chk",
+      "to": "s_down",
+      "label": "아직 누움",
+      "role": "return",
+      "variant": "security"
+    },
+    {
+      "id": "e7",
+      "from": "chk",
+      "to": "p_down",
+      "label": "섰음",
+      "role": "branch",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e8",
+      "from": "p_down",
+      "to": "p_close",
+      "role": "branch"
+    },
+    {
+      "id": "e9",
+      "from": "p_close",
+      "to": "p_lift",
+      "role": "branch"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "현재 구현과의 경계",
+      "items": [
+        "stand·stand_pick은 실행 코드가 없는 예정 skill입니다. 현재 SURVEY/BUILD는 누운 퍽을 기록하고 건너뜁니다.",
+        "이 흐름은 팀원의 Isaac Lab tilt 설계를 ROS로 옮길 때의 설명입니다. 실제 로봇 성공률이나 힘 보정을 검증한 결과가 아닙니다."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "두 동작으로 나누는 이유",
+      "items": [
+        "stand는 누운 퍽을 세우고 손을 놓습니다. 인지로 선 상태를 확인한 뒤 stand_pick으로 다시 잡습니다.",
+        "세우기 실패는 세우기만, 집기 실패는 집기만 다시 시도하도록 책임과 재시도 범위를 나눕니다."
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "예정 동작과 경유점",
+      "items": [
+        "참고 기하: 먼 끝을 가볍게 쥠 → 가까운 아래 모서리를 축으로 120°까지 이동 → 90°로 놓음 → 손을 뺌.",
+        "A는 오프라인 관절 자세표, B는 기하와 역기구학으로 경유점을 계산하는 안입니다. 경로·충돌·속도 검증은 별도로 필요합니다."
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "힘·전류·학습을 구분",
+      "items": [
+        "0.4N은 시뮬레이션의 힘 설계값입니다. ROS 그리퍼 effort는 프로젝트에서 전류 A로 사용하므로 직접 바꿔 넣을 수 없습니다.",
+        "그리퍼 최소 Goal Current 2.69mA는 명령 하한이며 기본 잡기 전류 0.35A와 다른 값입니다. N↔A 변환은 실측이 필요합니다.",
+        "±0.1rad는 향후 학습 보정 설계값입니다. 현재 stand 실행 또는 학습 정책의 연결 완료를 뜻하지 않습니다."
+      ]
+    }
+  ]
+}

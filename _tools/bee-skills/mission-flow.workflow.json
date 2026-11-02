@@ -1,0 +1,497 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "BEE · 미션 진행 — 관측부터 배치·검증·복귀까지",
+    "locale": "ko",
+    "quality_profile": "showcase",
+    "output": "mission-flow.html",
+    "repository": {
+      "url": "https://github.com/visualkhh/Lv2_bee_Assignment.git",
+      "revision": "92900a52a5b453f96dc83c3dc6ec6e7bee170632",
+      "link_mode": "web"
+    }
+  },
+  "lanes": [
+    {
+      "id": "inp",
+      "label": "입력 (운영자 · 인지)"
+    },
+    {
+      "id": "mm",
+      "label": "mission_manager — 단계"
+    },
+    {
+      "id": "co",
+      "label": "coordinator skill"
+    },
+    {
+      "id": "ex",
+      "label": "오류 · 다시",
+      "variant": "exception"
+    }
+  ],
+  "phases": [
+    {
+      "id": "p_obs",
+      "label": "관측 준비",
+      "fromCol": 0,
+      "toCol": 0
+    },
+    {
+      "id": "p_sig",
+      "label": "신호",
+      "fromCol": 1,
+      "toCol": 1,
+      "variant": "emphasis"
+    },
+    {
+      "id": "p_sv",
+      "label": "조사 · 할당",
+      "fromCol": 2,
+      "toCol": 3
+    },
+    {
+      "id": "p_bd",
+      "label": "놓기",
+      "fromCol": 4,
+      "toCol": 4,
+      "variant": "emphasis"
+    },
+    {
+      "id": "p_end",
+      "label": "확인 · 복귀",
+      "fromCol": 5,
+      "toCol": 5
+    }
+  ],
+  "mainPath": [
+    "cmd",
+    "observe",
+    "read",
+    "survey",
+    "alloc",
+    "build",
+    "verify"
+  ],
+  "nodes": [
+    {
+      "id": "cmd",
+      "lane": "inp",
+      "col": 0,
+      "type": "external",
+      "label": "/cmd/mission start",
+      "sublabel": "운영자 · abort로 정지"
+    },
+    {
+      "id": "sig",
+      "lane": "inp",
+      "col": 1,
+      "type": "messagebus",
+      "label": "/mission/signal_status",
+      "sublabel": "12회 점멸 · 사이클마다"
+    },
+    {
+      "id": "objs",
+      "lane": "inp",
+      "col": 2,
+      "type": "messagebus",
+      "label": "/tracked_objects",
+      "sublabel": "퍽 tag · 색 · 모양"
+    },
+    {
+      "id": "locbox",
+      "lane": "inp",
+      "col": 4,
+      "type": "messagebus",
+      "label": "location_box",
+      "sublabel": "상자 윗면 가운데"
+    },
+    {
+      "id": "out",
+      "lane": "inp",
+      "col": 5,
+      "type": "database",
+      "label": "/mission/state · 기록",
+      "sublabel": "MissionState · JSON 기록"
+    },
+    {
+      "id": "observe",
+      "lane": "mm",
+      "col": 0,
+      "type": "backend",
+      "label": "GO_OBSERVE · BARCODE",
+      "sublabel": "scan 자세 · 바코드 읽기",
+      "sources": [
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/mission_manager.cpp",
+          "line": 212,
+          "end_line": 239
+        }
+      ]
+    },
+    {
+      "id": "read",
+      "lane": "mm",
+      "col": 1,
+      "type": "backend",
+      "label": "READ",
+      "sublabel": "signal_action 판정",
+      "tag": "ok면 확정",
+      "sources": [
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/mission_manager.cpp",
+          "line": 242,
+          "end_line": 275
+        }
+      ]
+    },
+    {
+      "id": "survey",
+      "lane": "mm",
+      "col": 2,
+      "type": "backend",
+      "label": "SURVEY",
+      "sublabel": "시작 박스 6곳 조사",
+      "sources": [
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/mission_manager.cpp",
+          "line": 279,
+          "end_line": 340
+        }
+      ]
+    },
+    {
+      "id": "alloc",
+      "lane": "mm",
+      "col": 3,
+      "type": "backend",
+      "label": "할당",
+      "sublabel": "12개 한 번에 · Y 한 모양",
+      "sources": [
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/mission_manager.cpp",
+          "line": 343,
+          "end_line": 372
+        }
+      ]
+    },
+    {
+      "id": "build",
+      "lane": "mm",
+      "col": 4,
+      "type": "backend",
+      "label": "BUILD",
+      "sublabel": "퍽마다 주사위 칸에",
+      "sources": [
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/mission_manager.cpp",
+          "line": 375,
+          "end_line": 473
+        }
+      ]
+    },
+    {
+      "id": "verify",
+      "lane": "mm",
+      "col": 5,
+      "type": "backend",
+      "label": "VERIFY · RETURN",
+      "sublabel": "새로 본 퍽만 · 출발 구역",
+      "sources": [
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/mission_manager.cpp",
+          "line": 475,
+          "end_line": 588
+        }
+      ]
+    },
+    {
+      "id": "k_obs",
+      "lane": "co",
+      "col": 0,
+      "type": "backend",
+      "label": "pose scan · navigate",
+      "sublabel": "x,y,yaw",
+      "sources": [
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/coordinator.cpp",
+          "line": 1042,
+          "end_line": 1045
+        },
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/coordinator.cpp",
+          "line": 764,
+          "end_line": 786
+        }
+      ]
+    },
+    {
+      "id": "k_sv",
+      "lane": "co",
+      "col": 2,
+      "type": "backend",
+      "label": "inspect · pick · load",
+      "sublabel": "x,y,z · 잡기 판정 · 칸",
+      "sources": [
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/coordinator.cpp",
+          "line": 833,
+          "end_line": 878
+        },
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/coordinator.cpp",
+          "line": 806,
+          "end_line": 831
+        },
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/coordinator.cpp",
+          "line": 1047,
+          "end_line": 1072
+        }
+      ]
+    },
+    {
+      "id": "k_bd",
+      "lane": "co",
+      "col": 4,
+      "type": "backend",
+      "label": "unload · place · inspect",
+      "sublabel": "칸 → 주사위 칸 x,y,z",
+      "sources": [
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/coordinator.cpp",
+          "line": 1074,
+          "end_line": 1105
+        },
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/coordinator.cpp",
+          "line": 1143,
+          "end_line": 1157
+        }
+      ]
+    },
+    {
+      "id": "k_mv",
+      "lane": "co",
+      "col": 5,
+      "type": "backend",
+      "label": "pose stow · approach",
+      "sublabel": "주행 전 접기 · 직선 접근",
+      "sources": [
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/coordinator.cpp",
+          "line": 670,
+          "end_line": 685
+        },
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/mission_manager.cpp",
+          "line": 625,
+          "end_line": 657
+        }
+      ]
+    },
+    {
+      "id": "stop",
+      "lane": "ex",
+      "col": 1,
+      "type": "security",
+      "label": "ERROR · 안전 정지",
+      "sublabel": "coordinator 정지",
+      "sources": [
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/mission_manager.cpp",
+          "line": 590,
+          "end_line": 608
+        }
+      ]
+    },
+    {
+      "id": "retry",
+      "lane": "ex",
+      "col": 4,
+      "type": "security",
+      "label": "다시 집어 놓기",
+      "sublabel": "10mm 밖 · 누움 · 2번까지",
+      "sources": [
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/mission_manager.cpp",
+          "line": 433,
+          "end_line": 473
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "e_start",
+      "from": "cmd",
+      "to": "observe",
+      "label": "start",
+      "variant": "emphasis",
+      "role": "main"
+    },
+    {
+      "id": "e_obs_k",
+      "from": "observe",
+      "to": "k_obs",
+      "label": "계획",
+      "role": "branch"
+    },
+    {
+      "id": "e_obs_read",
+      "from": "observe",
+      "to": "read",
+      "label": "바코드 읽음",
+      "role": "main"
+    },
+    {
+      "id": "e_sig",
+      "from": "sig",
+      "to": "read",
+      "label": "사이클 결과",
+      "role": "branch"
+    },
+    {
+      "id": "e_read_stop",
+      "from": "read",
+      "to": "stop",
+      "label": "오류 2번 · 150초",
+      "variant": "security",
+      "role": "error"
+    },
+    {
+      "id": "e_read_sv",
+      "from": "read",
+      "to": "survey",
+      "label": "확정",
+      "variant": "emphasis",
+      "role": "main"
+    },
+    {
+      "id": "e_objs",
+      "from": "objs",
+      "to": "survey",
+      "label": "퍽 정보",
+      "role": "branch"
+    },
+    {
+      "id": "e_sv_k",
+      "from": "survey",
+      "to": "k_sv",
+      "label": "계획",
+      "role": "branch"
+    },
+    {
+      "id": "e_sv_alloc",
+      "from": "survey",
+      "to": "alloc",
+      "role": "main"
+    },
+    {
+      "id": "e_alloc_bd",
+      "from": "alloc",
+      "to": "build",
+      "label": "L1~L3 칸",
+      "variant": "emphasis",
+      "role": "main"
+    },
+    {
+      "id": "e_loc",
+      "from": "locbox",
+      "to": "build",
+      "label": "칸 보정",
+      "role": "branch"
+    },
+    {
+      "id": "e_bd_k",
+      "from": "build",
+      "to": "k_bd",
+      "label": "계획",
+      "role": "branch"
+    },
+    {
+      "id": "e_k_retry",
+      "from": "k_bd",
+      "to": "retry",
+      "label": "확인 실패",
+      "variant": "security",
+      "role": "error"
+    },
+    {
+      "id": "e_retry_bd",
+      "from": "retry",
+      "to": "build",
+      "label": "다음 퍽",
+      "role": "return"
+    },
+    {
+      "id": "e_bd_vf",
+      "from": "build",
+      "to": "verify",
+      "role": "main"
+    },
+    {
+      "id": "e_vf_k",
+      "from": "verify",
+      "to": "k_mv",
+      "label": "계획",
+      "role": "branch"
+    },
+    {
+      "id": "e_vf_out",
+      "from": "verify",
+      "to": "out",
+      "label": "DONE",
+      "role": "branch"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "계획을 보내고 결과를 기다림",
+      "items": [
+        "mission_manager는 SubGoal 계획을 /task/sub_goals로 보내고, 같은 plan_id의 /task/status가 끝날 때 다음 단계로 갑니다. 계획 ID는 실행별로 생성됩니다.",
+        "판단(정렬·배정·할당·칸·판정)은 mission_solver 순수 함수, skill 실행은 coordinator."
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "멈추는 경우와 계속하는 경우",
+      "items": [
+        "관측 준비·바코드·신호·복귀 실패 또는 중단 요청이면 ERROR로 정지합니다. 개별 퍽의 작업 실패는 기록하고 다음 작업으로 진행할 수 있습니다.",
+        "다가가기·집기·놓기·확인 실패는 retries번 다시 → 그래도 안 되면 그 퍽·장소만 결과에 남기고 다음으로.",
+        "할당이 안 되면(SURVEY 결과로 12개를 못 나눔) 바로 RETURN.",
+        "estop·manual·explore·cancelled로 멈춘 skill은 다시 시도하지 않고 ERROR(interrupted) — 사람·안전 정지.",
+        "시작 때 적재함 장부에 퍽이 남아 있으면 start 거부 → 확인 뒤 /coordinator/basket_clear."
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "신호 판정 (READ)",
+      "items": [
+        "READ 시작 뒤 끝난 사이클만. ok(두 사이클 같은 답)면 확정 → R·Y·G 횟수 + 바코드로 L1·L2·L3 (동률 R→Y→G).",
+        "unconfirmed면 기다림 · count·unknown·range가 2번 이어지면 ERROR (발제: 추정 금지).",
+        "/mission/signal은 같은 답이면 다시 안 나와 signal_status의 ok도 확정으로 본다."
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "주행 전 팔 접기 · 다가가기",
+      "items": [
+        "다가가기·물러나기·복귀 이동 앞에 항상 pose stow.",
+        "Nav2로 박스 변 0.25m 앞까지 → approach로 0.085m까지 저속 직선 (Nav2는 로봇을 원 0.18m로 봄).",
+        "적재함 장부는 coordinator 하나만 씀(/coordinator/basket · 파일 저장): 조사 때 pick → load next, 놓을 때 장부에서 그 tag의 칸을 찾아 unload <칸>.",
+        "누운 퍽(puck_lying)은 세우기 전까지 싣지·집지 않고 결과에 남김. 주사위 칸 3·5개는 가운데 칸부터."
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "완료와 성공은 다릅니다",
+      "items": [
+        "DONE은 미션 흐름이 끝났다는 뜻입니다. 모든 퍽의 배치 성공을 보장하지 않습니다. placed/total, results, verify.json을 함께 확인합니다.",
+        "노드를 눌러 전체 연결을 탐색하거나, 위 순차 학습 보기에서 한 단계씩 따라가세요."
+      ]
+    }
+  ]
+}

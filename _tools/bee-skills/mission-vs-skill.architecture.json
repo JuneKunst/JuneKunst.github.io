@@ -1,0 +1,304 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "BEE · 전체 구조 — 누가 판단하고 누가 실행하는가",
+    "locale": "ko",
+    "quality_profile": "showcase",
+    "output": "mission-vs-skill.html",
+    "repository": {
+      "url": "https://github.com/visualkhh/Lv2_bee_Assignment.git",
+      "revision": "92900a52a5b453f96dc83c3dc6ec6e7bee170632",
+      "link_mode": "web"
+    }
+  },
+  "components": [
+    {
+      "id": "mm",
+      "type": "backend",
+      "label": "mission_manager",
+      "sublabel": "주사위 미션 · 단계 순서",
+      "tag": "감독",
+      "sources": [
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/mission_manager.cpp",
+          "line": 193,
+          "end_line": 217
+        }
+      ],
+      "pos": [
+        40,
+        40
+      ],
+      "size": [
+        200,
+        80
+      ]
+    },
+    {
+      "id": "vlm",
+      "type": "backend",
+      "label": "vlm_task_planner",
+      "sublabel": "일반 문장 → 계획",
+      "tag": "자연어 경로 · 선택",
+      "sources": [
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/vlm_task_planner.cpp",
+          "line": 422,
+          "end_line": 447
+        }
+      ],
+      "pos": [
+        360,
+        40
+      ],
+      "size": [
+        200,
+        80
+      ]
+    },
+    {
+      "id": "human",
+      "type": "frontend",
+      "label": "ai-service",
+      "sublabel": "모델·사람 계획 응답",
+      "tag": "선택",
+      "pos": [
+        680,
+        40
+      ],
+      "size": [
+        180,
+        80
+      ],
+      "sources": [
+        {
+          "path": "lv2_module6/ai-service/README.md",
+          "line": 60,
+          "end_line": 77
+        }
+      ]
+    },
+    {
+      "id": "cli",
+      "type": "frontend",
+      "label": "시험 도구",
+      "sublabel": "skill 하나씩 보내기",
+      "tag": "감독",
+      "pos": [
+        980,
+        40
+      ],
+      "size": [
+        180,
+        80
+      ]
+    },
+    {
+      "id": "solver",
+      "type": "backend",
+      "label": "mission_solver",
+      "sublabel": "정렬·배정·할당 (순수 함수)",
+      "sources": [
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/mission_solver.cpp",
+          "line": 40,
+          "end_line": 69
+        },
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/mission_solver.cpp",
+          "line": 32,
+          "end_line": 38
+        }
+      ],
+      "pos": [
+        40,
+        235
+      ],
+      "size": [
+        200,
+        80
+      ]
+    },
+    {
+      "id": "plan",
+      "type": "messagebus",
+      "label": "/task/sub_goals · /task/status",
+      "sublabel": "skill 목록 ↓ · 결과와 이유 ↑",
+      "pos": [
+        360,
+        235
+      ],
+      "size": [
+        200,
+        80
+      ]
+    },
+    {
+      "id": "estop",
+      "type": "security",
+      "label": "비상정지 · 수동 모드",
+      "sublabel": "/state/emergency · operation_mode",
+      "pos": [
+        980,
+        235
+      ],
+      "size": [
+        180,
+        80
+      ]
+    },
+    {
+      "id": "co",
+      "type": "backend",
+      "label": "coordinator",
+      "sublabel": "자동 계획의 공통 실행기",
+      "sources": [
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/coordinator.cpp",
+          "line": 268,
+          "end_line": 324
+        },
+        {
+          "path": "lv2_module6/ros2_ws/src/plan/src/coordinator.cpp",
+          "line": 336,
+          "end_line": 410
+        }
+      ],
+      "pos": [
+        680,
+        235
+      ],
+      "size": [
+        200,
+        80
+      ]
+    },
+    {
+      "id": "nav2",
+      "type": "cloud",
+      "label": "Nav2",
+      "sublabel": "바퀴 실행",
+      "pos": [
+        420,
+        435
+      ],
+      "size": [
+        200,
+        80
+      ]
+    },
+    {
+      "id": "arm",
+      "type": "backend",
+      "label": "MoveIt · 팔 제어",
+      "sublabel": "경로 계획 → 궤적 실행",
+      "pos": [
+        780,
+        435
+      ],
+      "size": [
+        400,
+        80
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "감독 — 계획을 보내는 쪽 (무엇을 · 어떤 순서로)",
+      "wraps": [
+        "mm",
+        "vlm",
+        "human",
+        "cli"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "c_solver",
+      "from": "mm",
+      "to": "solver",
+      "label": "판단을 물음"
+    },
+    {
+      "id": "c_mm",
+      "from": "mm",
+      "to": "plan",
+      "label": "계획"
+    },
+    {
+      "id": "c_vlm",
+      "from": "vlm",
+      "to": "plan",
+      "variant": "dashed"
+    },
+    {
+      "id": "c_human",
+      "from": "human",
+      "to": "vlm",
+      "label": "계획 응답",
+      "variant": "dashed"
+    },
+    {
+      "id": "c_cli",
+      "from": "cli",
+      "to": "plan"
+    },
+    {
+      "id": "c_plan_co",
+      "from": "plan",
+      "to": "co",
+      "label": "한 줄씩"
+    },
+    {
+      "id": "c_estop",
+      "from": "estop",
+      "to": "co",
+      "label": "전부 취소",
+      "variant": "security"
+    },
+    {
+      "id": "exec-nav",
+      "from": "co",
+      "to": "nav2",
+      "label": "이동 요청"
+    },
+    {
+      "id": "exec-arm",
+      "from": "co",
+      "to": "arm",
+      "label": "팔 목표"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "이 그림에서 먼저 볼 것",
+      "items": [
+        "mission_manager는 정해진 주사위 미션의 순서와 실패 대응을 관리합니다. mission_solver는 정렬·배정·칸 계산을 하는 순수 함수입니다.",
+        "주사위 미션은 mission_manager → mission_solver → coordinator로 진행하며 VLM은 필수가 아닙니다. vlm_task_planner와 ai-service는 일반 문장·사람 계획을 위한 선택 경로입니다.",
+        "두 계획 경로 모두 SubGoal 목록을 보내고, coordinator가 실행 결과를 TaskStatus로 돌려줍니다.",
+        "ai-service의 human 화면은 vlm_task_planner가 보낸 POST /plan에 사람이 응답하는 방식입니다. 이 화면까지 쓰지 않는 고정 미션에서는 둘 다 핵심 실행 경로 밖입니다."
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "역할을 나누는 이유",
+      "items": [
+        "발제 규칙이 바뀌면 미션 쪽을, 팔 자세가 바뀌면 실행 skill 쪽을 수정할 수 있습니다.",
+        "coordinator는 자동 계획의 공통 실행기입니다. manual_control과 기동 초기 자세에는 별도 제어 경로가 있습니다.",
+        "적재함의 현재 내용은 coordinator가 기록하고 mission_manager가 읽습니다. 이 장부와 basket.yaml 자세표는 다른 데이터입니다."
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "다음으로 볼 순서",
+      "items": [
+        "미션 진행: 관측 → 조사·적재 → 배정 → 배치 → 재검증 → 복귀를 순차적으로 봅니다.",
+        "동작 실행: pick·load·unload·place 내부와 URDF·자세표·적재 장부의 차이를 봅니다."
+      ]
+    }
+  ]
+}

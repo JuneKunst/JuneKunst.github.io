@@ -1,53 +1,48 @@
-# BEE · 전체 흐름과 메시지·역할 설명
+# BEE · 전체 흐름과 학습 지도
 
-- 최신: https://junekunst.github.io/bee/
-- 전체 연결 사전: https://junekunst.github.io/bee/messages.html
-- skill·동작 흐름 (Archify 5개 — 미션 vs skill · mission_manager 안 · skill 구조 · 미션 흐름 · 세우기, PR #47·#48·#49 기준 · 중단 사유·장부 확인·누운 퍽·가운데 칸 먼저 반영): https://junekunst.github.io/bee/skills.html · 원본 candidate: 로컬 `.archify/skills-flow-20261102/`
-- native Archify: https://junekunst.github.io/bee/diagram.html
-- 최초 게시 보존본(RTAB-Map): https://junekunst.github.io/bee/2026-10-28.html
+- 전체 연결도: https://junekunst.github.io/bee/
+- 학습 지도: https://junekunst.github.io/bee/skills.html
+- 순차 미션 학습: https://junekunst.github.io/bee/skills.html#mission-flow
+- 메시지·역할 사전: https://junekunst.github.io/bee/messages.html
 
-## cuVSLAM + nvblox 반영
+## 학습 순서
 
-현재 그림은 114개 구성 요소와 188개 연결입니다. RTAB-Map 및 cuVSLAM ‘적용 예정’ 경로 대신 다음 구현을 표시합니다.
+상단은 전체 구조 → 미션 진행 → 동작 실행으로 구성합니다.
+mission_manager 내부는 미션 진행의 상세 보기, 세우기 설계는 동작 실행의 상세 보기입니다.
+기존 다섯 HTML 주소와 이전 해시 링크를 유지합니다.
 
-- 전방 RGB-D → cuvslam_slam → map→odom TF, /cuvslam/odom의 속도 → EKF.
-- 전방 pole_depth_gate와 손목 gripper_depth_gate → nvblox_node → static_occupancy_grid → nvblox_map → reliable + transient_local /map.
-- /map → Nav2 global_costmap, explorer, map_saver.
-- 매핑 종료 시 nvblox.nvblx 저장, saved 모드에서 load_map 요청. 지도 모드 전환은 실행 경로 재시작으로 표현합니다.
-- 저장 지도 로드는 자동 재위치추정의 증거가 아닙니다. 이 구현은 저장할 때와 같은 출발 위치·방향을 전제로 합니다.
+미션 진행과 동작 실행에는 이전·다음으로 따라가는 안내가 있습니다.
+전체 미션 10단계, 퍽 하나 운반 8단계, load/unload 내부 각 6단계에서
+입력·판단 주체·명령·완료 조건·실패 처리와 소스 링크를 확인합니다.
+선택한 단계의 관련 노드를 다이어그램에서 강조합니다.
 
-## 인지 PR #45 반영 (2026-11-02)
+## 역할과 구현 경계
 
-visualkhh/Lv2_bee_Assignment PR #45(feature/perception, 머지 전)의 perception 패키지를 로컬 스냅샷 `329944e`에 넣어 인지 부분을 다시 그렸습니다.
+주사위 미션은 mission_manager → mission_solver(순수 규칙 함수) → coordinator 경로입니다.
+vlm_task_planner·ai-service는 자연어/사람 계획을 위한 선택 경로이며 고정 미션의 필수 단계가 아닙니다.
+ai-service의 human 화면은 planner의 POST /plan 요청에 사람이 응답하는 방식입니다.
 
-- /tracked_objects: puck에 shape(box|cyl)·yaw·yaw_period, 상자 `location_box`(L1~L3 놓는 곳, 태그 12~14 · 윗면 가운데 · 태그 법선 yaw)와 `start_box`(태그 없는 상자 = 퍽이 처음 있던 곳). 이전 이름 `location`은 없어졌습니다.
-- signal_decoder: 12회 점멸을 두 사이클 같게 읽으면 /mission/signal(ok · sequence · red/yellow/green 횟수)을 새 답마다 한 번 냅니다. 사이클마다 /mission/signal_status(error: count | unknown | range | unconfirmed)를 새로 냅니다. /mission/signal/reset 입력은 없어졌습니다.
-- 바코드·QR 작업 지시는 /mission/qr입니다.
-- 받는 쪽 mission_manager는 아직 옛 메시지 기준이라 해당 연결은 ‘적용 예정’으로 표시합니다. develop의 vlm_task_planner도 옛 `location`·dest_tag를 읽어 수정이 필요합니다.
+URDF는 적재함 칸의 위치와 로봇 구조, basket.yaml은 팔의 관절 목표 자세,
+BasketState는 현재 실린 퍽을 기록합니다. 자세표는 URDF 변경과 자동 동기화되지 않습니다.
+stand·stand_pick은 문서에 있는 예정 설계로, 현재 미션은 누운 퍽을 기록하고 건너뜁니다.
+DONE은 미션 흐름 종료이며 모든 퍽의 성공을 뜻하지 않습니다.
 
-## 사용하는 법
+## 출처
 
-노드를 선택하면 역할 분리 이유가 나타납니다. 각 연결의 ‘왜 나누었나 · 전송값 예시’를 펼치면 목적, 수신 측 처리, 타입, 필드와 근거 코드를 볼 수 있습니다. 메시지 사전에서는 전체 연결을 검색할 수 있습니다.
+학습 다이어그램과 단계 안내: 팀 저장소 `92900a52a5b453f96dc83c3dc6ec6e7bee170632`
+(PR #49, 팔 skill #48 포함). #45·#47·#50은 병합 완료입니다.
+출처와 실제 검증 범위를 분리합니다. 이번 갱신은 로봇의 실기·시뮬레이션 성공 검증이 아닙니다.
 
-예시는 실제 로봇 로그가 아닌 설명용입니다. 확인하지 않은 payload는 만들지 않으며 일부 필드·바이너리 생략 여부를 표시합니다. ‘현재 코드 경로’는 구현 근거이며 이번 작업에서 실물 SLAM을 시험했다는 뜻이 아닙니다.
+전체 연결도의 cuVSLAM·nvblox·인지 구현은 기존 유지 스냅샷을 사용하며,
+전체 연결도의 모든 근거를 학습 페이지의 새 커밋으로 일괄 바꾸지 않았습니다.
+전체 연결 사전의 mission/state·SubGoal·그리퍼 설명은 최신 sourceRevision으로 구분합니다.
+예시는 실제 전송 로그가 아닌 설명용이며 생략한 필드는 명시합니다.
 
-## 출처와 구현 경계
+## 보존과 재생성
 
-유지 관리 중인 `.archify/workflow-bee-current-20261028-192136/full-candidate.json`에서 그림을 생성합니다. SLAM 출처는 별도 로컬 스냅샷 `8cfe425a507d1fe593bcf1eda4defdb21d73f23f`입니다. 해당 launch·cuVSLAM·nvblox_map·nvblox/ekf 설정 파일은 확인 시점 feature/isaac HEAD `95fa8ecbd4b6ccfa178f1a55aa3dfbc783c29a9e`와 바이트가 같습니다. 스냅샷을 팀 원격 커밋으로 가장하지 않습니다.
+기존 RTAB-Map 보존본: `2026-10-28.html`, `2026-10-28-contracts.json`.
+이번 변경 전 학습 다이어그램: `archive/2026-11-02-before-learning/`의 다섯 HTML.
+새 native candidate와 재생성 방법: `../_tools/bee-skills/README.md`.
 
-변경하지 않은 메시지 설명은 기존 `d4363b0c2b23a1ab58628ea91738bf1c2fd5f0c9` 출처를 유지하며 각 연결의 sourceRevision으로 구분합니다. 전체 소스/Git 저장소/개인 설정은 배포하지 않습니다.
-
-index.html은 원본 Archify를 iframe으로 담는 host입니다. inspector.js와 contracts-ui.js가 노드·연결 설명을 덧붙입니다. 생성된 renderer HTML은 직접 수정하지 않습니다. 날짜별 RTAB 보존본과 당시 contracts는 그대로 유지합니다.
-
-## 검증·재생성
-
-```sh
-# update_bee_slam.py(10-30)는 기록용 — 보존본에서 다시 만들어 인지 반영을 지우므로 다시 돌리지 않음
-python3 _tools/update_bee_perception.py /absolute/path/to/maintained/archify/folder   # 지금 contracts.json 위에 인지 PR #45 반영 (여러 번 돌려도 같음)
-python3 _test/test_bee_contracts.py
-node --check bee/contracts-ui.js
-node --check bee/inspector.js
-node --check bee/catalog.js
-```
-
-먼저 Archify candidate를 source-snapshot 기준으로 finalize architecture하여 validate/deliver/check/browser-check를 통과시킨 뒤 게시 스크립트를 실행합니다. 계약 사전 검증과 실제 host 브라우저 검증은 native Archify 검사와 별도로 수행합니다. 실시간 ROS bridge나 로봇 제어 기능은 없습니다.
+생성 HTML은 직접 패치하지 않습니다. Archify finalize의 validate·deliver·check·browser-check를 거쳐 복사합니다.
+host 탐색·순차 학습은 별도로 브라우저에서 검증합니다. 학습 UI에는 로봇 제어·실시간 ROS bridge가 없습니다.

@@ -22,15 +22,31 @@
   "native_artifact_sha256": "db52a8b5f8048532441b749fbf7d2eb03646087cf1ece4a0e593f64add1997cf",
   "contract_explanations": 188,
   "connections_with_illustrative_examples": 121,
-  "contracts_sha256": "a6805599489425decced7b766e2774a5343889ebdc1abd3955400a12b4f99947",
+  "contracts_sha256": "d1614766e1a6d4f6c57dabd9e7fcd48de75196c58ebd34dccf2d2e32258a0927",
   "message_examples": "Illustrative, code-grounded examples; not captured runtime traffic. Partial standard messages and omitted binary arrays are labeled.",
   "catalog": "messages.html",
   "nvblox": "Implemented in source: depth gates, TSDF/occupancy, latched /map adapter, save/load.",
-  "perception": "PR #45 (feature/perception): 12-blink signal + signal_status, location_box/start_box, puck shape/yaw. Not merged; not a hardware test.",
-  "skills_page": "skills.html — Archify 5개 (mission-vs-skill · mission-manager-inside · skill-structure · mission-flow · stand-flow), PR #47·#48·#49 기준 (2026-11-02, 설명용)",
-  "skill-structure_sha256": "1a8cd967c6a7e08f3a8bab44ed6664544916cf4104ffa47afe4e2e745a943887",
-  "mission-flow_sha256": "0d84db7b6e4e6bc2acf94fb957619bbdd794087d9ee220bcd60725e9c0f38913",
-  "stand-flow_sha256": "ffa17a808ba95ac89897090585ee6d54f8daf5fdf04f0f5be4d6e1004d56da13",
-  "mission-vs-skill_sha256": "079ba4679518b1a861d940ede1809bfc7ef04e46798f8612f8535717334f2ff5",
-  "mission-manager-inside_sha256": "6e1210702687211786bbb88e8876092f13487be739b0157beec799f6b6890128"
+  "perception": "PR #45 (feature/perception): 12-blink signal + signal_status, location_box/start_box, puck shape/yaw. Merged; not a hardware test.",
+  "skills_page": "skills.html — 전체 구조 · 미션 진행 · 동작 실행 (상세: mission_manager 내부, 세우기 설계)",
+  "skill-structure_sha256": "09818ab46ff632c6793b43af01afcfe3d31a6b071e0715d03fe2cd5b1b737cdc",
+  "mission-flow_sha256": "48962911b3a832b104c2a3814d0c04fa18d005d41cae4663c479fa9d77862510",
+  "stand-flow_sha256": "c68e6d1a04e81bb030f7fba6832b6944934a5d7981efa809ebd1506619382757",
+  "mission-vs-skill_sha256": "2e8625cc67437a19a6d87e5f7509782b6d4d9180f18bb182f64c9941c7b9210b",
+  "mission-manager-inside_sha256": "3b2467ca21d925d358afe8a70f7e9cee56dbbb0964bcc2cbf14b49974511bac7",
+  "skills_updated": "2026-11-02",
+  "skills_source_revision": "92900a52a5b453f96dc83c3dc6ec6e7bee170632",
+  "skills_source_prs": [
+    48,
+    49
+  ],
+  "skills_learning_stories": {
+    "mission": 10,
+    "puck": 8,
+    "load": 6,
+    "unload": 6
+  },
+  "skills_archive": "archive/2026-11-02-before-learning/",
+  "source_contract_updates": {
+    "mission_and_gripper": "92900a52a5b453f96dc83c3dc6ec6e7bee170632"
+  }
 }
