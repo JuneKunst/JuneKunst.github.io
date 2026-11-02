@@ -27,8 +27,9 @@
   "catalog": "messages.html",
   "nvblox": "Implemented in source: depth gates, TSDF/occupancy, latched /map adapter, save/load.",
   "perception": "PR #45 (feature/perception): 12-blink signal + signal_status, location_box/start_box, puck shape/yaw. Not merged; not a hardware test.",
-  "skills_page": "skills.html — Archify 3개 (skill-structure · mission-flow · stand-flow), PR #47·#48·#49 기준 + 적재함 장부 coordinator 단일화 (2026-11-02, 설명용)",
+  "skills_page": "skills.html — Archify 4개 (mission-vs-skill · skill-structure · mission-flow · stand-flow), PR #47·#48·#49 기준 (2026-11-02, 설명용)",
   "skill-structure_sha256": "586990e6e226c04573072d1f3e0d38ef33a826f3c50240a2eafb7e9d348a7578",
   "mission-flow_sha256": "c5df06a21eefe29b75fe1bab3953e3357f23c347cabbd71b3f4067e40c41baf3",
-  "stand-flow_sha256": "bf644288eb25780de1d46c0d2a5cd46e24deecdca87e1711cdb985cc53982aca"
+  "stand-flow_sha256": "bf644288eb25780de1d46c0d2a5cd46e24deecdca87e1711cdb985cc53982aca",
+  "mission-vs-skill_sha256": "56d0ef438ac2c2d006d76c2cb863add3a3fabec5189d9f00df39e75b1a56a60b"
 }
