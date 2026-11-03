@@ -1,7 +1,7 @@
 # 11-03 정리 — skill 학습부터 로봇 배포까지
 
 > 2026-11-03 20:25 (pa27 시각) 기준. 오늘 이야기하고 정하고 만든 것을 한 장에 모았습니다.
-> 자세한 내용: [전체 지도](system-map.html) · [skill별 학습 조건](skill-training.html) · [학습용 skill 구성](skill-learning.html)
+> 자세한 내용: [실기 디버깅 가이드](debug-guide.html) · [전체 지도](system-map.html) · [skill별 학습 조건](skill-training.html) · [학습용 skill 구성](skill-learning.html)
 
 ---
 
