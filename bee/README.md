@@ -6,6 +6,7 @@
 - 메시지·역할 사전: https://junekunst.github.io/bee/messages.html
 - 스킬·플랜 한 장 (설명용): https://junekunst.github.io/bee/skill-plan.html
 - 학습용 skill 구성·학습 플랜 (결정 중): https://junekunst.github.io/bee/skill-learning.html
+- skill별 학습 조건 (환경·보상·성공·기준선): https://junekunst.github.io/bee/skill-training.html
 
 ## 학습 순서
 
