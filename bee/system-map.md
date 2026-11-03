@@ -1,6 +1,6 @@
 # BEE 전체 지도 — 학습부터 로봇까지
 
-> 2026-11-03 19:30 기준. 지금까지 만든 것 전부를 한 장에 그렸습니다. 색: <b style="color:#3fbf7f">초록 = 완료</b> · <b style="color:#e2a83a">노랑 = 진행 중 · 일부</b> · <b style="color:#e06666">빨강 = 아직 없음</b> · <b style="color:#8aa0b8">회색 = 학습 안 함 (규칙·기존 그대로)</b>
+> 2026-11-03 20:00 기준. 지금까지 만든 것 전부를 한 장에 그렸습니다. 색: <b style="color:#3fbf7f">초록 = 완료</b> · <b style="color:#e2a83a">노랑 = 진행 중 · 일부</b> · <b style="color:#e06666">빨강 = 아직 없음</b> · <b style="color:#8aa0b8">회색 = 학습 안 함 (규칙·기존 그대로)</b>
 > 자세한 내용: [학습용 skill 구성](skill-learning.html) · [skill별 학습 조건](skill-training.html) · [스킬·플랜 한 장](skill-plan.html)
 
 ---
@@ -157,6 +157,73 @@ flowchart TB
 - 학습된 skill 정책은 **로봇을 처음부터 움직이지 않습니다.** 늘 "기준 동작(Nav2 · MoveIt · IK 궤적 · P 제어)이 움직이고, 정책은 그 위에 몇 mm·몇 cm/s만 고칩니다." 그래서 정책을 끄면(Δ = 0) 지금 로봇과 똑같이 움직입니다.
 - 팔 정책 파일은 skill마다 하나씩이고, **coordinator가 "지금 어떤 skill의 어느 단계인지"를 알려 주면 `rl_arm_correction`이 그 skill의 정책만 켭니다.** 빈 공간 이동 중이거나 skill이 없으면 꺼져 있습니다.
 - 🔴 지금 로봇에 없는 것: `rl_arm_correction`·`rl_nav_correction`의 ONNX 추론 (틀만, Δ = 0) · coordinator → 보정 컨트롤러 "skill·단계" 전달 · coordinator 닿는 구간 IK 궤적 · approach P 제어 · mission_manager의 `plan_next` (3장 표).
+
+---
+
+## 3-2. 최종 목표 — skill별로 무엇이 움직이고, 학습 모델은 어디서 도나
+
+> 학습 결과(지금은 1차)가 모두 기준선보다 좋아졌다고 볼 때의 최종 그림입니다. 결과가 기준선을 못 넘는 skill은 그 정책만 끄고 기준 동작으로 돌아갑니다 (Δ = 0).
+
+**한 문장**: "퍽에 닿는 구간과 상자 앞 짧은 도킹·이동"에만 학습 보정이 붙고, 나머지는 지금 로봇 방식(MoveIt · Nav2 · YOLO · 규칙) 그대로 — 그 위에서 플래너 하나가 다음 skill을 고릅니다.
+
+```mermaid
+flowchart LR
+  subgraph gy_MODEL["🧠 학습 모델을 쓰는 skill 14개"]
+    direction TB
+    gy_ma["팔 · 닿는 구간 (IK 궤적 + 보정)<br/>pick_upright · stand_up · regrasp_stood<br/>load_slot · unload_slot · place_cell<br/>nudge_cell · stand_in_place"]:::model
+    gy_mb["팔 · 끝 자세 (MoveIt + 처짐 보정)<br/>pregrasp"]:::model
+    gy_mc["주행 · 짧은 이동 (approach P 제어 + 보정)<br/>dock_box · park_home · drive_straight · drive_arc"]:::model
+    gy_md["플랜<br/>plan_next"]:::model
+  end
+  subgraph gy_KEEP["기존 방식 그대로 23개"]
+    direction TB
+    gy_ka["팔: move_pose · camera_clear_view · camera_look_down (MoveIt)<br/>compensate_sag · grip_force (실측값)"]:::keep
+    gy_kb["주행: drive_turn (P 제어) · navigate (Nav2)"]:::keep
+    gy_kc["인식: YOLO 3 · 규칙 4"]:::keep
+    gy_kd["상태·비상 6 · 맵 3"]:::keep
+  end
+  gy_ma --> gy_N1["rl_arm_correction<br/>(JTC 뒤 · 모터 앞)"]:::node
+  gy_mb --> gy_N1
+  gy_mc --> gy_N2["rl_nav_correction"]:::node
+  gy_md --> gy_N3["mission_manager"]:::node
+  classDef model fill:#2a1f4d,stroke:#a78bfa,color:#e8eef8
+  classDef keep fill:#1c2635,stroke:#8aa0b8,color:#e8eef8
+  classDef node fill:#123d2a,stroke:#3fbf7f,color:#e8eef8
+```
+
+### 🧠 학습 모델(ONNX)을 쓰는 skill — 14개
+
+| 영역 | skill | 기준 동작 (움직이는 것) | 학습 보정이 도는 곳 |
+|---|---|---|---|
+| 팔 · 닿는 구간 | `pick_upright` · `stand_up` · `regrasp_stood` · `load_slot` · `unload_slot` · `place_cell` · `nudge_cell`* · `stand_in_place`* | IK 궤적 (시뮬과 같음) | `rl_arm_correction` — JTC 뒤, 모터 앞 |
+| 팔 · 끝 자세 | `pregrasp` | MoveIt 경로 | `rl_arm_correction` — 도착 뒤 처짐 보정 |
+| 주행 · 짧은 이동 | `dock_box` · `park_home` · `drive_straight` · `drive_arc` | approach P 제어 (돌기-직진-돌기) | `rl_nav_correction` |
+| 플랜 | `plan_next` | (규칙 순서 대신) | `mission_manager` |
+
+\* 아직 학습 환경 없음 — 만들면 이 줄에 들어감
+
+### 학습 모델 없이 기존 방식 그대로 — 23개
+
+| 영역 | skill | 무엇으로 |
+|---|---|---|
+| 팔 | `move_pose` · `camera_clear_view` · `camera_look_down` | MoveIt (기준선이 이미 정확) |
+| 팔 | `compensate_sag` · `grip_force` | 실측값 (보정표) |
+| 주행 | `drive_turn` | P 제어 (기준선이 이미 정확) |
+| 주행 | `navigate` | Nav2 |
+| 인식 | `detect_puck` · `classify_color` · `classify_shape_pose` | YOLO (이미 학습된 `.pt`, perception 노드) |
+| 인식 | `read_puck_tag` · `detect_location_box` · `read_signal_barcode` · `judge_cell` | 규칙 (AprilTag · 바코드 · 거리 계산) |
+| 상태·비상 | `monitor_battery` · `monitor_current` · `monitor_motor` · `detect_tip_impact` · `basket_ledger` · `estop` | 문턱값 · 장부 · 버튼 |
+| 맵 | `slam_localize` · `build_map` · `align_arena` | cuVSLAM · nvblox |
+
+### 로봇에서 학습 모델이 도는 노드 — 결국 3개
+
+| 노드 | 담는 모델 | 언제 켜지나 | 끄면 |
+|---|---|---|---|
+| `rl_arm_correction` | 팔 skill 9개 정책 (skill마다 1개) | coordinator가 "지금 이 skill의 닿는 구간"이라고 알려 줄 때만 | Δ = 0 → 기준 궤적만 |
+| `rl_nav_correction` | 주행 skill 4개 정책 | approach로 도킹·짧은 이동할 때만 | Δ = 0 → 기준 P 제어만 |
+| `mission_manager` | `plan_next` | skill 하나 끝날 때마다 | 규칙 순서 / 계산기 순서 |
+
+(+ YOLO가 도는 perception 노드 — 이번에 새로 학습한 것이 아니라 원래 있던 모델)
 
 ---
 
