@@ -5,9 +5,22 @@
 - 코드: 브랜치 `feature/skill-envs` · `lv2_module6/isaac/lab/` (팀원 `feature/isaac-lab` 위에 추가)
 - skill 목록·나눈 이유: [학습용 skill 구성](skill-learning.html)
 - 기준선 결과는 2026-11-03 pa27(RTX 5060 8 GB)에서 잔차 0으로 128~256판씩 돌린 값입니다.
-- **지금 pa27에서 skill별 본 학습을 차례로 돌리는 중**입니다 (512 env × 1500회, 끝날 때마다 평가). 결과는 아래 7장 산출물 현황에 채웁니다.
+- **재학습 중 (11-03 19:36~, pa27)**: `load_slot` → `pregrasp` (2048 env × 500회). 1차 결과가 합격 기준(성공 ≥ 97 % · 되돌릴 수 없는 실패 ≤ 0.5 %)에 못 미쳐 보상·설정을 고쳤습니다 → 7장
+- `park_home` · `drive_arc` · `regrasp_after_stand`는 동료가 학습
 - **Isaac에서 미션 전체를 푸는 실행기**: 무작위 문제를 끝까지 풂 → 8장
 - **실제 로봇에 올리는 조건 (11-03 결정)** → 9장
+
+
+> **이름 바꿈 (11-03 19:50)** — `upright` · `right` · `stand`가 섞여 헷갈려서, 퍽이 **서 있는지 / 누웠는지**가 이름에 드러나게 했습니다.
+>
+> | 새 이름 | 예전 이름 | 하는 일 | `--task` (예전) | 환경 파일 (팀원) |
+> |---|---|---|---|---|
+> | `pick_standing_puck` | `pick_upright` | **서 있는** 퍽 집기 | `pick_standing` (`pick`) | `pick_env.py` |
+> | `stand_lying_puck` | `stand_up` | **누운** 퍽 세우기 | `stand_lying` (`stand` · `right`) | `right_env.py` |
+> | `regrasp_after_stand` | `regrasp_stood` | 세운 그 자리에서 다시 쥐기 | `stand_lying` + `regrasp=1` | `right_env.py` |
+> | `stand_puck_in_cell` | `stand_in_place` | 칸 안에서 누운 퍽 세우기 | 환경 없음 | — |
+>
+> 예전 `--task` 이름과 `train_queue.sh regrasp_stood`도 그대로 됩니다.
 
 ---
 
@@ -42,21 +55,21 @@ flowchart LR
 | skill | 영역 | 환경 (`--task`, `--cfg`) | 기준선 성공 | 상태 |
 |---|---|---|---|---|
 | `place_cell` | 팔 | `pip` (팀원) | 96.3 % (place, 10-31) | 학습됨 99.0 % (팀원) |
-| `pick_upright` | 팔 | `pick` (팀원) | — | 팀원 정책 있음 |
-| `stand_up` | 팔 | `right` (팀원) | — | 팀원 정책 있음 |
-| `regrasp_stood` | 팔 | `right`, `regrasp=1` (팀원) | — | 본 학습 대기열 8번째 (기준선도 그때 잼) |
-| `load_slot` | 팔 | `load` (**새로**) | **94.8 %** (고친 뒤) | ✅ **학습 완료 98.3 %** (2048 env × 500회) · 처음 71.1 %는 환경 오류였음 (아래) |
-| `unload_slot` | 팔 | `unload` (**새로**) | 90.6 % | **본 학습 중** (17:50) |
+| `pick_standing_puck` | 팔 | `pick` (팀원) | — | 팀원 정책 있음 |
+| `stand_lying_puck` | 팔 | `right` (팀원) | — | 팀원 정책 있음 |
+| `regrasp_after_stand` | 팔 | `right`, `regrasp=1` (팀원) | — | 본 학습 대기열 8번째 (기준선도 그때 잼) |
+| `load_slot` | 팔 | `load` (**새로**) | **94.8 %** (고친 뒤) | 1차 98.3 %지만 **놓침 1.0 %** (기준 0.5 % 넘음) → **재학습 중** (놓침 벌점 5 → 20) |
+| `unload_slot` | 팔 | `unload` (**새로**) | 90.6 % | ✅ **학습 완료 98.1 %** (놓침 0.1 %) |
 | `move_pose` | 팔 | `reach`, `target=pose` (**새로**) | 100 % | 시뮬에선 기준선으로 충분 |
 | `camera_clear_view` | 팔 | `reach`, `target=clear` (**새로**) | 100 % | 시뮬에선 기준선으로 충분 |
-| `pregrasp` | 팔 | `reach`, `target=above` (**새로**) | 88~91 % | 본 학습 대기열 5번째. 실패 원인 확인함 (아래) |
+| `pregrasp` | 팔 | `reach`, `target=above` (**새로**) | 89.8 % → 고친 뒤 **99.5 %** | 1차 95.4 % (기준 97 % 못 미침) → 환경 고치고 **재학습 중** |
 | `camera_look_down` | 팔 | `reach`, `target=look` (**새로**) | 100 % | 높이 확인 필요 (아래) |
 | `drive_straight` | 주행 | `drive`, `task=straight` (**새로**) | 61.4 % | ✅ **학습 완료 100 %** (2048 env × 500회) |
 | `drive_turn` | 주행 | `drive`, `task=turn` (**새로**) | 100 % | 시뮬에선 기준선으로 충분 |
-| `drive_arc` | 주행 | `drive`, `task=arc` (**새로**) | 94.5 % | 본 학습 대기열 7번째 |
+| `drive_arc` | 주행 | `drive`, `task=arc` (**새로**) | 94.5 % | 동료 학습 |
 | `dock_box` | 주행 | `drive`, `task=dock` (**새로**) | **30.2 %** | ✅ **학습 완료 98.6 %** (512 env × 1500회) |
-| `park_home` | 주행 | `drive`, `task=park` (**새로**) | 87.5 % | 본 학습 대기열 6번째 |
-| `nudge_cell` · `stand_in_place` | 팔 | 없음 | — | 기준 동작부터 설계 필요 |
+| `park_home` | 주행 | `drive`, `task=park` (**새로**) | 87.5 % | 동료 학습 |
+| `nudge_cell` · `stand_puck_in_cell` | 팔 | 없음 | — | 기준 동작부터 설계 필요 |
 | `navigate` | 주행 | 없음 | — | Nav2·장애물 장면 필요 |
 | `plan_next` | 플랜 | 가상 미션 (CPU) | 계산기 38.11점 | **skill 완성 후** (마지막) |
 
@@ -81,7 +94,7 @@ flowchart LR
 </details>
 
 <details>
-<summary>▶ <code>pick_upright</code> — 서 있는 퍽 집기 (팀원 <code>pick_env.py</code>)</summary>
+<summary>▶ <code>pick_standing_puck</code> — 서 있는 퍽 집기 (팀원 <code>pick_env.py</code>)</summary>
 
 | 항목 | 내용 |
 |---|---|
@@ -97,7 +110,7 @@ flowchart LR
 </details>
 
 <details>
-<summary>▶ <code>stand_up</code> · <code>regrasp_stood</code> — 누운 퍽 세우기, 세운 퍽 다시 집기 (팀원 <code>right_env.py</code>)</summary>
+<summary>▶ <code>stand_lying_puck</code> · <code>regrasp_after_stand</code> — 누운 퍽 세우기, 세운 퍽 다시 집기 (팀원 <code>right_env.py</code>)</summary>
 
 | 항목 | 내용 |
 |---|---|
@@ -106,7 +119,7 @@ flowchart LR
 | 정책 행동 | 관절 보정 ±0.1 rad (세울 때 위쪽을 16 mm쯤 밀어 넘겨야 해서 더 큼) |
 | 무작위화 | 인식 ±5 mm, ±10° · 쥐는 힘 ×0.85~1.15 · 지연 ×0.8~1.2 · 질량 · 마찰 · 가로 위치 ±45 mm |
 | 보상 | 집은 동안 퍽이 서는 쪽 +0.01 · 연 뒤 서 있음 +0.1 · 손 흔들림 −0.1 · 성공 +10 · 실패 −5 |
-| 성공 (stand_up) | 기울기 5° 미만으로 섬 · 박스 위 · 손에서 빠짐 · 박스 3 mm 이상 안 밀림 · 이웃 안 넘어짐 |
+| 성공 (stand_lying_puck) | 기울기 5° 미만으로 섬 · 박스 위 · 손에서 빠짐 · 박스 3 mm 이상 안 밀림 · 이웃 안 넘어짐 |
 | 성공 (`regrasp=1`) | 세운 뒤 그 자리에서 다시 잡아 30 mm 이상 들고 손 안 |
 | 실패 종료 | 박스에서 떨어짐 · 박스 밀림 · 이웃 넘어짐 · 연 뒤 다시 누움 |
 
@@ -136,9 +149,9 @@ flowchart LR
 | 시작 | carry 자세(칸 쪽), 손 열림. 퍽이 칸 안에 (사각 퍽은 칸 벽에 맞춤 ±3°, 원기둥은 아무 방향) |
 | 기준 동작 | carry → 칸 위(`q_over`) → 잡는 자세(`q_grasp`, 기둥 쪽 칸은 기둥에서 8 mm 비켜 잡음) → 안정 → 닫기 → 칸 위로 → 대기 |
 | 정책 행동 | 관절 보정 ±0.05 rad, 손 닫기 전까지 |
-| 관측 | `pick_upright`와 같음 (이웃 없음) |
+| 관측 | `pick_standing_puck`와 같음 (이웃 없음) |
 | 무작위화 | 칸 안 퍽 위치 ±3 mm · 질량·마찰 · 처짐 |
-| 보상 | `pick_upright`와 같은 항·가중치 (이웃 항은 0) |
+| 보상 | `pick_standing_puck`와 같은 항·가중치 (이웃 항은 0) |
 | 성공 | 칸 바닥보다 30 mm 이상 들림 · 손 안 |
 | 기준선 | **90.6 %** |
 
@@ -209,7 +222,7 @@ flowchart LR
 | 1 | 대기열 본 학습: dock → straight → load → unload → pregrasp → park → arc → regrasp (`train_queue.sh`) | 기준선 낮은 순 · pa27 한 대 약 5~6시간, 4대로 나누면 1~2시간 |
 | 2 | `pregrasp` 목표 5번 18 mm 확인 | 손목 한계 근처인지 |
 | 3 | skill별 본 학습 (env 512, 1500회 ≈ 35분/skill) | 한 번에 하나 (8 GB GPU) |
-| 4 | `nudge_cell`·`stand_in_place` 기준 동작 설계 | 지금 스크립트가 없음 |
+| 4 | `nudge_cell`·`stand_puck_in_cell` 기준 동작 설계 | 지금 스크립트가 없음 |
 | 5 | `navigate` 환경 (Nav2 + 장애물) | 가장 무거움 |
 | 6 | 실측 2개 (`compensate_sag`·`grip_force`) 절차·맞추기 | 시뮬 처짐·힘을 실기에 맞춤 |
 | 마지막 | `plan_next` | skill 성공률이 나온 뒤 |
@@ -223,18 +236,30 @@ flowchart LR
 | skill | 정책 파일 | 기준선 | 학습 뒤 | 쓸 수 있나 |
 |---|---|---|---|---|
 | `place_cell` | `place_residual*.pt/.onnx` (팀원) | 96.3 % | **99.0 %** | ✅ |
-| `pick_upright` | `pick_residual*.pt/.onnx` (팀원) | — | 기록 없음 | 평가 필요 |
-| `stand_up` | `right_residual*.pt/.onnx` (팀원, 여러 버전) | — | 기록 없음 | 평가 필요 |
+| `pick_standing_puck` | `pick_residual*.pt/.onnx` (팀원) | — | 기록 없음 | 평가 필요 |
+| `stand_lying_puck` | `right_residual*.pt/.onnx` (팀원, 여러 버전) | — | 기록 없음 | 평가 필요 |
 | `dock_box` | `policies/dock_box.pt/.onnx` | 30.2 % | **98.6 %** (1024판) | ✅ |
 | `drive_straight` | `policies/drive_straight.pt/.onnx` | 61.4 % | **100 %** | ✅ |
-| `load_slot` | `policies/load_slot.pt/.onnx` | 94.8 % | **98.3 %** | ✅ |
-| 나머지 대기열 5개 | 차례로 (`unload_slot` 학습 중) | — | — | — |
+| `load_slot` | `policies/load_slot.pt` (1차 → `load_slot_v1.pt`로 보관) | 94.8 % | 98.3 % · 놓침 1.0 % | ⚠️ 재학습 중 |
+| `unload_slot` | `policies/unload_slot.pt/.onnx` | 93.7 % | **98.1 %** | ✅ (넣을 차례) |
+| `pregrasp` | `policies/pregrasp.pt` (1차 → `pregrasp_v1.pt`로 보관) | 89.3 % | 95.4 % | ⚠️ 재학습 중 |
+| `park_home` · `drive_arc` · `regrasp_after_stand` | 동료 | — | — | — |
 
-- 로봇 배포: 위 ✅ 정책은 `.policy`로 바꿔 PR #55 `ros2_ws/model/`에 넣었습니다 (`place_cell`·`pick_upright`는 팀원 정책). 전체 지도: [system-map](system-map.html)
+### 재학습 (11-03 19:36 시작, pa27 `bee-retrain`) — 무엇을 왜 고쳤나
+
+| skill | 1차 결과 | 원인 (측정) | 고친 것 (`feature/skill-envs` 700a86f) | 고친 뒤 기준선 |
+|---|---|---|---|---|
+| `load_slot` | 성공 98.3 %, **놓침 10/1024 = 1.0 %** (기준선 4/1024) | 정책이 가운데 맞추기(+10)를 얻으려고 놓침(−5)을 감수함 — 놓친 퍽은 미션에서 되돌릴 수 없음 | `LoadEnvCfg.w_fail` **5 → 20** | 94.8 % (보상만 바뀜) |
+| `pregrasp` | **95.4 %** (기준 97 %) | 기준선 2049판 실패 210판: **목표 5번 65판** (가까운 줄 · 가운데 · +45°, 17.8 mm 못 감 — 손이 못 가는 자세라 보정으로 못 고침) · **먼 줄 목표 20·22·25번 144판** (오차 0.2 mm로 맞았는데 판정 때 아직 흔들림) | 목표 5번 **뺌** (`skip_above`) · 멈춤 시간 `settle_s` **0.6 → 1.2 s** | **99.5 %** (1024판) |
+
+- 끝나면 1차와 같은 1024판 평가 → 기준 넘으면 `.policy`로 바꿔 로봇에 넣고, 못 넘으면 1차(`_v1`) 그대로 둠
+- `pregrasp`는 기준선만으로도 이제 97 %를 넘음 → 학습이 기준선보다 나을 때만 정책 사용
+
+- 로봇 배포: 위 ✅ 정책은 `.policy`로 바꿔 PR #55 `ros2_ws/model/`에 넣었습니다 (`place_cell`·`pick_standing_puck`는 팀원 정책). 전체 지도: [system-map](system-map.html)
 
 - 오늘 앞서 나온 `pregrasp_residual.pt`(300회 시험)·`load_viz.pt`(화면 시연)는 **환경이 학습까지 도는지 확인한 시험 결과**라 쓰지 않습니다 (기준선보다 나아지지 않았고, `load`는 그 뒤 환경을 고침).
 - 기준선이 이미 100 %라 학습이 필요 없는 것 (시뮬 기준): `move_pose` · `camera_clear_view` · `camera_look_down` · `drive_turn`
-- 환경이 아직 없는 것: `nudge_cell` · `stand_in_place` · `navigate`
+- 환경이 아직 없는 것: `nudge_cell` · `stand_puck_in_cell` · `navigate`
 
 ---
 
@@ -296,7 +321,7 @@ flowchart LR
 |---|---|---|
 | L1 (Y 3개) | 2/3 — 1개는 집다가 상자 밖으로 떨어뜨림 (잃음) | 0 |
 | L2 (R 4개) | **4/4** (칸 오차 1.4~6.8 mm) | **+10** |
-| L3 (G 5개) | 4/5 — 1개는 놓다가 누움. 칸 위 누운 퍽 세우기(`stand_in_place`)가 아직 없어 못 고침 | 0 |
+| L3 (G 5개) | 4/5 — 1개는 놓다가 누움. 칸 위 누운 퍽 세우기(`stand_puck_in_cell`)가 아직 없어 못 고침 | 0 |
 | 복귀 | 출발 구역 도착 | **+10** |
 | **합계** | | **20 / 40** |
 
@@ -327,9 +352,9 @@ flowchart LR
 | skill | [1] 빈 공간 이동 | [2] 학습 보정 구간 (기준 동작) | 로봇에서 정책 위치 | 로봇에 아직 없는 입력 |
 |---|---|---|---|---|
 | `place_cell` | MoveIt: carry → 칸 위 50 mm | 내려가기 → 놓기 → 올리기 (IK + 보간) | `rl_arm_correction` | `/hand_relative` cell로 해결 · 손 안 퍽 오차는 0으로 |
-| `pick_upright` | MoveIt: stow → 퍽 위 50 mm | 내려가기 → 쥐기 → 들기 | `rl_arm_correction` | `/hand_relative` puck으로 해결 |
-| `stand_up` | MoveIt: 누운 퍽 먼 끝 위 | 살짝 집기 → 원호로 세우기 → 놓기 → 비키기 | `rl_arm_correction` | `/hand_relative` puck (축·옆 퍽)으로 해결 |
-| `regrasp_stood` | (stand_up에 이어서) | 그 자리에서 쥐기 → 들기 | `rl_arm_correction` | `/hand_relative` puck으로 해결 |
+| `pick_standing_puck` | MoveIt: stow → 퍽 위 50 mm | 내려가기 → 쥐기 → 들기 | `rl_arm_correction` | `/hand_relative` puck으로 해결 |
+| `stand_lying_puck` | MoveIt: 누운 퍽 먼 끝 위 | 살짝 집기 → 원호로 세우기 → 놓기 → 비키기 | `rl_arm_correction` | `/hand_relative` puck (축·옆 퍽)으로 해결 |
+| `regrasp_after_stand` | (stand_lying_puck에 이어서) | 그 자리에서 쥐기 → 들기 | `rl_arm_correction` | `/hand_relative` puck으로 해결 |
 | `load_slot` | MoveIt: → carry 자세 | 칸 위 → 칸 바닥 → 놓기 → 올리기 (slot_table) | `rl_arm_correction` | `/hand_relative` slot으로 해결 · 손 안 퍽 오차는 0으로 |
 | `unload_slot` | MoveIt: → carry 자세 | 칸 위 → 쥐기 → 칸 위 (slot_table) | `rl_arm_correction` | `/hand_relative` puck으로 해결 |
 | `pregrasp` · `camera_look_down` | MoveIt 경로 | 도착 뒤 끝 자세 유지 (처짐 보정) | `rl_arm_correction` | 없음 |
@@ -424,7 +449,7 @@ flowchart LR
 
 ---
 
-### 10-2. `pick_upright` · `unload_slot` — 집기 (`pick_env.py` `PickEnv`, 적재함은 `slot_env.py` `UnloadEnv`)
+### 10-2. `pick_standing_puck` · `unload_slot` — 집기 (`pick_env.py` `PickEnv`, 적재함은 `slot_env.py` `UnloadEnv`)
 
 **단계**: 0 (stow·carry에서 이동 후) 위에서 정지 → 1 내려가기 → 2 안정 → 3 닫기 → 4 들기 → 5 대기 → 끝 · 보정은 이동이 끝난 뒤 0~2단계만 (0.05 rad)
 
@@ -440,7 +465,7 @@ flowchart LR
 
 ---
 
-### 10-3. `stand_up` · `regrasp_stood` — 누운 퍽 세우기 (`right_env.py` `RightEnv`, 팀원)
+### 10-3. `stand_lying_puck` · `regrasp_after_stand` — 누운 퍽 세우기 (`right_env.py` `RightEnv`, 팀원)
 
 **단계**: 0 이동·정지 → 1 내려가기 → 2 0.4 N으로 살짝 집기 → 3 원호로 120°까지 넘김 → 4 안정 → 5 벌리기 → 6 비키기 → 7 대기 → 끝 (`regrasp=1`: 6~7단계가 그 자리에서 다시 쥐고 들기) · 보정 1~4단계 (`residual_rad` **0.1 rad**)
 
@@ -515,7 +540,7 @@ flowchart LR
 
 | skill | 이유 |
 |---|---|
-| `nudge_cell` · `stand_in_place` | 학습 환경이 없음 (기준 동작부터 설계) |
+| `nudge_cell` · `stand_puck_in_cell` | 학습 환경이 없음 (기준 동작부터 설계) |
 | `navigate` | Nav2 그대로 (환경 없음) |
 | `compensate_sag` · `grip_force` | 실측값에 맞추는 방식 — 보상 대신 손실(예측 − 실측). 맞추는 스크립트 아직 없음 |
 | 인식 · 상태 · 비상 · 맵 | 새로 학습 안 함 (YOLO 학습됨 · 규칙 · 유지) |

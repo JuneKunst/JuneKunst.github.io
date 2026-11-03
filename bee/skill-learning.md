@@ -59,8 +59,8 @@ task는 미션 규칙의 수행 순서와 채점 항목에서 나눴습니다. *
 |---|---|---|---|---|
 | **관측** | 신호 12회와 바코드 읽기 | `camera_clear_view` · `read_signal_barcode` | 안전 정지 (규칙: 추정 금지) | 25 |
 | **조사** | 시작 박스 6곳의 퍽 12개 색·모양·자세 파악 → 계산기가 할당 | `navigate` · `dock_box` · `camera_look_down` · 인식 skill | 그 박스·퍽만 기록하고 계속 | 27 (할당) |
-| **수집** | 퍽을 집어 적재함에 (누웠으면 세워서) | `pregrasp` · `pick_upright` · `stand_up` · `regrasp_stood` · `load_slot` | 그 퍽만 기록하고 계속 | — |
-| **배치** | 장소로 가서 꺼내 주사위 칸에 놓고 확인, 틀어졌으면 고침 | `navigate` · `dock_box` · `detect_location_box` · `unload_slot` · `place_cell` · `judge_cell` · `nudge_cell` · `stand_in_place` | 그 퍽만 기록하고 다음 | **30** |
+| **수집** | 퍽을 집어 적재함에 (누웠으면 세워서) | `pregrasp` · `pick_standing_puck` · `stand_lying_puck` · `regrasp_after_stand` · `load_slot` | 그 퍽만 기록하고 계속 | — |
+| **배치** | 장소로 가서 꺼내 주사위 칸에 놓고 확인, 틀어졌으면 고침 | `navigate` · `dock_box` · `detect_location_box` · `unload_slot` · `place_cell` · `judge_cell` · `nudge_cell` · `stand_puck_in_cell` | 그 퍽만 기록하고 다음 | **30** |
 | **검증** | 장소마다 새로 보고 칸 판정 | `navigate` · `dock_box` · `camera_look_down` · `judge_cell` | 기록만 | 8 |
 | **복귀** | 출발 구역 안에 3초 정지 | `move_pose` · `navigate` · `park_home` | 정지 | 10 |
 
@@ -209,14 +209,14 @@ task는 미션 규칙의 수행 순서와 채점 항목에서 나눴습니다. *
 | `pregrasp` | 퍽 위 집기 전 자세 | RL | MoveIt |
 | `camera_clear_view` | 기둥 카메라 시야에서 팔 치우기 | RL | MoveIt |
 | `camera_look_down` | 손 카메라로 내려다보기 | RL | MoveIt |
-| `pick_upright` | 선 퍽 집기 | RL | 스크립트 + IK |
-| `stand_up` | 누운 퍽 세우기 | RL | 스크립트 + IK |
-| `regrasp_stood` | 세운 퍽 다시 집기 | RL | 스크립트 |
+| `pick_standing_puck` | 선 퍽 집기 | RL | 스크립트 + IK |
+| `stand_lying_puck` | 누운 퍽 세우기 | RL | 스크립트 + IK |
+| `regrasp_after_stand` | 세운 퍽 다시 집기 | RL | 스크립트 |
 | `load_slot` | 적재함 칸에 넣기 | RL | 표 |
 | `unload_slot` | 적재함 칸에서 꺼내기 | RL | 표 |
 | `place_cell` | 주사위 칸에 놓기 | RL | 스크립트 + IK |
 | `nudge_cell` | 칸 안에서 밀어 맞추기 (고치기) | RL | 스크립트 |
-| `stand_in_place` | 장소에서 넘어진 퍽 세우기 (고치기) | RL | `stand_up` |
+| `stand_puck_in_cell` | 장소에서 넘어진 퍽 세우기 (고치기) | RL | `stand_lying_puck` |
 
 <details>
 <summary>▶ compensate_sag · grip_force — 측정해서 배우는 것</summary>
@@ -242,27 +242,27 @@ task는 미션 규칙의 수행 순서와 채점 항목에서 나눴습니다. *
 </details>
 
 <details>
-<summary>▶ pick_upright — 선 퍽 집기</summary>
+<summary>▶ pick_standing_puck — 선 퍽 집기</summary>
 
 - **하는 일**: 퍽 위에서 내려가 쥐고 들어 올립니다. 사각 퍽은 손 방향을 퍽 방향에 맞춥니다.
 - **시작 조건**: 손이 퍽 위(`pregrasp` 끝) · 퍽이 서 있음 · 손이 비어 있음
 - **성공 판정**: 들어 올림 · 손가락이 끝까지 안 닫힘(3mm 이상) · 전류 0.25A 이상
 - **보상 함수**: + 들어 올림 + 잡기 판정 통과 − 옆 퍽 건드림 − 손에서 미끄러짐 + **끝 자세가 `load_slot` 시작 범위 안** + 공통 벌점
-- **실패하면**: 벌리고 `pregrasp`부터 다시 · 퍽이 넘어지면 `stand_up`
+- **실패하면**: 벌리고 `pregrasp`부터 다시 · 퍽이 넘어지면 `stand_lying_puck`
 - **학습 장면**: 시작 박스 위 퍽 2개(가운데 ±40mm) · 퍽 방향·모양 무작위
 - **참고**: 팀 시연에서 사각 퍽을 집다가 손이 2~3mm 더 나가 퍽을 넘어뜨린 일이 가장 많았습니다.
 
 </details>
 
 <details>
-<summary>▶ stand_up · regrasp_stood — 누운 퍽 세워서 집기</summary>
+<summary>▶ stand_lying_puck · regrasp_after_stand — 누운 퍽 세워서 집기</summary>
 
-- **stand_up**: 누운 퍽의 먼 끝을 **가볍게(0.4N)** 쥐고, 가까운 아래 모서리를 축으로 돌려 세운 뒤 손을 벌리고 빠집니다.
+- **stand_lying_puck**: 누운 퍽의 먼 끝을 **가볍게(0.4N)** 쥐고, 가까운 아래 모서리를 축으로 돌려 세운 뒤 손을 벌리고 빠집니다.
   - 시작 조건: 퍽이 누워 있음 · 손이 퍽 먼 끝 위
   - 성공 판정: 퍽이 서 있음(인식으로 확인) · 손이 빠짐
   - 보상 함수: + 퍽이 서 있음(기울기 작음) + 손 벌리고 빠짐 − 퍽이 상자 밖으로 − 0.4N보다 세게 쥠 + 공통 벌점
-- **regrasp_stood**: 세운 직후 같은 손목 자세로 바로 내려가 꽉 쥐고 들어 올립니다.
-  - 시작 조건: `stand_up` 성공 직후
+- **regrasp_after_stand**: 세운 직후 같은 손목 자세로 바로 내려가 꽉 쥐고 들어 올립니다.
+  - 시작 조건: `stand_lying_puck` 성공 직후
   - 보상 함수: + 들어 올림 + 잡기 판정 − 퍽을 다시 넘어뜨림 + 공통 벌점
 - **왜 둘로 나눴나**: 쥐는 힘이 다르고(0.4N vs 22~29N), 세운 뒤 손을 놓으니 **섰는지 확인**할 수 있으며, 집기만 실패했을 때 이미 선 퍽을 다시 세우지 않아도 됩니다.
 
@@ -295,14 +295,14 @@ task는 미션 규칙의 수행 순서와 채점 항목에서 나눴습니다. *
 </details>
 
 <details>
-<summary>▶ nudge_cell · stand_in_place — 고치기</summary>
+<summary>▶ nudge_cell · stand_puck_in_cell — 고치기</summary>
 
 - 장소 하나의 주사위 눈이 전부 맞아야 10점입니다. 퍽 하나가 틀어지면 장소 전체가 날아가서 **고치는 기술**이 필요합니다.
 - **nudge_cell**: 놓은 퍽이 10~25mm 벗어났을 때 집지 않고 밀어서 맞춤
   - 보상 함수: + 오차가 줄어듦 + 10mm 안 + 서 있음 − 넘어뜨림 − 이웃 건드림 + 공통 벌점
   - 근거가 약합니다 — 다시 집어 놓기보다 나은지 시뮬에서 비교 후 결정.
-- **stand_in_place**: 칸 안 퍽이 누웠을 때 그 자리에서 세움. `stand_up`을 이웃 퍽이 있는 장면으로 이어 학습.
-  - 보상 함수: `stand_up`과 같음 − 이웃 퍽 건드림(큰 벌점)
+- **stand_puck_in_cell**: 칸 안 퍽이 누웠을 때 그 자리에서 세움. `stand_lying_puck`을 이웃 퍽이 있는 장면으로 이어 학습.
+  - 보상 함수: `stand_lying_puck`과 같음 − 이웃 퍽 건드림(큰 벌점)
 
 </details>
 
@@ -367,7 +367,7 @@ flowchart LR
 | 항목 | 내용 |
 |---|---|
 | 입력 | 인지 결과(퍽마다 위치·색·모양·자세, 상자 위치) · 로봇 상태(위치·손·적재함·배터리) · 진행 상황(놓은 칸, 실패 횟수) · **계산기 정답**(퍽별 목표 장소·칸) |
-| 출력 | 다음 skill + 대상 (예: `navigate 상자5` / `pick_upright 퍽7` / `place_cell L2 칸4` / 다시 보기 / 복귀) |
+| 출력 | 다음 skill + 대상 (예: `navigate 상자5` / `pick_standing_puck 퍽7` / `place_cell L2 칸4` / 다시 보기 / 복귀) |
 | 막아 두는 것 | 시작 조건이 안 맞는 skill(손이 찼는데 집기 등) · 계산기 정답을 어기는 행동(빨간 퍽을 G 장소에) → 학습 중에도 실제로도 못 고름 |
 | 보상 함수 | **채점표 그대로**: 장소별 주사위 눈 +10 · 색·모양 +6 · 검증 +2 · 복귀 +10 · 자율 완주 +5 − 퍽 떨어뜨림 − 걸린 시간 조금 |
 | 학습 장소 | **가상 미션** (물리 없이 skill 성공·실패를 확률로 흉내) — 빠르게 수백만 번 |
@@ -456,7 +456,7 @@ flowchart LR
 | 단계 | 할 일 | 통과 기준 | 결과물 |
 |---|---|---|---|
 | 0 공통 기반 | 공통 학습 환경 틀 · 로봇 모델(모터 실측 반영) · 계약 코드 · 끝 상태 기록기 · W&B | 시뮬 관절 응답 ≈ 실측 | 공통 패키지 · 실측 보고서 · 계약 정의서 |
-| 1 skill별 학습 | 점수 영향 큰 순서: `pick_upright` · `stand_up` · `place_cell` → 나머지 팔 → 주행 → 상태·비상 | 시뮬 성공 ≥ 97% · 되돌릴 수 없는 실패 ≤ 0.5% · 기준선보다 좋음 | skill마다 정책 파일(`.onnx`) · 평가 보고서 · 끝 상태 데이터 |
+| 1 skill별 학습 | 점수 영향 큰 순서: `pick_standing_puck` · `stand_lying_puck` · `place_cell` → 나머지 팔 → 주행 → 상태·비상 | 시뮬 성공 ≥ 97% · 되돌릴 수 없는 실패 ≤ 0.5% · 기준선보다 좋음 | skill마다 정책 파일(`.onnx`) · 평가 보고서 · 끝 상태 데이터 |
 | 2 잇기 학습 | 앞 skill의 **실제 끝 상태**로 다음 skill 다시 학습 | 이은 성공률 ≥ 각각의 곱 | 재학습 정책 · 잇기 보고서 |
 | 3 `plan_next` | 가상 미션에서 학습 | 지금 규칙 방식보다 점수 높음 | 플랜 모델 |
 | 4 미션 시뮬 | 전체 미션 반복 (Isaac + ROS) | 만점률 측정 · 실패 원인 skill별로 | 미션 시뮬 보고서 |
@@ -482,8 +482,8 @@ flowchart LR
 
 | 규칙 | 뜻 | 예 | 근거 |
 |---|---|---|---|
-| ① 플래너가 데려다줄 수 있는 곳에서 끊음 | 그 앞은 Nav2·MoveIt이 확실히, 학습은 짧은 접촉 구간 | `pregrasp` / `pick_upright` | ManipGen, Plan-Seq-Learn |
-| ② 성공을 따로 판정할 수 있는 곳에서 끊음 | 끊은 곳 = 다시 하기 단위 | `stand_up` / `regrasp_stood` | SayCan |
+| ① 플래너가 데려다줄 수 있는 곳에서 끊음 | 그 앞은 Nav2·MoveIt이 확실히, 학습은 짧은 접촉 구간 | `pregrasp` / `pick_standing_puck` | ManipGen, Plan-Seq-Learn |
+| ② 성공을 따로 판정할 수 있는 곳에서 끊음 | 끊은 곳 = 다시 하기 단위 | `stand_lying_puck` / `regrasp_after_stand` | SayCan |
 | ③ 판정 못 하거나 나눠도 이득 없으면 합침 | 끊을 때마다 넘겨주기 실패가 늘어남 | 집기 안 "내려가기·닫기·들기"는 하나 | M-EMBER(5단계 실물 53%), ASC |
 | ④ 접촉 대상·장면이 다르면 나눔 | 학습 장면이 다르면 정책도 따로 | 상자 위 집기 / 적재함에서 꺼내기 | — |
 

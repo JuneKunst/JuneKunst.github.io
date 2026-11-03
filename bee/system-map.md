@@ -1,6 +1,6 @@
 # BEE 전체 지도 — 학습부터 로봇까지
 
-> **2026-11-03 19:05 기준** (pa27 시각). 오늘 정리: [11-03 정리](wrapup-1103.html). 지금까지 만든 것 전부를 한 장에 그렸습니다. 색: <b style="color:#3fbf7f">초록 = 완료</b> · <b style="color:#67b7e8">파랑 = 코드 완료, 실기 시험 전</b> · <b style="color:#e2a83a">노랑 = 진행 중 · 일부</b> · <b style="color:#e06666">빨강 = 아직 없음</b> · <b style="color:#8aa0b8">회색 = 학습 안 함 (규칙·기존 그대로)</b>
+> **2026-11-03 19:50 기준** (pa27 시각). 오늘 정리: [11-03 정리](wrapup-1103.html). 지금까지 만든 것 전부를 한 장에 그렸습니다. 색: <b style="color:#3fbf7f">초록 = 완료</b> · <b style="color:#67b7e8">파랑 = 코드 완료, 실기 시험 전</b> · <b style="color:#e2a83a">노랑 = 진행 중 · 일부</b> · <b style="color:#e06666">빨강 = 아직 없음</b> · <b style="color:#8aa0b8">회색 = 학습 안 함 (규칙·기존 그대로)</b>
 > 자세한 내용: [학습용 skill 구성](skill-learning.html) · [skill별 학습 조건](skill-training.html) · [스킬·플랜 한 장](skill-plan.html)
 > PR: [#57 통합 → isaac-setup](https://github.com/visualkhh/Lv2_bee_Assignment/pull/57) · [#53 skill 목록·플래너 학습](https://github.com/visualkhh/Lv2_bee_Assignment/pull/53) · [#54 hand_relative](https://github.com/visualkhh/Lv2_bee_Assignment/pull/54) · [#55 로봇 배포](https://github.com/visualkhh/Lv2_bee_Assignment/pull/55) · [#56 Isaac 학습 환경](https://github.com/visualkhh/Lv2_bee_Assignment/pull/56) · (먼저) [#49 미션 흐름](https://github.com/visualkhh/Lv2_bee_Assignment/pull/49)
 
@@ -39,8 +39,8 @@ flowchart LR
 
 | 덩어리 | 지금 | 막힌 곳 |
 |---|---|---|
-| ① 시뮬 학습 | 환경 14개 완성 · 대기열 8개 중 **5개 끝** (`dock_box` 98.6 % · `drive_straight` 100 % · `load_slot` 98.3 % · `unload_slot` 98.1 % · `pregrasp` 95.4 %) · 지금 `park_home` | 남은 3개 — 밤 9시쯤 |
-| ② 결과물 | 로봇에 넣은 정책 **5개** (`place_cell`·`pick_upright` 팀원 · `dock_box` · `drive_straight` · `load_slot`) + 플래너 1개 | 학습 중 5개는 끝나면 넣기 |
+| ① 시뮬 학습 | 환경 14개 완성 · 대기열 8개 중 **5개 끝** (`dock_box` 98.6 % · `drive_straight` 100 % · `load_slot` 98.3 % · `unload_slot` 98.1 % · `pregrasp` 95.4 %) · 기준 못 넘은 `load_slot`(놓침 1.0 %) · `pregrasp`(95.4 %) **재학습 중** (19:36~) | 남은 3개(`park_home` · `drive_arc` · `regrasp_after_stand`)는 동료 |
+| ② 결과물 | 로봇에 넣은 정책 **5개** (`place_cell`·`pick_standing_puck` 팀원 · `dock_box` · `drive_straight` · `load_slot`) + 플래너 1개 | 학습 중 5개는 끝나면 넣기 |
 | ③ 시뮬 미션 | 무작위 문제를 끝까지 풂 (문제 #1 20점, #7 10점) | 점수를 깎는 건 **skill 실패** (집다 떨어뜨림 · 놓다 누움) |
 | ④ 로봇 | **배포 코드 완료** (PR #55) · 팀원 처짐 적분과 합친 통합본 테스트 **71개** 통과 (PR #57) | **실기 · 전체 bringup 시험 전** · PR 병합 · #57은 isaac-setup과 자산 충돌 정리 필요 |
 
@@ -176,7 +176,7 @@ flowchart TB
 flowchart LR
   subgraph gy_MODEL["🧠 학습 모델을 쓰는 skill 14개"]
     direction TB
-    gy_ma["팔 · 닿는 구간 (IK 궤적 + 보정)<br/>pick_upright · stand_up · regrasp_stood<br/>load_slot · unload_slot · place_cell<br/>nudge_cell · stand_in_place"]:::model
+    gy_ma["팔 · 닿는 구간 (IK 궤적 + 보정)<br/>pick_standing_puck · stand_lying_puck · regrasp_after_stand<br/>load_slot · unload_slot · place_cell<br/>nudge_cell · stand_puck_in_cell"]:::model
     gy_mb["팔 · 끝 자세 (MoveIt + 처짐 보정)<br/>pregrasp"]:::model
     gy_mc["주행 · 짧은 이동 (approach P 제어 + 보정)<br/>dock_box · park_home · drive_straight · drive_arc"]:::model
     gy_md["플랜<br/>plan_next"]:::model
@@ -199,9 +199,9 @@ flowchart LR
 
 | 영역 | skill (학습 모델 씀) | 기준 동작 | 학습 보정이 도는 곳 | 로봇 연결 |
 |---|---|---|---|---|
-| 팔 · 닿는 구간 | `place_cell` · `load_slot` · `pick_upright` · `unload_slot` | IK 궤적 (시뮬과 같음) | `rl_arm_correction` | 🔵 연결됨 (#55) |
-| 팔 · 닿는 구간 | `stand_up` · `regrasp_stood` | 원호 경유점 | `rl_arm_correction` | 🔴 입력 모양 추가 필요 |
-| 팔 · 닿는 구간 | `nudge_cell`* · `stand_in_place`* | — | — | 🔴 환경 없음 |
+| 팔 · 닿는 구간 | `place_cell` · `load_slot` · `pick_standing_puck` · `unload_slot` | IK 궤적 (시뮬과 같음) | `rl_arm_correction` | 🔵 연결됨 (#55) |
+| 팔 · 닿는 구간 | `stand_lying_puck` · `regrasp_after_stand` | 원호 경유점 | `rl_arm_correction` | 🔴 입력 모양 추가 필요 |
+| 팔 · 닿는 구간 | `nudge_cell`* · `stand_puck_in_cell`* | — | — | 🔴 환경 없음 |
 | 팔 · 끝 자세 | `pregrasp` | MoveIt 경로 | `rl_arm_correction` | 🔴 입력 모양 추가 필요 |
 | 주행 · 짧은 이동 | `dock_box` · `park_home` · `drive_straight` · `drive_arc` | approach P 제어 | `rl_nav_correction` | 🔵 연결됨 (#55) |
 | 플랜 | `plan_next` | (규칙 순서 대신) | `mission_manager` | 🔵 연결됨 (#55) |
@@ -269,33 +269,33 @@ flowchart TB
 | **`rl_nav_correction`** 도킹 모드 | 도킹 skill이면 시뮬 drive_env 입력 13개 → Δv·Δw | 입력 테스트 |
 | **`plan_next`** | C++ 플래너 · `planner: plan_next`면 BUILD에서 다음 퍽·복귀 시점 | Python과 40개 상태 모두 같은 행동 |
 | **`hand_relative`** | 손 카메라 → 퍽 − 손 · 칸 − 퍽 · 면 방향 | 노드 시험 (가짜 TF·검출) |
-| 정책 파일 | `place_cell` · `pick_upright` (팀원) · `dock_box` · `drive_straight` · `load_slot` · `plan_next` | 설치·불러오기 |
+| 정책 파일 | `place_cell` · `pick_standing_puck` (팀원) · `dock_box` · `drive_straight` · `load_slot` · `plan_next` | 설치·불러오기 |
 
 전체: pa27 ROS Lyrical에서 빌드, **ml·plan 53개 + perception 8개 테스트 통과**. 실제 로봇·전체 bringup에서는 아직 안 돌려 봄.
 
 ---
 
-## 4. skill 37개 지도 — 영역별 상태 (19:05)
+## 4. skill 37개 지도 — 영역별 상태 (19:50)
 
 ```mermaid
 flowchart TB
   subgraph g4_DRIVE["주행"]
     g4_d1["dock_box ✅ 30 → 98.6 %"]:::ok
     g4_d2["drive_straight ✅ 61 → 100 %"]:::ok
-    g4_d3["park_home ⏳ 학습 중"]:::wip
+    g4_d3["park_home ⏳ 동료 학습"]:::wip
     g4_d4["drive_arc ⏳ 대기열"]:::wip
     g4_d5["drive_turn — 기준선 100 %"]:::keep
     g4_d6["navigate ✖ 환경 없음 (Nav2)"]:::no
   end
   subgraph g4_ARM["팔"]
     g4_a1["place_cell ✅ 99 % (팀원)"]:::ok
-    g4_a2["load_slot ✅ 95 → 98.3 %"]:::ok
+    g4_a2["load_slot ⏳ 98.3 % · 놓침 1 % → 재학습"]:::wip
     g4_a3["unload_slot ✅ 94 → 98.1 %"]:::ok
-    g4_a4["pregrasp ✅ 89 → 95.4 %"]:::ok
-    g4_a5["regrasp_stood ⏳ 대기열"]:::wip
-    g4_a6["pick_upright · stand_up<br/>팀원 정책 있음, 평가 필요"]:::wip
+    g4_a4["pregrasp ⏳ 95.4 % → 재학습"]:::wip
+    g4_a5["regrasp_after_stand ⏳ 대기열"]:::wip
+    g4_a6["pick_standing_puck · stand_lying_puck<br/>팀원 정책 있음, 평가 필요"]:::wip
     g4_a7["move_pose · camera_clear_view<br/>camera_look_down — 기준선 100 %"]:::keep
-    g4_a8["nudge_cell · stand_in_place<br/>✖ 동작·환경 없음"]:::no
+    g4_a8["nudge_cell · stand_puck_in_cell<br/>✖ 동작·환경 없음"]:::no
     g4_a9["compensate_sag · grip_force<br/>실측 (힘 최소값만 잼)"]:::wip
   end
   subgraph g4_SENSE["인식 · 상태 · 비상 · 맵"]
@@ -321,20 +321,20 @@ flowchart TB
 |---|---|---|---|---|---|
 | 주행 | `dock_box` | 강화학습 | drive task=dock | 30.2 → **98.6 %** | ✅ `nav_correction/dock_box.policy` |
 | 주행 | `drive_straight` | 강화학습 | drive task=straight | 61.4 → **100 %** | ✅ `nav_correction/drive_straight.policy` |
-| 주행 | `park_home` | 강화학습 | drive task=park | 87.5 % → 학습 중 | ⏳ |
+| 주행 | `park_home` | 강화학습 | drive task=park | 87.5 % → 동료 학습 | ⏳ |
 | 주행 | `drive_arc` | 강화학습 | drive task=arc | 94.5 % → 대기열 | ⏳ |
 | 주행 | `drive_turn` | 강화학습 | drive task=turn | 100 % | 기준선으로 충분 |
 | 주행 | `navigate` | 강화학습 | 없음 | — | Nav2 그대로 |
 | 팔 | `place_cell` | 강화학습 | pip (팀원) | 96.3 → **99.0 %** | ✅ `arm_correction/place_cell.policy` (팀원 정책) |
-| 팔 | `load_slot` | 강화학습 | load | 94.8 → **98.3 %** | ✅ `arm_correction/load_slot.policy` |
-| 팔 | `pick_upright` | 강화학습 | pick (팀원) | — (평가 필요) | ✅ `arm_correction/pick_upright.policy` (팀원 정책) |
+| 팔 | `load_slot` | 강화학습 | load | 94.8 → 98.3 % (놓침 1.0 %) → **재학습 중** (놓침 벌점 5→20) | 1차 `load_slot.policy` 들어 있음 (재학습 결과로 바꿀 예정) |
+| 팔 | `pick_standing_puck` | 강화학습 | pick (팀원) | — (평가 필요) | ✅ `arm_correction/pick_standing_puck.policy` (팀원 정책) |
 | 팔 | `unload_slot` | 강화학습 | unload | 93.7 → **98.1 %** | 넣을 차례 |
-| 팔 | `stand_up` | 강화학습 | `stand` (팀원 파일 right_env, 예전 이름 right) | — | 🟡 팀원 정책 · 로봇 입력 모양 필요 |
-| 팔 | `regrasp_stood` | 강화학습 | `stand` regrasp=1 | 대기열 | ⏳ |
-| 팔 | `pregrasp` | 강화학습 | reach target=above | 89.3 → **95.4 %** | 넣을 차례 · 로봇 입력 모양 필요 |
+| 팔 | `stand_lying_puck` | 강화학습 | `stand` (팀원 파일 right_env, 예전 이름 right) | — | 🟡 팀원 정책 · 로봇 입력 모양 필요 |
+| 팔 | `regrasp_after_stand` | 강화학습 | `stand` regrasp=1 | 대기열 | ⏳ |
+| 팔 | `pregrasp` | 강화학습 | reach target=above | 89.3 → 95.4 % → **재학습 중** (못 가는 목표 5번 뺌 · 멈춤 1.2 s → 기준선 99.5 %) | 로봇 입력 모양 필요 |
 | 팔 | `camera_look_down` | 강화학습 | reach target=look | 100 % | 기준선으로 충분 (높이 0.08 m — 확인 필요) |
 | 팔 | `move_pose` · `camera_clear_view` | 강화학습 | reach pose · clear | 100 % | 기준선으로 충분 |
-| 팔 | `nudge_cell` · `stand_in_place` | 강화학습 | 없음 | — | 🔴 동작부터 설계 |
+| 팔 | `nudge_cell` · `stand_puck_in_cell` | 강화학습 | 없음 | — | 🔴 동작부터 설계 |
 | 팔 | `compensate_sag` · `grip_force` | 실측 | — | — | 🟡 쥐는 힘 최소값만 잼 · 처짐 실측 필요 |
 | 인식 | `detect_puck` · `classify_color` · `classify_shape_pose` | YOLO (학습됨) | — | — | `bee_yolo11n_v3` |
 | 인식 | `read_puck_tag` · `detect_location_box` · `read_signal_barcode` · `judge_cell` | 규칙 | — | — | 기존 |
@@ -367,7 +367,7 @@ flowchart LR
 | #7 (화면) | R5 Y5 G2 · P2-04 내림 | **10 / 40** (복귀 +10) | 세우기 덜 섬 1 · 놓다 누움 1 · 집다 떨어뜨림 1 |
 
 - 미션 실행기에는 아직 **팀원 정책만** 들어 있습니다 (오늘 학습한 `dock_box` · `load_slot` 등은 대기열이 끝나면 연결).
-- 칸 위 누운 퍽 세우기(`stand_in_place`)가 없어서, 놓다 누우면 그 장소 점수는 못 받습니다.
+- 칸 위 누운 퍽 세우기(`stand_puck_in_cell`)가 없어서, 놓다 누우면 그 장소 점수는 못 받습니다.
 
 ---
 
@@ -377,7 +377,7 @@ flowchart LR
 flowchart LR
   g6_A["학습 대기열 끝<br/>(남은 5개)"]:::wip --> g6_B["정책 export → model/<br/>(PR #55에 추가)"]:::no
   g6_A --> g6_S["학습 정책을 시뮬 미션에 연결<br/>→ 다시 풀기"]:::no
-  g6_S --> g6_C["skill 실패 줄이기<br/>pick 평가·재학습 · stand_in_place · nudge_cell"]:::no
+  g6_S --> g6_C["skill 실패 줄이기<br/>pick 평가·재학습 · stand_puck_in_cell · nudge_cell"]:::no
   g6_M["PR 병합<br/>#49 → #54 → #55"]:::wip --> g6_F["실기 · 전체 bringup 시험<br/>skill 하나씩 보정 켜 보기"]:::no
   g6_B --> g6_F
   g6_H["처짐 실측"]:::no --> g6_F
@@ -389,9 +389,9 @@ flowchart LR
 
 | 할 일 | 막히면 |
 |---|---|
-| 학습 대기열 남은 5개 (`unload_slot` · `pregrasp` · `park_home` · `drive_arc` · `regrasp_stood`) → 기준선보다 좋으면 `export_policy.py`로 `model/`에 | 그 skill은 보정 0 (지금 동작 그대로) |
+| 학습 대기열 남은 5개 (`unload_slot` · `pregrasp` · `park_home` · `drive_arc` · `regrasp_after_stand`) → 기준선보다 좋으면 `export_policy.py`로 `model/`에 | 그 skill은 보정 0 (지금 동작 그대로) |
 | 학습 정책을 시뮬 미션 실행기에 연결 → 다시 풀어 점수 비교 | — |
-| skill 실패 줄이기: `pick_upright` 평가·재학습 · `stand_in_place`·`nudge_cell` 동작·환경 | 놓다 누우면 그 장소 0점 |
+| skill 실패 줄이기: `pick_standing_puck` 평가·재학습 · `stand_puck_in_cell`·`nudge_cell` 동작·환경 | 놓다 누우면 그 장소 0점 |
 | PR 병합: #49 → #54 → #55 (+ #53 · #56) | 로봇에 배포 코드가 없음 |
 | **실기 · 전체 bringup 시험**: 보정 끈 채로 먼저, 그다음 skill 하나씩 켜기 (`enabled` · 정책 파일) | 정책이 실기에서 맞는지 모름 |
 | 처짐 실측 · 처짐 적분 이득 확인 | 팔 정책이 실기에서 어긋날 수 있음 |

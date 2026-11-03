@@ -1,6 +1,6 @@
 # 11-03 정리 — skill 학습부터 로봇 배포까지
 
-> 2026-11-03 19:05 (pa27 시각) 기준. 오늘 이야기하고 정하고 만든 것을 한 장에 모았습니다.
+> 2026-11-03 19:50 (pa27 시각) 기준. 오늘 이야기하고 정하고 만든 것을 한 장에 모았습니다.
 > 자세한 내용: [전체 지도](system-map.html) · [skill별 학습 조건](skill-training.html) · [학습용 skill 구성](skill-learning.html)
 
 ---
@@ -16,7 +16,8 @@
 | 5 | 로봇에 없던 정책 입력(손 카메라 상대값)은 **인식에서 만들어 줌** (정책 그대로) | 다시 학습하지 않으려고 |
 | 6 | 정책 계산은 **ONNX 런타임 없이 C++로 직접** (`.policy` 파일) | 정책이 작은 MLP · Jetson에 설치할 것 없음 · 실시간 루프 안전 |
 | 7 | **처짐 적분은 팀원(송정혁) 방식**: 시간 기준 · reference 멈춤일 때 · 4.2/s · `~/reset_sag` · skill과 상관없이 늘 — 그 위에 학습 보정 | 늘 처짐을 고쳐 주고 coordinator가 이미 reset_sag를 부름 |
-| 8 | 팀원 이름 `right`(세우기)는 우리 쪽에서 **`stand`**로 부름 (`--task stand`, `right`도 됨) | 헷갈림 |
+| 8 | skill 이름에 퍽 상태를 드러냄: `pick_standing_puck`(서 있는 퍽 집기, 예전 `pick_upright`) · `stand_lying_puck`(누운 퍽 세우기, 예전 `stand_up`) · `regrasp_after_stand` · `stand_puck_in_cell` · `--task pick_standing` / `stand_lying` (예전 이름도 됨) | `upright`·`right`·`stand`가 헷갈림 |
+| 10 | 합격 기준 못 넘은 `load_slot`(놓침 1.0 %) · `pregrasp`(95.4 %)는 **재학습** — 놓침 벌점 5→20 · 못 가는 목표 빼고 멈춤 시간 늘림 | 기준: 성공 ≥ 97 % · 되돌릴 수 없는 실패 ≤ 0.5 % |
 | 9 | PR은 **따로 (A안)** + 한꺼번에 합쳐 보는 **통합 PR**도 | 리뷰는 나눠서, 시험은 합쳐서 |
 
 ---
@@ -42,12 +43,12 @@
 |---|---|---|---|
 | `dock_box` | 30.2 % | **98.6 %** | ✅ |
 | `drive_straight` | 61.4 % | **100 %** | ✅ |
-| `load_slot` | 94.8 % | **98.3 %** | ✅ |
+| `load_slot` | 94.8 % | 98.3 % (놓침 1.0 %) | ⚠️ **재학습 중** (19:36~) |
 | `unload_slot` | 93.7 % | **98.1 %** | 넣을 차례 |
-| `pregrasp` | 89.3 % | **95.4 %** | 넣을 차례 (로봇 입력 모양 필요) |
+| `pregrasp` | 89.3 % → 환경 고친 뒤 99.5 % | 95.4 % | ⚠️ **재학습 중** (load_slot 다음) |
 | `place_cell` (팀원) | 96.3 % | 99.0 % | ✅ |
-| `pick_upright` · `stand_up` (팀원) | 평가 필요 | | `pick_upright` ✅ |
-| `park_home` · `drive_arc` · `regrasp_stood` | | | pa27에서 학습 중 (밤 9시쯤) |
+| `pick_standing_puck` · `stand_lying_puck` (팀원) | 평가 필요 | | `pick_standing_puck` ✅ |
+| `park_home` · `drive_arc` · `regrasp_after_stand` | | | 동료가 학습 |
 | `move_pose` · `camera_clear_view` · `camera_look_down` · `drive_turn` | 100 % | — | 기준선으로 충분 |
 
 오늘 고친 학습 문제: `load_slot` 놓침 20 % → **환경 오류**(기운 손에 퍽을 똑바로 넣음) · `dock_box` 학습이 무너짐 → **행동 표준편차 0** (로그 공간으로) · 보정 폭 줄임
@@ -86,11 +87,11 @@
 
 | 할 일 | 누가 · 어떻게 |
 |---|---|
-| 학습 남은 3개 (`park_home` · `drive_arc` · `regrasp_stood`) | pa27 대기열 (밤 9시쯤) · 동료는 팀원 정책 평가(`pick_upright` · `stand_up`) 또는 더 오래·가중치 바꿔 학습 — 메시지 준비됨 |
+| 학습 남은 3개 (`park_home` · `drive_arc` · `regrasp_after_stand`) | 동료 (메시지 보냄) · 그 밖에 팀원 정책 평가(`pick_standing_puck` · `stand_lying_puck`) 또는 더 오래·가중치 바꿔 학습 — 메시지 준비됨 |
 | 끝난 정책 `.policy`로 넣기 (`unload_slot` · `pregrasp` …) | `export_policy.py` → `ros2_ws/model/` |
 | **통합 PR #57 충돌 정리** — `feature/isaac-setup`(10-22~27)과 Isaac 자산 약 66개 파일 (텍스처 PNG 33 · usd/usda 약 20 · urdf) | 확인 뒤 (develop 쪽이 최신으로 보임 — #46 최종 urdf·usda) |
 | PR 병합 순서 | #49 → #54 → #55 (+ #53 · #56) 또는 #57로 한꺼번에 |
 | **실기 · 전체 bringup 시험** | 보정 끈 채로 먼저 → skill 하나씩 켜기 |
 | 세우기 · pregrasp 로봇 입력 모양 · 처짐 실측 · `camera_look_down` 높이(0.15 → 0.08~0.10 m) · 상자 밀림 보정 | |
-| skill 실패 줄이기 (시뮬 미션 점수) — `pick_upright` 재학습 · `stand_in_place` · `nudge_cell` | |
+| skill 실패 줄이기 (시뮬 미션 점수) — `pick_standing_puck` 재학습 · `stand_puck_in_cell` · `nudge_cell` | |
 | 마지막: `planner: plan_next`로 실기 미션 | |
