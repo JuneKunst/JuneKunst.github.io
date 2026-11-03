@@ -322,22 +322,41 @@ flowchart LR
 
 | skill | [1] 빈 공간 이동 | [2] 학습 보정 구간 (기준 동작) | 로봇에서 정책 위치 | 로봇에 아직 없는 입력 |
 |---|---|---|---|---|
-| `place_cell` | MoveIt: carry → 칸 위 50 mm | 내려가기 → 놓기 → 올리기 (IK + 보간) | `rl_arm_correction` | 손 카메라로 잰 칸 − 손 안 퍽 |
-| `pick_upright` | MoveIt: stow → 퍽 위 50 mm | 내려가기 → 쥐기 → 들기 | `rl_arm_correction` | 손 카메라로 잰 퍽 − 손, 사각 퍽 면 방향 |
-| `stand_up` | MoveIt: 누운 퍽 먼 끝 위 | 살짝 집기 → 원호로 세우기 → 놓기 → 비키기 | `rl_arm_correction` | 퍽 − 손, 퍽 축 방향, 이웃 퍽 위치 |
-| `regrasp_stood` | (stand_up에 이어서) | 그 자리에서 쥐기 → 들기 | `rl_arm_correction` | stand_up과 같음 |
-| `load_slot` | MoveIt: → carry 자세 | 칸 위 → 칸 바닥 → 놓기 → 올리기 (slot_table) | `rl_arm_correction` | 칸 − 손 안 퍽 |
-| `unload_slot` | MoveIt: → carry 자세 | 칸 위 → 쥐기 → 칸 위 (slot_table) | `rl_arm_correction` | 퍽 − 손 |
+| `place_cell` | MoveIt: carry → 칸 위 50 mm | 내려가기 → 놓기 → 올리기 (IK + 보간) | `rl_arm_correction` | `/hand_relative` cell로 해결 · 손 안 퍽 오차는 0으로 |
+| `pick_upright` | MoveIt: stow → 퍽 위 50 mm | 내려가기 → 쥐기 → 들기 | `rl_arm_correction` | `/hand_relative` puck으로 해결 |
+| `stand_up` | MoveIt: 누운 퍽 먼 끝 위 | 살짝 집기 → 원호로 세우기 → 놓기 → 비키기 | `rl_arm_correction` | `/hand_relative` puck (축·옆 퍽)으로 해결 |
+| `regrasp_stood` | (stand_up에 이어서) | 그 자리에서 쥐기 → 들기 | `rl_arm_correction` | `/hand_relative` puck으로 해결 |
+| `load_slot` | MoveIt: → carry 자세 | 칸 위 → 칸 바닥 → 놓기 → 올리기 (slot_table) | `rl_arm_correction` | `/hand_relative` slot으로 해결 · 손 안 퍽 오차는 0으로 |
+| `unload_slot` | MoveIt: → carry 자세 | 칸 위 → 쥐기 → 칸 위 (slot_table) | `rl_arm_correction` | `/hand_relative` puck으로 해결 |
 | `pregrasp` · `camera_look_down` | MoveIt 경로 | 도착 뒤 끝 자세 유지 (처짐 보정) | `rl_arm_correction` | 없음 |
 | `dock_box` · `park_home` · `drive_straight` · `drive_arc` | Nav2 | 정렬 위치 → 도킹·정지·짧은 이동 (P 제어) | `rl_nav_correction` 도킹 모드 | 없음 |
 | `move_pose` · `camera_clear_view` · `drive_turn` | MoveIt · — | 없음 (시뮬 기준선 100 %) | — | — |
 | `plan_next` | — | 다음 skill 고르기 | `mission_manager` (PR #49 병합 뒤, 마지막) | 없음 |
 
-### 정책 입력 대조 결과
+### 정책 입력 대조 결과 → 손 카메라 상대값 노드 만듦 (11-03)
 - **로봇에서 바로 얻는 값**: 관절 위치·속도, 목표 관절(coordinator가 앎), skill 단계, 처짐 보정값, 로봇 위치(cuVSLAM + 상자 태그), 차체 속도(odom).
-- **아직 없는 값 = 손 카메라 상대 측정** (집기·놓기·세우기·적재함): 시뮬 정책은 "손 카메라로 잰 퍽−손 / 칸−퍽 (편향 2 mm, 잡음 1 mm)"을 봅니다. 로봇에는 이 값을 내는 토픽이 없습니다. 두 가지 길:
-  1. 인식에서 손 카메라 상대 측정을 만들어 줌 (정책 그대로) — 인식 담당과 맞출 일
-  2. 이 입력을 빼고 다시 학습 (보정이 처짐·추종만 고침, 위치 오차는 못 고침)
+- **없던 값 = 손 카메라 상대 측정** → 인식에 **`hand_relative` 노드를 새로 만들었습니다** (브랜치 `feature/hand-relative`, 커밋 `1859f63`). 정책은 그대로 씁니다.
+
+```mermaid
+flowchart LR
+  C["coordinator<br/>(닿는 구간 시작 전)"] -->|"/hand_relative/target<br/>무엇을 잴지: puck · cell · slot"| H["hand_relative<br/>(perception)"]
+  G["/perception/gripper_cam/detections<br/>손 카메라 검출 (map, ≤4Hz)"] --> H
+  T["TF: map→base_link<br/>base_link→end_effector_link<br/>(영상 시각)"] --> H
+  H -->|"/hand_relative<br/>base_link 기준 상대값"| R["rl_arm_correction<br/>(학습 보정 정책)"]
+```
+
+| skill | 재는 것 (`kind`) | 내보내는 값 (base_link, m) — 시뮬 정책 입력과 같은 정의 |
+|---|---|---|
+| 집기 · 꺼내기 · 다시 집기 | `puck` (퍽 번호, 없으면 손에 가장 가까운 퍽) | 퍽 가운데 − 손끝 · 사각 퍽 면 − 손 방향 (±45°) |
+| 세우기 | `puck` | 퍽 가운데 − 손끝 · 퍽 축 (가까운 끝 → 먼 끝) · 옆 퍽 위치 |
+| 놓기 | `cell` (상자 태그, 계획 칸) | 칸 가운데 − 손 안 퍽 바닥 · 상자가 밀렸으면(≤ 5 cm) 지금 본 상자만큼 칸을 옮김 |
+| 싣기 | `slot` (적재함 칸) | 칸 가운데 − 손 안 퍽 바닥 (카메라 없이 TF만 — 적재함은 로봇에 고정) |
+
+- **확인한 것**: 계산식 테스트 5개 + ROS 빌드·테스트(pa27, Lyrical) 통과 · 노드를 띄워 가짜 TF·검출을 넣고 손으로 계산한 값과 같음 (퍽: (0.01, 0.01, −0.10) m · 면 10.0° / 적재함 칸 5: (−0.285, −0.033, −0.048) m)
+- **남은 차이** (정책 입력과 완전히 같지 않은 곳):
+  1. 손 안 퍽 위치: 손 카메라가 퍽 밑면을 못 봐서 **정상 파지 위치로 둠** — 시뮬은 ±2~3 mm 손 안 오차까지 보며 학습 (놓기·싣기에서 그만큼은 못 고침)
+  2. 주기: 손 카메라 추론이 ≤ 4Hz → 정책(50Hz)은 새 값 올 때까지 마지막 값 사용 (시뮬은 매 걸음 새 측정)
+  3. 못 찾으면 `valid = false` → 그때는 보정을 끄는 것을 권장 (시뮬 정책은 "못 봄"을 배운 적 없음)
 - 주행 정책은 빠진 입력이 없습니다.
 
 ### 할 일 (누가)
@@ -348,7 +367,9 @@ flowchart LR
 | coordinator → 보정 컨트롤러로 skill 정보(단계, 목표 관절, 측정값) 보내는 토픽 | 송정혁 + coordinator | 미착수 |
 | coordinator의 닿는 구간을 시뮬과 같은 IK + 보간 궤적으로 (pick·place·load·unload·stand) | coordinator (사용자 트랙 ②) | 미착수 |
 | approach(도킹)를 시뮬과 같은 돌기-직진-돌기 제어로 | coordinator | 미착수 |
-| 손 카메라 상대 측정 토픽 (또는 입력 빼고 다시 학습) | 인식 담당 / 나 | 결정 필요 |
+| 손 카메라 상대 측정 토픽 `hand_relative` | 나 | ✅ 만듦 (`feature/hand-relative`, PR 전) |
+| coordinator가 닿는 구간 시작 전에 `/hand_relative/target` 보내기 | coordinator (사용자 트랙 ②) | 미착수 |
+| `rl_arm_correction`이 `/hand_relative`를 정책 입력으로 받기 | 송정혁 | 미착수 |
 | 실제 로봇 처짐 보정 적분이 시뮬과 같은지 확인 + 처짐 실측 | 송정혁 / 실기 | 확인 필요 |
 | PR #49 (mission_manager, mission_solver) 병합 | 사용자 | 열림 |
 | `plan_next`를 mission_manager에 | 나 | 마지막 단계 |
