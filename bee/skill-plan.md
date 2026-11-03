@@ -14,7 +14,7 @@ mission_manager는 "무엇을, 어디서, 어떤 순서로" 할지 정해서 ski
 |---|---|---|
 | **mission_manager** | 무엇을 · 어디서 · 어떤 순서로? | <ul><li>미션 단계를 진행합니다: GO_OBSERVE → BARCODE → READ → SURVEY → BUILD → VERIFY → RETURN.</li><li>판단은 순수 함수 `mission_solver`가 합니다(신호 판정, 바코드, 배정, 할당, 주사위 칸, 칸 판정).</li><li>skill이 실패하면 다시 할지, 그 퍽만 건너뛸지, 미션을 멈출지 정합니다.</li><li>단계마다 기록을 `~/.ros/mission/<시각>/`에 남깁니다.</li></ul> |
 | **coordinator** | 이 skill 하나를 어떻게 움직이나? | <ul><li>모터로 가는 **유일한 길**입니다. 비상정지와 수동 모드도 여기서 막습니다.</li><li>실행 직전에 `/tracked_objects`를 다시 읽어 목표를 정합니다. 계획을 세울 때의 값은 쓰지 않습니다.</li><li>단계 순서는 바꾸지 않습니다. 예외는 `load`·`unload` 안의 carry 경유 하나입니다.</li><li>적재함 장부를 혼자 씁니다.</li><li>실패하면 이유를 붙여 바로 끝냅니다.</li></ul> |
-| **실행 계층** | 실제로 움직임 | <ul><li>주행: Nav2(NavFn + DWB). 마지막 몇 cm는 `approach`가 `/cmd_vel_nav`로 직선 이동합니다.</li><li>팔: MoveIt move_group → ExecuteTrajectory → `arm_controller`(JTC) → `rl_arm_correction`(학습 보정 Δ) → 하드웨어.</li><li>그리퍼: `gripper_controller`. 쥐는 힘은 goal의 `effort`로 보내고, 펌웨어 Goal Current가 됩니다.</li></ul> |
+| **실행 계층** | 실제로 움직임 | <ul><li>주행: Nav2(NavFn + DWB). 상자 앞 마지막 도킹은 `approach`가 시뮬과 같은 돌기-직진-돌기 제어로 하고, `rl_nav_correction`이 학습 보정을 더합니다.</li><li>팔: 빈 공간 이동은 MoveIt move_group → ExecuteTrajectory → `arm_controller`(JTC), 퍽에 닿는 구간은 시뮬과 같은 IK 궤적 → JTC. 둘 다 → `rl_arm_correction`(학습 보정 Δ) → 하드웨어.</li><li>그리퍼: `gripper_controller`. 쥐는 힘은 goal의 `effort`로 보내고, 펌웨어 Goal Current가 됩니다.</li></ul> |
 
 ```mermaid
 flowchart LR
@@ -132,10 +132,13 @@ plan 105  [load next]                             ← 장부에 칸 기록
 
 ## 6. 팔 skill 공통 규칙
 
-- **팔 동작은 전부 MoveIt을 거칩니다.**
-  - 정해진 자세(stow, carry, 적재함 칸)는 관절 목표로 계획합니다.
-  - 물체를 기준으로 한 목표(집기, 놓기, 보기)는 손끝 목표로 계획합니다(손이 위에서 아래로).
-  - JTC에 바로 보내는 예외는 두 가지뿐입니다: 기동할 때의 `initial_pose`와 사람이 조작하는 `manual_control`.
+- **빈 공간 이동은 MoveIt을 거칩니다.** (2026-11-03 결정으로 고침 — 이전: "팔 동작은 전부 MoveIt")
+  - 정해진 자세(stow, carry, 적재함 칸 위)는 관절 목표로 계획합니다.
+  - 물체 위까지(집기 전 퍽 위 5 cm, 놓기 전 칸 위 5 cm, 보기)는 손끝 목표로 계획합니다(손이 위에서 아래로).
+- **퍽에 닿는 짧은 구간은 시뮬과 같은 방식으로 움직입니다.** 내려가기 → 쥐기·놓기 → 올리기(세우기는 원호 경유점)는 오프라인 IK + 관절 보간 궤적을 JTC에 보내고, 그 위에 `rl_arm_correction`이 학습 보정 Δ를 더합니다.
+  - 이유: 학습한 보정은 시뮬에서 쓴 기준 동작 위에서만 맞습니다. 이 구간을 MoveIt으로 하면 매번 경로가 조금씩 달라 보정이 맞지 않고, 다시 학습해야 합니다. 이 구간은 몇 cm짜리 상하 동작이라 MoveIt의 충돌 회피가 거의 필요 없습니다.
+  - 자세한 배포 조건: [skill별 학습 조건 9장](skill-training.html)
+- JTC에 바로 보내는 경우: 위의 닿는 구간, 기동할 때의 `initial_pose`, 사람이 조작하는 `manual_control`.
 - **처짐 보정 초기화**: 팔 skill을 시작할 때 `/rl_arm_correction/reset_sag`를 한 번 부릅니다. `stand_pick`만 부르지 않습니다. 세운 직후 보정을 0으로 되돌리면 처진 만큼 손이 떨어지기 때문입니다.
 - **잡기 판정**(`pick`, `unload`, `stand_pick`): 닫은 뒤 두 가지를 봅니다. 전류 값이 안 오면 위치만 봅니다.
   - 손가락 위치가 3mm 이상: 퍽이 끼어서 끝까지 닫히지 않았다는 뜻입니다.

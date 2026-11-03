@@ -6,7 +6,8 @@
 - skill 목록·나눈 이유: [학습용 skill 구성](skill-learning.html)
 - 기준선 결과는 2026-11-03 pa27(RTX 5060 8 GB)에서 잔차 0으로 128~256판씩 돌린 값입니다.
 - **지금 pa27에서 skill별 본 학습을 차례로 돌리는 중**입니다 (512 env × 1500회, 끝날 때마다 평가). 결과는 아래 7장 산출물 현황에 채웁니다.
-- **Isaac에서 미션 전체를 푸는 실행기**를 만들고 있습니다 → 8장 (2026-11-03 16:00 기준).
+- **Isaac에서 미션 전체를 푸는 실행기**: 무작위 문제를 끝까지 풂 → 8장
+- **실제 로봇에 올리는 조건 (11-03 결정)** → 9장
 
 ---
 
@@ -50,7 +51,7 @@ flowchart LR
 | `camera_clear_view` | 팔 | `reach`, `target=clear` (**새로**) | 100 % | 시뮬에선 기준선으로 충분 |
 | `pregrasp` | 팔 | `reach`, `target=above` (**새로**) | 88~91 % | 본 학습 대기열 5번째. 실패 원인 확인함 (아래) |
 | `camera_look_down` | 팔 | `reach`, `target=look` (**새로**) | 100 % | 높이 확인 필요 (아래) |
-| `drive_straight` | 주행 | `drive`, `task=straight` (**새로**) | 68.0 % | **본 학습 중** (2048 env × 500회, 약 28분) |
+| `drive_straight` | 주행 | `drive`, `task=straight` (**새로**) | 68.0 % | **본 학습 중** (2048 env × 500회, 19:00 기준 322/500) |
 | `drive_turn` | 주행 | `drive`, `task=turn` (**새로**) | 100 % | 시뮬에선 기준선으로 충분 |
 | `drive_arc` | 주행 | `drive`, `task=arc` (**새로**) | 94.5 % | 본 학습 대기열 7번째 |
 | `dock_box` | 주행 | `drive`, `task=dock` (**새로**) | **30.2 %** | ✅ **학습 완료 98.6 %** (512 env × 1500회) |
@@ -281,6 +282,8 @@ flowchart LR
 | 16:45 | 학습 대기열: dock_box 끝나면 나머지 7개를 **2048 env × 500회**로 (같은 경험 양, 더 빠르게) |
 | 17:20 | **문제 #1 첫 완주 — 20 / 40점** (아래 표) |
 | 17:30 | 학습: **dock_box 30.2 % → 98.6 %** (첫 본 학습 결과물) · 나머지 7개 2048 env × 500회로 전환, GPU 4.7 GB · skill당 약 28분 |
+| 18:00 | 문제 #7 (화면 실행) 완주 — **10 / 40점**: L1 4/5 · L2 4/5 · L3 1/2, 복귀 +10. 실패: 세우기 1번(7.8° 덜 섬), 놓다가 누움 1번, 집다가 떨어뜨림 1번 → 이번에도 **skill 실패**가 점수를 깎음 |
+| 18:10 | **배포 방식 결정** (9장): 빈 공간 = MoveIt·Nav2, 닿는 구간·도킹 = 시뮬 기준 동작 + 보정 |
 | 17:25 | pa27 화면에 **문제 #7** (신호 R5 Y5 G2, 바코드 P2-04 내림차순 → L1 R · L2 Y · L3 G, 누운 퍽 3개)을 Newton 뷰어로 띄움 — 플래너가 누운 퍽 세우기부터 시작 |
 
 **문제 #1 완주 결과** (학습된 플래너 `plan_next`, skill은 팀원 정책 + 기준 동작, 시뮬 시간 1968초 ≈ 33분, 27걸음)
@@ -297,3 +300,55 @@ flowchart LR
 - 점수를 놓친 두 곳은 **skill 실패**입니다: 집기에서 퍽을 떨어뜨림, 놓기에서 퍽이 누움. 플래너보다 skill 성공률이 점수를 정한다는 가상 미션 결과와 같습니다.
 
 <img src="img/mission-newton.png" alt="Newton 뷰어로 본 미션 장면" style="width:100%;max-width:900px">
+
+---
+
+## 9. 실제 로봇에 올리는 조건 (2026-11-03 결정)
+
+### 왜 정해야 했나
+잔차 정책은 **"기준 동작 + 작은 보정"**이라, 보정은 **학습할 때 쓴 기준 동작 위에서만 맞습니다.** 시뮬은 팀원 환경대로 오프라인 IK + 관절 보간으로 학습했는데, 로봇은 11-02에 "팔 동작은 전부 MoveIt"으로 정해져 있었습니다. 이대로면 학습한 보정이 로봇에서 맞지 않습니다. 학습 계획에 **배포 조건**(기준 동작이 로봇과 같은지, 입력을 로봇에서 얻을 수 있는지, 어느 노드에서 돌리는지)이 빠져 있어서 생긴 일이라, `skills.yaml`에 `deploy` 항목을 추가하고 테스트로 강제합니다.
+
+### 결정
+```
+집기 예)   [1] stow → 퍽 위 5 cm            → MoveIt (그대로)
+           [2] 내려가기 → 쥐기 → 들어 올리기  → 시뮬과 같은 IK + 관절 보간 → JTC  +  학습 보정 (rl_arm_correction)
+도킹 예)   [1] 상자 면 앞 정렬 위치까지      → Nav2 (그대로)
+           [2] 정렬 위치 → 도킹              → 시뮬과 같은 돌기-직진-돌기 제어 (approach)  +  학습 보정 (rl_nav_correction)
+```
+- 11-02 "팔은 전부 MoveIt"에 **[2] 구간만 예외**를 둡니다. [2]는 몇 cm짜리 상하 동작이라 MoveIt의 충돌 회피가 거의 필요 없고, mm 정밀도가 필요한 곳이라 학습 보정이 가장 효과를 냅니다. (Plan-Seq-Learn · ManipGen과 같은 구조)
+- 시뮬 학습 환경은 이미 "[1]이 끝난 상태에서 [2]만" 학습하므로 **지금 학습 중인 정책을 그대로 씁니다.**
+
+### skill별 배포 조건 (`skills.yaml` `deploy`)
+
+| skill | [1] 빈 공간 이동 | [2] 학습 보정 구간 (기준 동작) | 로봇에서 정책 위치 | 로봇에 아직 없는 입력 |
+|---|---|---|---|---|
+| `place_cell` | MoveIt: carry → 칸 위 50 mm | 내려가기 → 놓기 → 올리기 (IK + 보간) | `rl_arm_correction` | 손 카메라로 잰 칸 − 손 안 퍽 |
+| `pick_upright` | MoveIt: stow → 퍽 위 50 mm | 내려가기 → 쥐기 → 들기 | `rl_arm_correction` | 손 카메라로 잰 퍽 − 손, 사각 퍽 면 방향 |
+| `stand_up` | MoveIt: 누운 퍽 먼 끝 위 | 살짝 집기 → 원호로 세우기 → 놓기 → 비키기 | `rl_arm_correction` | 퍽 − 손, 퍽 축 방향, 이웃 퍽 위치 |
+| `regrasp_stood` | (stand_up에 이어서) | 그 자리에서 쥐기 → 들기 | `rl_arm_correction` | stand_up과 같음 |
+| `load_slot` | MoveIt: → carry 자세 | 칸 위 → 칸 바닥 → 놓기 → 올리기 (slot_table) | `rl_arm_correction` | 칸 − 손 안 퍽 |
+| `unload_slot` | MoveIt: → carry 자세 | 칸 위 → 쥐기 → 칸 위 (slot_table) | `rl_arm_correction` | 퍽 − 손 |
+| `pregrasp` · `camera_look_down` | MoveIt 경로 | 도착 뒤 끝 자세 유지 (처짐 보정) | `rl_arm_correction` | 없음 |
+| `dock_box` · `park_home` · `drive_straight` · `drive_arc` | Nav2 | 정렬 위치 → 도킹·정지·짧은 이동 (P 제어) | `rl_nav_correction` 도킹 모드 | 없음 |
+| `move_pose` · `camera_clear_view` · `drive_turn` | MoveIt · — | 없음 (시뮬 기준선 100 %) | — | — |
+| `plan_next` | — | 다음 skill 고르기 | `mission_manager` (PR #49 병합 뒤, 마지막) | 없음 |
+
+### 정책 입력 대조 결과
+- **로봇에서 바로 얻는 값**: 관절 위치·속도, 목표 관절(coordinator가 앎), skill 단계, 처짐 보정값, 로봇 위치(cuVSLAM + 상자 태그), 차체 속도(odom).
+- **아직 없는 값 = 손 카메라 상대 측정** (집기·놓기·세우기·적재함): 시뮬 정책은 "손 카메라로 잰 퍽−손 / 칸−퍽 (편향 2 mm, 잡음 1 mm)"을 봅니다. 로봇에는 이 값을 내는 토픽이 없습니다. 두 가지 길:
+  1. 인식에서 손 카메라 상대 측정을 만들어 줌 (정책 그대로) — 인식 담당과 맞출 일
+  2. 이 입력을 빼고 다시 학습 (보정이 처짐·추종만 고침, 위치 오차는 못 고침)
+- 주행 정책은 빠진 입력이 없습니다.
+
+### 할 일 (누가)
+
+| 할 일 | 누가 | 상태 |
+|---|---|---|
+| `rl_arm_correction`·`rl_nav_correction` ONNX 추론 구현 (지금 `TODO`, Δ = 0) | 송정혁 | 미착수 |
+| coordinator → 보정 컨트롤러로 skill 정보(단계, 목표 관절, 측정값) 보내는 토픽 | 송정혁 + coordinator | 미착수 |
+| coordinator의 닿는 구간을 시뮬과 같은 IK + 보간 궤적으로 (pick·place·load·unload·stand) | coordinator (사용자 트랙 ②) | 미착수 |
+| approach(도킹)를 시뮬과 같은 돌기-직진-돌기 제어로 | coordinator | 미착수 |
+| 손 카메라 상대 측정 토픽 (또는 입력 빼고 다시 학습) | 인식 담당 / 나 | 결정 필요 |
+| 실제 로봇 처짐 보정 적분이 시뮬과 같은지 확인 + 처짐 실측 | 송정혁 / 실기 | 확인 필요 |
+| PR #49 (mission_manager, mission_solver) 병합 | 사용자 | 열림 |
+| `plan_next`를 mission_manager에 | 나 | 마지막 단계 |
