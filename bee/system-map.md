@@ -103,6 +103,63 @@ flowchart LR
 
 ---
 
+## 3-1. 예시: "배치" task 하나가 하드웨어까지 가는 길 — 학습된 모델은 어디서 도나
+
+**상황**: 플래너가 "퍽 7번(적재함 칸 5에 있음)을 L1 상자의 가운데 칸(4번)에 놓기"를 골랐습니다. 이 task는 skill 4개로 풀립니다.
+
+```mermaid
+flowchart TB
+  subgraph gx_MM["mission_manager (CPU, skill 하나 끝날 때마다)"]
+    gx_PN["🧠 plan_next.pt<br/>다음 skill 고르기"]:::model
+  end
+  gx_PN -->|"① navigate → ② dock_box → ③ unload_slot → ④ place_cell"| gx_CO["coordinator<br/>skill 하나씩 실행 · 단계 관리"]
+  subgraph gx_BASE_PATH["주행 (①②)"]
+    gx_NAV["Nav2<br/>① L1 앞 정렬 위치까지"] --> gx_NC
+    gx_AP["approach<br/>② 돌기-직진-돌기 P 제어"] --> gx_NC["rl_nav_correction 노드 (25Hz)<br/>🧠 dock_box.onnx<br/>속도 명령 + Δv·Δw"]:::model
+    gx_NC --> gx_VS["velocity_smoother"] --> gx_OC["OpenCR → 바퀴 모터"]
+  end
+  subgraph gx_ARM_PATH["팔 (③④)"]
+    gx_MV["MoveIt<br/>빈 공간: stow → carry → 칸 위"] --> gx_JTC
+    gx_IK["IK 궤적<br/>닿는 구간: 내려가기 → 쥐기/놓기 → 올리기"] --> gx_JTC["arm_controller (JTC)<br/>목표 관절각"]
+    gx_JTC --> gx_RC["rl_arm_correction 컨트롤러 (100Hz, controller_manager 안)<br/>🧠 unload_slot.onnx · place_cell.onnx<br/>목표 관절각 + Δ (±0.05 rad)"]:::model
+    gx_RC --> gx_DX["OpenCR → 팔 모터 XM430"]
+  end
+  gx_CO --> gx_NAV
+  gx_CO --> gx_AP
+  gx_CO --> gx_MV
+  gx_CO --> gx_IK
+  gx_CO -->|"지금 skill·단계·목표<br/>(어느 정책을 켤지)"| gx_RC
+  gx_CO -->|"/hand_relative/target<br/>무엇을 잴지"| gx_HR["hand_relative<br/>손 카메라 상대값"]
+  gx_CAM["perception (4Hz)<br/>🧠 YOLO bee_yolo11n_v3<br/>+ AprilTag"]:::model --> gx_HR
+  gx_HR -->|"/hand_relative<br/>퍽 − 손 · 칸 − 퍽"| gx_RC
+  classDef model fill:#2a1f4d,stroke:#a78bfa,color:#e8eef8
+```
+<b style="color:#a78bfa">🧠 보라 = 학습된 모델이 도는 곳</b>
+
+| 순서 | skill | 누가 움직이나 | 🧠 학습된 모델 (어디서 · 무엇을) | 끝 판정 |
+|---|---|---|---|---|
+| 0 | (고르기) | mission_manager | **`plan_next.pt`** — mission_manager 안. skill이 하나 끝날 때마다 한 번 돌아 "다음 skill + 대상 퍽"을 냄 | — |
+| ① | `navigate` | Nav2 | 없음 (Nav2 그대로) | L1 앞 정렬 위치 도착 |
+| ② | `dock_box` | coordinator approach (돌기-직진-돌기) | **`dock_box.onnx`** — `rl_nav_correction` 노드. 매 주기 approach 속도 명령에 작은 Δv·Δw를 더해 바퀴로 | 상자 앞 1 cm · 1.5° 안 정지 |
+| ③ | `unload_slot` | [1] MoveIt: stow → carry → 칸 5 위 · [2] IK 궤적: 내려가기 → 쥐기 → 칸 위 | **`unload_slot.onnx`** — `rl_arm_correction` 컨트롤러. [2] 구간 동안만 켜짐. 입력: 관절 상태 + 단계 + `/hand_relative`(퍽 − 손) → JTC 목표각에 Δ를 더해 모터로 | 퍽이 손 안 (전류 + 손가락 위치) |
+| ④ | `place_cell` | [1] MoveIt: carry → 칸 4 위 5 cm · [2] IK 궤적: 내려가기 → 벌리기 → 올리기 | **`place_cell.onnx`** — 같은 `rl_arm_correction`. 입력에 `/hand_relative`(칸 − 손 안 퍽) | `judge_cell` (규칙): 칸 중심 10 mm 안 · 2초 정지 |
+| → | (다음) | mission_manager | **`plan_next.pt`** 다시 — 결과(칸 맞음/어긋남/누움)를 보고 다음 skill | — |
+
+**정리 — 모델은 4곳에서만 돕니다**
+
+| 모델 | 도는 곳 | 얼마나 자주 | 하는 일 | 없으면 |
+|---|---|---|---|---|
+| `plan_next.pt` | mission_manager (노드) | skill 하나 끝날 때 1번 | 다음 skill 고르기 | 규칙 순서 / 계산기 순서 |
+| `dock_box.onnx` 등 주행 정책 | rl_nav_correction (노드) | 25Hz | 속도 명령에 작은 보정 | 보정 0 — 기준 P 제어만 |
+| `place_cell.onnx` 등 팔 정책 | rl_arm_correction (ros2_control 컨트롤러, JTC 바로 뒤) | 100Hz 루프, 정책은 50Hz | 목표 관절각에 작은 보정 (닿는 구간만) | 보정 0 — 기준 궤적만 |
+| YOLO | perception (노드) | 카메라당 ≤ 4Hz | 퍽·신호등 찾기 | — |
+
+- 학습된 skill 정책은 **로봇을 처음부터 움직이지 않습니다.** 늘 "기준 동작(Nav2 · MoveIt · IK 궤적 · P 제어)이 움직이고, 정책은 그 위에 몇 mm·몇 cm/s만 고칩니다." 그래서 정책을 끄면(Δ = 0) 지금 로봇과 똑같이 움직입니다.
+- 팔 정책 파일은 skill마다 하나씩이고, **coordinator가 "지금 어떤 skill의 어느 단계인지"를 알려 주면 `rl_arm_correction`이 그 skill의 정책만 켭니다.** 빈 공간 이동 중이거나 skill이 없으면 꺼져 있습니다.
+- 🔴 지금 로봇에 없는 것: `rl_arm_correction`·`rl_nav_correction`의 ONNX 추론 (틀만, Δ = 0) · coordinator → 보정 컨트롤러 "skill·단계" 전달 · coordinator 닿는 구간 IK 궤적 · approach P 제어 · mission_manager의 `plan_next` (3장 표).
+
+---
+
 ## 4. skill 37개 지도 — 영역별 상태
 
 ```mermaid
