@@ -9,26 +9,26 @@
 
 ```mermaid
 flowchart LR
-  subgraph SIM["① 시뮬에서 학습 (Isaac Lab · pa27)"]
-    E["skill별 학습 환경<br/>팔 9 · 주행 5"]:::ok --> Q["학습 대기열<br/>skill 하나씩 학습·평가"]:::wip
-    MS["가상 미션<br/>(플래너 학습)"]:::ok
+  subgraph g1_SIM["① 시뮬에서 학습 (Isaac Lab · pa27)"]
+    g1_E["skill별 학습 환경<br/>팔 9 · 주행 5"]:::ok --> g1_Q["학습 대기열<br/>skill 하나씩 학습·평가"]:::wip
+    g1_MS["가상 미션<br/>(플래너 학습)"]:::ok
   end
-  subgraph OUT["② 결과물"]
-    P["skill 정책 파일<br/>.pt · .onnx"]:::wip
-    PN["플래너 plan_next<br/>.pt"]:::ok
+  subgraph g1_OUT["② 결과물"]
+    g1_P["skill 정책 파일<br/>.pt · .onnx"]:::wip
+    g1_PN["플래너 plan_next<br/>.pt"]:::ok
   end
-  subgraph CHECK["③ 시뮬에서 미션 전체 풀기"]
-    MR["무작위 출제 → 계산기 → 플래너 → skill<br/>첫 완주 20점 · 10점"]:::wip
+  subgraph g1_CHECK["③ 시뮬에서 미션 전체 풀기"]
+    g1_MR["무작위 출제 → 계산기 → 플래너 → skill<br/>첫 완주 20점 · 10점"]:::wip
   end
-  subgraph ROBOT["④ 실제 로봇 (ROS 2)"]
-    R["노드들<br/>인식 · 미션 · coordinator · 보정 컨트롤러"]:::wip
+  subgraph g1_ROBOT["④ 실제 로봇 (ROS 2)"]
+    g1_R["노드들<br/>인식 · 미션 · coordinator · 보정 컨트롤러"]:::wip
   end
-  Q --> P
-  MS --> PN
-  P --> MR
-  PN --> MR
-  P -.->|"ONNX 추론 아직 없음"| R
-  PN -.->|"마지막 단계"| R
+  g1_Q --> g1_P
+  g1_MS --> g1_PN
+  g1_P --> g1_MR
+  g1_PN --> g1_MR
+  g1_P -.->|"ONNX 추론 아직 없음"| g1_R
+  g1_PN -.->|"마지막 단계"| g1_R
   classDef ok fill:#123d2a,stroke:#3fbf7f,color:#e8eef8
   classDef wip fill:#3d3112,stroke:#e2a83a,color:#e8eef8
   classDef no fill:#3d1616,stroke:#e06666,color:#e8eef8
@@ -48,13 +48,13 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-  IN["인식 결과<br/>신호 R·Y·G · 바코드 · 퍽 12개 색·모양·번호·위치"]:::ok
-  CALC["계산기 mission_solver<br/>퍽마다 목표 (장소 L1~L3, 칸 0~8)<br/>규칙 = 정답 하나"]:::ok
-  PLAN["플래너 plan_next<br/>지금 상태 보고 다음 skill 하나 고르기<br/>(학습됨 · 비교용 계산기 순서 solver)"]:::ok
-  T["task 6개<br/>관측 → 조사 → 수집 → 배치 → 검증 → 복귀"]:::ok
-  SK["skill 37개 (아래 4장)"]:::wip
-  RES["skill 결과<br/>손 · 적재함 · 칸 맞음/어긋남/누움 · 잃음"]
-  IN --> CALC --> PLAN --> T --> SK --> RES --> PLAN
+  g2_IN["인식 결과<br/>신호 R·Y·G · 바코드 · 퍽 12개 색·모양·번호·위치"]:::ok
+  g2_CALC["계산기 mission_solver<br/>퍽마다 목표 (장소 L1~L3, 칸 0~8)<br/>규칙 = 정답 하나"]:::ok
+  g2_PLAN["플래너 plan_next<br/>지금 상태 보고 다음 skill 하나 고르기<br/>(학습됨 · 비교용 계산기 순서 solver)"]:::ok
+  g2_T["task 6개<br/>관측 → 조사 → 수집 → 배치 → 검증 → 복귀"]:::ok
+  g2_SK["skill 37개 (아래 4장)"]:::wip
+  g2_RES["skill 결과<br/>손 · 적재함 · 칸 맞음/어긋남/누움 · 잃음"]
+  g2_IN --> g2_CALC --> g2_PLAN --> g2_T --> g2_SK --> g2_RES --> g2_PLAN
   classDef ok fill:#123d2a,stroke:#3fbf7f,color:#e8eef8
   classDef wip fill:#3d3112,stroke:#e2a83a,color:#e8eef8
 ```
@@ -71,21 +71,21 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-  MM["mission_manager<br/>(PR #49)"]:::wip -->|"다음 skill"| CO["coordinator<br/>skill 실행"]:::wip
-  CO -->|"① 빈 공간 이동"| MV["MoveIt<br/>stow → 퍽 위 5 cm"]:::ok
-  CO -->|"② 닿는 구간<br/>(시뮬과 같은 IK + 보간)"| IK["IK 궤적<br/>내려가기 → 쥐기·놓기 → 올리기"]:::no
-  MV --> JTC["arm_controller<br/>(JTC)"]:::ok
-  IK --> JTC
-  JTC --> RC["rl_arm_correction<br/>학습 보정 Δ"]:::no
-  RC --> HW["팔 하드웨어"]:::ok
-  CAM["손 카메라 검출<br/>perception"]:::ok --> HR["hand_relative<br/>퍽 − 손 · 칸 − 퍽"]:::ok
-  CO -->|"무엇을 잴지<br/>/hand_relative/target"| HR
-  HR -->|"/hand_relative"| RC
-  CO -->|"먼 길"| NAV["Nav2"]:::ok
-  CO -->|"상자 앞 도킹<br/>(시뮬과 같은 P 제어)"| AP["approach"]:::no
-  NAV --> NC["rl_nav_correction<br/>학습 보정"]:::no
-  AP --> NC
-  NC --> BASE["바퀴"]:::ok
+  g3_MM["mission_manager<br/>(PR #49)"]:::wip -->|"다음 skill"| g3_CO["coordinator<br/>skill 실행"]:::wip
+  g3_CO -->|"① 빈 공간 이동"| g3_MV["MoveIt<br/>stow → 퍽 위 5 cm"]:::ok
+  g3_CO -->|"② 닿는 구간<br/>(시뮬과 같은 IK + 보간)"| g3_IK["IK 궤적<br/>내려가기 → 쥐기·놓기 → 올리기"]:::no
+  g3_MV --> g3_JTC["arm_controller<br/>(JTC)"]:::ok
+  g3_IK --> g3_JTC
+  g3_JTC --> g3_RC["rl_arm_correction<br/>학습 보정 Δ"]:::no
+  g3_RC --> g3_HW["팔 하드웨어"]:::ok
+  g3_CAM["손 카메라 검출<br/>perception"]:::ok --> g3_HR["hand_relative<br/>퍽 − 손 · 칸 − 퍽"]:::ok
+  g3_CO -->|"무엇을 잴지<br/>/hand_relative/target"| g3_HR
+  g3_HR -->|"/hand_relative"| g3_RC
+  g3_CO -->|"먼 길"| g3_NAV["Nav2"]:::ok
+  g3_CO -->|"상자 앞 도킹<br/>(시뮬과 같은 P 제어)"| g3_AP["approach"]:::no
+  g3_NAV --> g3_NC["rl_nav_correction<br/>학습 보정"]:::no
+  g3_AP --> g3_NC
+  g3_NC --> g3_BASE["바퀴"]:::ok
   classDef ok fill:#123d2a,stroke:#3fbf7f,color:#e8eef8
   classDef wip fill:#3d3112,stroke:#e2a83a,color:#e8eef8
   classDef no fill:#3d1616,stroke:#e06666,color:#e8eef8
@@ -107,33 +107,33 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-  subgraph DRIVE["주행"]
-    d1["dock_box ✅ 98.6 %"]:::ok
-    d2["drive_straight ✅ 100 %"]:::ok
-    d3["park_home ⏳ 대기열"]:::wip
-    d4["drive_arc ⏳ 대기열"]:::wip
-    d5["drive_turn — 기준선 100 %"]:::keep
-    d6["navigate ✖ 환경 없음 (Nav2)"]:::no
+  subgraph g4_DRIVE["주행"]
+    g4_d1["dock_box ✅ 98.6 %"]:::ok
+    g4_d2["drive_straight ✅ 100 %"]:::ok
+    g4_d3["park_home ⏳ 대기열"]:::wip
+    g4_d4["drive_arc ⏳ 대기열"]:::wip
+    g4_d5["drive_turn — 기준선 100 %"]:::keep
+    g4_d6["navigate ✖ 환경 없음 (Nav2)"]:::no
   end
-  subgraph ARM["팔"]
-    a1["place_cell ✅ 99 % (팀원)"]:::ok
-    a2["load_slot ⏳ 학습 중"]:::wip
-    a3["unload_slot ⏳ 대기열"]:::wip
-    a4["pregrasp ⏳ 대기열"]:::wip
-    a5["regrasp_stood ⏳ 대기열"]:::wip
-    a6["pick_upright · stand_up<br/>팀원 정책 있음, 평가 필요"]:::wip
-    a7["move_pose · camera_clear_view<br/>camera_look_down — 기준선 100 %"]:::keep
-    a8["nudge_cell · stand_in_place<br/>✖ 동작·환경 없음"]:::no
-    a9["compensate_sag · grip_force<br/>실측 (힘 최소값만 잼)"]:::wip
+  subgraph g4_ARM["팔"]
+    g4_a1["place_cell ✅ 99 % (팀원)"]:::ok
+    g4_a2["load_slot ⏳ 학습 중"]:::wip
+    g4_a3["unload_slot ⏳ 대기열"]:::wip
+    g4_a4["pregrasp ⏳ 대기열"]:::wip
+    g4_a5["regrasp_stood ⏳ 대기열"]:::wip
+    g4_a6["pick_upright · stand_up<br/>팀원 정책 있음, 평가 필요"]:::wip
+    g4_a7["move_pose · camera_clear_view<br/>camera_look_down — 기준선 100 %"]:::keep
+    g4_a8["nudge_cell · stand_in_place<br/>✖ 동작·환경 없음"]:::no
+    g4_a9["compensate_sag · grip_force<br/>실측 (힘 최소값만 잼)"]:::wip
   end
-  subgraph SENSE["인식 · 상태 · 비상 · 맵"]
-    s1["YOLO 학습됨<br/>detect_puck · classify_color · classify_shape_pose"]:::keep
-    s2["규칙<br/>태그 · 장소 상자 · 신호·바코드 · 칸 판정<br/>배터리 · 전류 · 모터 · 넘어짐"]:::keep
-    s3["hand_relative ✅ (새로, 정책 입력)"]:::ok
-    s4["맵 cuVSLAM · nvblox — 유지"]:::keep
+  subgraph g4_SENSE["인식 · 상태 · 비상 · 맵"]
+    g4_s1["YOLO 학습됨<br/>detect_puck · classify_color · classify_shape_pose"]:::keep
+    g4_s2["규칙<br/>태그 · 장소 상자 · 신호·바코드 · 칸 판정<br/>배터리 · 전류 · 모터 · 넘어짐"]:::keep
+    g4_s3["hand_relative ✅ (새로, 정책 입력)"]:::ok
+    g4_s4["맵 cuVSLAM · nvblox — 유지"]:::keep
   end
-  subgraph PLANS["플랜"]
-    p1["plan_next ✅ 가상 미션 학습<br/>로봇 연결은 마지막"]:::ok
+  subgraph g4_PLANS["플랜"]
+    g4_p1["plan_next ✅ 가상 미션 학습<br/>로봇 연결은 마지막"]:::ok
   end
   classDef ok fill:#123d2a,stroke:#3fbf7f,color:#e8eef8
   classDef wip fill:#3d3112,stroke:#e2a83a,color:#e8eef8
@@ -178,12 +178,12 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-  G["무작위 출제<br/>퍽 배치·누움 · 신호 · 바코드"]:::ok --> C["계산기<br/>mission_rules.py"]:::ok
-  C --> PL["플래너<br/>plan_next"]:::ok
-  PL --> X["skill 실행<br/>(팀원 시연 동작 + 학습 보정)"]:::wip
-  X --> J["결과 판정<br/>시뮬 상태"]:::ok
-  J --> PL
-  X --> D["주행<br/>미로 지도 A* → P 제어 · 도킹 면 고르기"]:::ok
+  g5_G["무작위 출제<br/>퍽 배치·누움 · 신호 · 바코드"]:::ok --> g5_C["계산기<br/>mission_rules.py"]:::ok
+  g5_C --> g5_PL["플래너<br/>plan_next"]:::ok
+  g5_PL --> g5_X["skill 실행<br/>(팀원 시연 동작 + 학습 보정)"]:::wip
+  g5_X --> g5_J["결과 판정<br/>시뮬 상태"]:::ok
+  g5_J --> g5_PL
+  g5_X --> g5_D["주행<br/>미로 지도 A* → P 제어 · 도킹 면 고르기"]:::ok
   classDef ok fill:#123d2a,stroke:#3fbf7f,color:#e8eef8
   classDef wip fill:#3d3112,stroke:#e2a83a,color:#e8eef8
 ```
@@ -202,14 +202,14 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  A["학습 대기열 끝<br/>(밤 9시쯤)"]:::wip --> B["학습 정책을<br/>시뮬 미션에 연결 → 다시 풀기"]:::no
-  B --> C["skill 실패 줄이기<br/>pick 재학습 · stand_in_place · nudge_cell"]:::no
-  A --> D["coordinator 바꾸기<br/>닿는 구간 IK · 도킹 P 제어 · hand_relative 목표"]:::no
-  E["ONNX 추론<br/>rl_arm/nav_correction"]:::no --> F["실기 시험"]:::no
-  D --> F
-  G["PR #49 병합"]:::wip --> F
-  H["처짐 실측"]:::no --> F
-  F --> I["plan_next를<br/>mission_manager에 (마지막)"]:::no
+  g6_A["학습 대기열 끝<br/>(밤 9시쯤)"]:::wip --> g6_B["학습 정책을<br/>시뮬 미션에 연결 → 다시 풀기"]:::no
+  g6_B --> g6_C["skill 실패 줄이기<br/>pick 재학습 · stand_in_place · nudge_cell"]:::no
+  g6_A --> g6_D["coordinator 바꾸기<br/>닿는 구간 IK · 도킹 P 제어 · hand_relative 목표"]:::no
+  g6_E["ONNX 추론<br/>rl_arm/nav_correction"]:::no --> g6_F["실기 시험"]:::no
+  g6_D --> g6_F
+  g6_G["PR #49 병합"]:::wip --> g6_F
+  g6_H["처짐 실측"]:::no --> g6_F
+  g6_F --> g6_I["plan_next를<br/>mission_manager에 (마지막)"]:::no
   classDef ok fill:#123d2a,stroke:#3fbf7f,color:#e8eef8
   classDef wip fill:#3d3112,stroke:#e2a83a,color:#e8eef8
   classDef no fill:#3d1616,stroke:#e06666,color:#e8eef8
