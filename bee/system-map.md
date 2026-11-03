@@ -40,7 +40,7 @@ flowchart LR
 | 덩어리 | 지금 | 막힌 곳 |
 |---|---|---|
 | ① 시뮬 학습 | 환경 14개 완성 · 대기열 8개 중 **5개 끝** (`dock_box` 98.6 % · `drive_straight` 100 % · `load_slot` 98.3 % · `unload_slot` 98.1 % · `pregrasp` 95.4 %) · 재학습 끝: `load_slot` 99.0 %·놓침 0.49 % ✅ · `pregrasp`는 고친 환경에서 기준선 99.5 %로 충분 | 남은 3개(`park_home` · `drive_arc` · `regrasp_after_stand`)는 동료 |
-| ② 결과물 | 로봇에 넣은 정책 **5개** (`place_cell`·`pick_standing_puck` 팀원 · `dock_box` · `drive_straight` · `load_slot`) + 플래너 1개 | 학습 중 5개는 끝나면 넣기 |
+| ② 결과물 | 로봇에 넣은 정책 **6개** (`place_cell`·`pick_standing_puck` 팀원 · `dock_box` · `drive_straight` · `load_slot` 재학습본 · `unload_slot`) + 플래너 1개 · `pregrasp`는 기준선으로 충분 | 동료 학습 3개는 끝나면 넣기 |
 | ③ 시뮬 미션 | 무작위 문제를 끝까지 풂 (문제 #1 20점, #7 10점) | 점수를 깎는 건 **skill 실패** (집다 떨어뜨림 · 놓다 누움) |
 | ④ 로봇 | **배포 코드 완료** (PR #55) · 팀원 처짐 적분과 합친 통합본 테스트 **71개** 통과 (PR #57) | **실기 · 전체 bringup 시험 전** · PR 병합 · #57은 isaac-setup과 자산 충돌 정리 필요 |
 
@@ -328,7 +328,7 @@ flowchart TB
 | 팔 | `place_cell` | 강화학습 | pip (팀원) | 96.3 → **99.0 %** | ✅ `arm_correction/place_cell.policy` (팀원 정책) |
 | 팔 | `load_slot` | 강화학습 | load | 94.8 → 98.3 % (놓침 1.0 %) → **재학습 99.0 % · 놓침 0.49 %** ✅ (놓침 벌점 5→20) | ✅ 재학습본 `load_slot.policy`로 바꿈 |
 | 팔 | `pick_standing_puck` | 강화학습 | pick (팀원) | — (평가 필요) | ✅ `arm_correction/pick_standing_puck.policy` (팀원 정책) |
-| 팔 | `unload_slot` | 강화학습 | unload | 93.7 → **98.1 %** | 넣을 차례 |
+| 팔 | `unload_slot` | 강화학습 | unload | 93.7 → **98.1 %** | ✅ `arm_correction/unload_slot.policy` |
 | 팔 | `stand_lying_puck` | 강화학습 | `stand` (팀원 파일 right_env, 예전 이름 right) | — | 🟡 팀원 정책 · 로봇 입력 모양 필요 |
 | 팔 | `regrasp_after_stand` | 강화학습 | `stand_lying` regrasp=1 | 동료 학습 | ⏳ |
 | 팔 | `pregrasp` | 강화학습 | reach target=above | 89.3 → 95.4 % → 환경 고친 뒤 기준선 **99.5 %** = 학습 99.6 % | 기준선으로 충분 (MoveIt만) |

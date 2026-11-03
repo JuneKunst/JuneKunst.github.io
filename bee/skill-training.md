@@ -241,7 +241,7 @@ flowchart LR
 | `dock_box` | `policies/dock_box.pt/.onnx` | 30.2 % | **98.6 %** (1024판) | ✅ |
 | `drive_straight` | `policies/drive_straight.pt/.onnx` | 61.4 % | **100 %** | ✅ |
 | `load_slot` | `policies/load_slot.pt` (재학습 · 1차는 `load_slot_v1.pt`) | 94.8 % | **99.0 % · 놓침 5/1024 = 0.49 %** (1차 98.3 % · 10/1024) | ✅ 로봇 정책 파일 바꿈 (mission-flow e8c290f) |
-| `unload_slot` | `policies/unload_slot.pt/.onnx` | 93.7 % | **98.1 %** | ✅ (넣을 차례) |
+| `unload_slot` | `policies/unload_slot.pt/.onnx` | 93.7 % | **98.1 %** | ✅ 로봇 정책 파일 넣음 (mission-flow 73bf41a) |
 | `pregrasp` | `policies/pregrasp.pt` (1차는 `pregrasp_v1.pt`) | 89.3 % → 고친 뒤 **99.5 %** | 1차 95.4 % → 재학습 99.6 % | ✅ **기준선으로 충분** — 정책 안 씀 (MoveIt만) |
 | `park_home` · `drive_arc` · `regrasp_after_stand` | 동료 | — | — | — |
 
