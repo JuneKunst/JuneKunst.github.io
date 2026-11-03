@@ -32,7 +32,7 @@ summary:focus-visible{outline:2px solid #67d7e8}
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
 <script>
 // 원본은 skill-plan.md 하나 — 여기서는 읽어서 그리기만
-fetch('system-map.md?v=r20261103f').then(r => r.text()).then(md => {
+fetch('system-map.md?v=r20261103j').then(r => r.text()).then(md => {
   const doc = document.getElementById('doc');
   doc.innerHTML = marked.parse(md);
   doc.querySelectorAll('pre code.language-mermaid').forEach(c => {

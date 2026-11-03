@@ -1,8 +1,8 @@
 # BEE 전체 지도 — 학습부터 로봇까지
 
-> **2026-11-03 17:50 기준** (pa27 시각). 지금까지 만든 것 전부를 한 장에 그렸습니다. 색: <b style="color:#3fbf7f">초록 = 완료</b> · <b style="color:#67b7e8">파랑 = 코드 완료, 실기 시험 전</b> · <b style="color:#e2a83a">노랑 = 진행 중 · 일부</b> · <b style="color:#e06666">빨강 = 아직 없음</b> · <b style="color:#8aa0b8">회색 = 학습 안 함 (규칙·기존 그대로)</b>
+> **2026-11-03 19:05 기준** (pa27 시각). 오늘 정리: [11-03 정리](wrapup-1103.html). 지금까지 만든 것 전부를 한 장에 그렸습니다. 색: <b style="color:#3fbf7f">초록 = 완료</b> · <b style="color:#67b7e8">파랑 = 코드 완료, 실기 시험 전</b> · <b style="color:#e2a83a">노랑 = 진행 중 · 일부</b> · <b style="color:#e06666">빨강 = 아직 없음</b> · <b style="color:#8aa0b8">회색 = 학습 안 함 (규칙·기존 그대로)</b>
 > 자세한 내용: [학습용 skill 구성](skill-learning.html) · [skill별 학습 조건](skill-training.html) · [스킬·플랜 한 장](skill-plan.html)
-> PR: [#53 skill 목록·플래너 학습](https://github.com/visualkhh/Lv2_bee_Assignment/pull/53) · [#54 hand_relative](https://github.com/visualkhh/Lv2_bee_Assignment/pull/54) · [#55 로봇 배포](https://github.com/visualkhh/Lv2_bee_Assignment/pull/55) · [#56 Isaac 학습 환경](https://github.com/visualkhh/Lv2_bee_Assignment/pull/56) · (먼저) [#49 미션 흐름](https://github.com/visualkhh/Lv2_bee_Assignment/pull/49)
+> PR: [#57 통합 → isaac-setup](https://github.com/visualkhh/Lv2_bee_Assignment/pull/57) · [#53 skill 목록·플래너 학습](https://github.com/visualkhh/Lv2_bee_Assignment/pull/53) · [#54 hand_relative](https://github.com/visualkhh/Lv2_bee_Assignment/pull/54) · [#55 로봇 배포](https://github.com/visualkhh/Lv2_bee_Assignment/pull/55) · [#56 Isaac 학습 환경](https://github.com/visualkhh/Lv2_bee_Assignment/pull/56) · (먼저) [#49 미션 흐름](https://github.com/visualkhh/Lv2_bee_Assignment/pull/49)
 
 ---
 
@@ -11,7 +11,7 @@
 ```mermaid
 flowchart LR
   subgraph g1_SIM["① 시뮬에서 학습 (Isaac Lab · pa27)"]
-    g1_E["skill별 학습 환경<br/>팔 9 · 주행 5"]:::ok --> g1_Q["학습 대기열<br/>8개 중 3개 끝 · 진행 중"]:::wip
+    g1_E["skill별 학습 환경<br/>팔 9 · 주행 5"]:::ok --> g1_Q["학습 대기열<br/>8개 중 5개 끝 · 진행 중"]:::wip
     g1_MS["가상 미션<br/>(플래너 학습)"]:::ok
   end
   subgraph g1_OUT["② 결과물"]
@@ -39,10 +39,10 @@ flowchart LR
 
 | 덩어리 | 지금 | 막힌 곳 |
 |---|---|---|
-| ① 시뮬 학습 | 환경 14개 완성 · 대기열 8개 중 **3개 끝** (`dock_box` 98.6 %, `drive_straight` 100 %, `load_slot` 98.3 %) · 지금 `unload_slot` | 남은 5개 — skill당 약 30~45분 (2048 env × 500회) |
+| ① 시뮬 학습 | 환경 14개 완성 · 대기열 8개 중 **5개 끝** (`dock_box` 98.6 % · `drive_straight` 100 % · `load_slot` 98.3 % · `unload_slot` 98.1 % · `pregrasp` 95.4 %) · 지금 `park_home` | 남은 3개 — 밤 9시쯤 |
 | ② 결과물 | 로봇에 넣은 정책 **5개** (`place_cell`·`pick_upright` 팀원 · `dock_box` · `drive_straight` · `load_slot`) + 플래너 1개 | 학습 중 5개는 끝나면 넣기 |
 | ③ 시뮬 미션 | 무작위 문제를 끝까지 풂 (문제 #1 20점, #7 10점) | 점수를 깎는 건 **skill 실패** (집다 떨어뜨림 · 놓다 누움) |
-| ④ 로봇 | **배포 코드 완료** — pa27 ROS에서 빌드 · 테스트 61개 통과 (PR #55) | **실기 · 전체 bringup 시험 전** · PR #49 → #54 → #55 병합 |
+| ④ 로봇 | **배포 코드 완료** (PR #55) · 팀원 처짐 적분과 합친 통합본 테스트 **71개** 통과 (PR #57) | **실기 · 전체 bringup 시험 전** · PR 병합 · #57은 isaac-setup과 자산 충돌 정리 필요 |
 
 ---
 
@@ -103,7 +103,7 @@ flowchart LR
 | coordinator → `/hand_relative/target` · `/skill_context` | 🔵 PR #55 | 실기 |
 | coordinator 닿는 구간 = 시뮬과 같은 IK 궤적 (`contact_mode: sim`) | 🔵 PR #55 · 집기 · 놓기 · 싣기 · 꺼내기 | 실기 · 세우기는 아직 예전 방식 |
 | approach 도킹 = 시뮬과 같은 P 제어 (`approach_mode: sim`) | 🔵 PR #55 | 실기 |
-| `rl_arm_correction` (정책 계산 · 처짐 적분) | 🔵 PR #55 · C++ = TorchScript 검산 | 실기 (컨트롤러 체인에서 불러오기 · 주기) |
+| `rl_arm_correction` (정책 계산 · 처짐 적분) | 🔵 PR #55 · C++ = TorchScript 검산 · **#57: 처짐 적분·`~/reset_sag`는 팀원 방식** (시간 기준 · 멈춤일 때 · 4.2/s · 늘) + 정책 Δ | 실기 (컨트롤러 체인에서 불러오기 · 주기) |
 | `rl_nav_correction` 도킹 모드 | 🔵 PR #55 | 실기 |
 | mission_manager · mission_solver | 🟡 PR #49 | 병합 |
 
@@ -275,14 +275,14 @@ flowchart TB
 
 ---
 
-## 4. skill 37개 지도 — 영역별 상태 (17:50)
+## 4. skill 37개 지도 — 영역별 상태 (19:05)
 
 ```mermaid
 flowchart TB
   subgraph g4_DRIVE["주행"]
     g4_d1["dock_box ✅ 30 → 98.6 %"]:::ok
     g4_d2["drive_straight ✅ 61 → 100 %"]:::ok
-    g4_d3["park_home ⏳ 대기열"]:::wip
+    g4_d3["park_home ⏳ 학습 중"]:::wip
     g4_d4["drive_arc ⏳ 대기열"]:::wip
     g4_d5["drive_turn — 기준선 100 %"]:::keep
     g4_d6["navigate ✖ 환경 없음 (Nav2)"]:::no
@@ -290,8 +290,8 @@ flowchart TB
   subgraph g4_ARM["팔"]
     g4_a1["place_cell ✅ 99 % (팀원)"]:::ok
     g4_a2["load_slot ✅ 95 → 98.3 %"]:::ok
-    g4_a3["unload_slot ⏳ 학습 중"]:::wip
-    g4_a4["pregrasp ⏳ 대기열"]:::wip
+    g4_a3["unload_slot ✅ 94 → 98.1 %"]:::ok
+    g4_a4["pregrasp ✅ 89 → 95.4 %"]:::ok
     g4_a5["regrasp_stood ⏳ 대기열"]:::wip
     g4_a6["pick_upright · stand_up<br/>팀원 정책 있음, 평가 필요"]:::wip
     g4_a7["move_pose · camera_clear_view<br/>camera_look_down — 기준선 100 %"]:::keep
@@ -321,17 +321,17 @@ flowchart TB
 |---|---|---|---|---|---|
 | 주행 | `dock_box` | 강화학습 | drive task=dock | 30.2 → **98.6 %** | ✅ `nav_correction/dock_box.policy` |
 | 주행 | `drive_straight` | 강화학습 | drive task=straight | 61.4 → **100 %** | ✅ `nav_correction/drive_straight.policy` |
-| 주행 | `park_home` | 강화학습 | drive task=park | 87.5 % → 대기열 | ⏳ |
+| 주행 | `park_home` | 강화학습 | drive task=park | 87.5 % → 학습 중 | ⏳ |
 | 주행 | `drive_arc` | 강화학습 | drive task=arc | 94.5 % → 대기열 | ⏳ |
 | 주행 | `drive_turn` | 강화학습 | drive task=turn | 100 % | 기준선으로 충분 |
 | 주행 | `navigate` | 강화학습 | 없음 | — | Nav2 그대로 |
 | 팔 | `place_cell` | 강화학습 | pip (팀원) | 96.3 → **99.0 %** | ✅ `arm_correction/place_cell.policy` (팀원 정책) |
 | 팔 | `load_slot` | 강화학습 | load | 94.8 → **98.3 %** | ✅ `arm_correction/load_slot.policy` |
 | 팔 | `pick_upright` | 강화학습 | pick (팀원) | — (평가 필요) | ✅ `arm_correction/pick_upright.policy` (팀원 정책) |
-| 팔 | `unload_slot` | 강화학습 | unload | 90.6 % → 학습 중 | ⏳ |
-| 팔 | `stand_up` | 강화학습 | right (팀원) | — | 🟡 팀원 정책 · 로봇 입력 모양 필요 |
-| 팔 | `regrasp_stood` | 강화학습 | right regrasp=1 | 대기열 | ⏳ |
-| 팔 | `pregrasp` | 강화학습 | reach target=above | 88~91 % → 대기열 | ⏳ · 로봇 입력 모양 필요 |
+| 팔 | `unload_slot` | 강화학습 | unload | 93.7 → **98.1 %** | 넣을 차례 |
+| 팔 | `stand_up` | 강화학습 | `stand` (팀원 파일 right_env, 예전 이름 right) | — | 🟡 팀원 정책 · 로봇 입력 모양 필요 |
+| 팔 | `regrasp_stood` | 강화학습 | `stand` regrasp=1 | 대기열 | ⏳ |
+| 팔 | `pregrasp` | 강화학습 | reach target=above | 89.3 → **95.4 %** | 넣을 차례 · 로봇 입력 모양 필요 |
 | 팔 | `camera_look_down` | 강화학습 | reach target=look | 100 % | 기준선으로 충분 (높이 0.08 m — 확인 필요) |
 | 팔 | `move_pose` · `camera_clear_view` | 강화학습 | reach pose · clear | 100 % | 기준선으로 충분 |
 | 팔 | `nudge_cell` · `stand_in_place` | 강화학습 | 없음 | — | 🔴 동작부터 설계 |
@@ -409,5 +409,6 @@ flowchart LR
 | [#53](https://github.com/visualkhh/Lv2_bee_Assignment/pull/53) | `feature/skill-learning` → develop | `learning/skills.yaml` (skill 37개 · 계약 · 배포 조건) · `learning/plan/` (가상 미션 · 플래너 학습 · 계산기 순서) |
 | [#54](https://github.com/visualkhh/Lv2_bee_Assignment/pull/54) | `feature/hand-relative` → develop | 인식 `hand_relative` · `HandTarget`/`HandRelative` · API.md |
 | [#55](https://github.com/visualkhh/Lv2_bee_Assignment/pull/55) | `feature/policy-deploy` → `feature/mission-flow` | 로봇 배포: 보정 컨트롤러 · `SkillContext` · coordinator 닿는 구간·approach · `plan_next` · 정책 파일 (`ros2_ws/model/`) — #49·#54 포함, 최신 develop 포함 |
-| [#56](https://github.com/visualkhh/Lv2_bee_Assignment/pull/56) | `feature/skill-envs` → 팀원 `feature/isaac-lab` | Isaac 학습 환경 `slot_env` · `reach_env` · `drive_env` · 학습 대기열 `train_queue.sh` · 미션 실행기 `mission_run.py` |
+| [#56](https://github.com/visualkhh/Lv2_bee_Assignment/pull/56) | `feature/skill-envs` → 팀원 `feature/isaac-lab` | Isaac 학습 환경 `slot_env` · `reach_env` · `drive_env` · 학습 대기열 `train_queue.sh` · 미션 실행기 `mission_run.py` · `--task stand` |
+| [#57](https://github.com/visualkhh/Lv2_bee_Assignment/pull/57) | `feature/skill-all` → `feature/isaac-setup` | **위 전부 + 팀원 `isaac-lab` 통합** · 처짐 적분은 팀원 방식 · 테스트 71개 · ⚠️ isaac-setup과 Isaac 자산 약 66개 파일 충돌 (정리 전) |
 | — | pa27 `~/bee_skill` | 학습 중인 복사본 · `logs/queue_summary.tsv` (학습 결과 한 줄씩) |
