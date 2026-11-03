@@ -51,7 +51,7 @@ flowchart LR
 | `camera_clear_view` | 팔 | `reach`, `target=clear` (**새로**) | 100 % | 시뮬에선 기준선으로 충분 |
 | `pregrasp` | 팔 | `reach`, `target=above` (**새로**) | 88~91 % | 본 학습 대기열 5번째. 실패 원인 확인함 (아래) |
 | `camera_look_down` | 팔 | `reach`, `target=look` (**새로**) | 100 % | 높이 확인 필요 (아래) |
-| `drive_straight` | 주행 | `drive`, `task=straight` (**새로**) | 68.0 % | **본 학습 중** (2048 env × 500회, 19:00 기준 322/500) |
+| `drive_straight` | 주행 | `drive`, `task=straight` (**새로**) | 61.4 % | ✅ **학습 완료 100 %** (2048 env × 500회) |
 | `drive_turn` | 주행 | `drive`, `task=turn` (**새로**) | 100 % | 시뮬에선 기준선으로 충분 |
 | `drive_arc` | 주행 | `drive`, `task=arc` (**새로**) | 94.5 % | 본 학습 대기열 7번째 |
 | `dock_box` | 주행 | `drive`, `task=dock` (**새로**) | **30.2 %** | ✅ **학습 완료 98.6 %** (512 env × 1500회) |
