@@ -5,7 +5,7 @@
 - 코드: 브랜치 `feature/skill-envs` · `lv2_module6/isaac/lab/` (팀원 `feature/isaac-lab` 위에 추가)
 - skill 목록·나눈 이유: [학습용 skill 구성](skill-learning.html)
 - 기준선 결과는 2026-11-03 pa27(RTX 5060 8 GB)에서 잔차 0으로 128~256판씩 돌린 값입니다.
-- **재학습 중 (11-03 19:36~, pa27)**: `load_slot` → `pregrasp` (2048 env × 500회). 1차 결과가 합격 기준(성공 ≥ 97 % · 되돌릴 수 없는 실패 ≤ 0.5 %)에 못 미쳐 보상·설정을 고쳤습니다 → 7장
+- **재학습 끝 (11-03 20:43, pa27)**: `load_slot` 99.0 % · 놓침 0.49 % ✅ (정책 파일 바꿈) · `pregrasp` 기준선 99.5 % = 학습 99.6 % → **기준선으로 충분** → 7장
 - `park_home` · `drive_arc` · `regrasp_after_stand`는 동료가 학습
 - **Isaac에서 미션 전체를 푸는 실행기**: 무작위 문제를 끝까지 풂 → 8장
 - **실제 로봇에 올리는 조건 (11-03 결정)** → 9장
@@ -62,7 +62,7 @@ flowchart LR
 | `unload_slot` | 팔 | `unload` (**새로**) | 90.6 % | ✅ **학습 완료 98.1 %** (놓침 0.1 %) |
 | `move_pose` | 팔 | `reach`, `target=pose` (**새로**) | 100 % | 시뮬에선 기준선으로 충분 |
 | `camera_clear_view` | 팔 | `reach`, `target=clear` (**새로**) | 100 % | 시뮬에선 기준선으로 충분 |
-| `pregrasp` | 팔 | `reach`, `target=above` (**새로**) | 89.8 % → 고친 뒤 **99.5 %** | 1차 95.4 % (기준 97 % 못 미침) → 환경 고치고 **재학습 중** |
+| `pregrasp` | 팔 | `reach`, `target=above` (**새로**) | 89.8 % → 고친 뒤 **99.5 %** | ✅ 기준선으로 충분 (재학습 99.6 % — 차이 없음) |
 | `camera_look_down` | 팔 | `reach`, `target=look` (**새로**) | 100 % | 높이 확인 필요 (아래) |
 | `drive_straight` | 주행 | `drive`, `task=straight` (**새로**) | 61.4 % | ✅ **학습 완료 100 %** (2048 env × 500회) |
 | `drive_turn` | 주행 | `drive`, `task=turn` (**새로**) | 100 % | 시뮬에선 기준선으로 충분 |
@@ -240,9 +240,9 @@ flowchart LR
 | `stand_lying_puck` | `right_residual*.pt/.onnx` (팀원, 여러 버전) | — | 기록 없음 | 평가 필요 |
 | `dock_box` | `policies/dock_box.pt/.onnx` | 30.2 % | **98.6 %** (1024판) | ✅ |
 | `drive_straight` | `policies/drive_straight.pt/.onnx` | 61.4 % | **100 %** | ✅ |
-| `load_slot` | `policies/load_slot.pt` (재학습 · 1차는 `load_slot_v1.pt`) | 94.8 % | **99.0 % · 놓침 5/1024 = 0.49 %** (1차 98.3 % · 10/1024) | ✅ 합격 (로봇 정책 파일 바꿀 차례) |
+| `load_slot` | `policies/load_slot.pt` (재학습 · 1차는 `load_slot_v1.pt`) | 94.8 % | **99.0 % · 놓침 5/1024 = 0.49 %** (1차 98.3 % · 10/1024) | ✅ 로봇 정책 파일 바꿈 (mission-flow e8c290f) |
 | `unload_slot` | `policies/unload_slot.pt/.onnx` | 93.7 % | **98.1 %** | ✅ (넣을 차례) |
-| `pregrasp` | `policies/pregrasp.pt` (1차 → `pregrasp_v1.pt`로 보관) | 89.3 % → 고친 뒤 99.5 % | 1차 95.4 % | ⏳ 재학습 중 (20:23 34/500회, 20:45쯤 끝) |
+| `pregrasp` | `policies/pregrasp.pt` (1차는 `pregrasp_v1.pt`) | 89.3 % → 고친 뒤 **99.5 %** | 1차 95.4 % → 재학습 99.6 % | ✅ **기준선으로 충분** — 정책 안 씀 (MoveIt만) |
 | `park_home` · `drive_arc` · `regrasp_after_stand` | 동료 | — | — | — |
 
 ### 재학습 (11-03 19:36 시작, pa27 `bee-retrain`) — 무엇을 왜 고쳤나

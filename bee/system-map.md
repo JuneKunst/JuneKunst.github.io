@@ -1,6 +1,6 @@
 # BEE 전체 지도 — 학습부터 로봇까지
 
-> **2026-11-03 20:25 기준** (pa27 시각). 오늘 정리: [11-03 정리](wrapup-1103.html). 지금까지 만든 것 전부를 한 장에 그렸습니다. 색: <b style="color:#3fbf7f">초록 = 완료</b> · <b style="color:#67b7e8">파랑 = 코드 완료, 실기 시험 전</b> · <b style="color:#e2a83a">노랑 = 진행 중 · 일부</b> · <b style="color:#e06666">빨강 = 아직 없음</b> · <b style="color:#8aa0b8">회색 = 학습 안 함 (규칙·기존 그대로)</b>
+> **2026-11-03 20:50 기준** (pa27 시각). 오늘 정리: [11-03 정리](wrapup-1103.html). 지금까지 만든 것 전부를 한 장에 그렸습니다. 색: <b style="color:#3fbf7f">초록 = 완료</b> · <b style="color:#67b7e8">파랑 = 코드 완료, 실기 시험 전</b> · <b style="color:#e2a83a">노랑 = 진행 중 · 일부</b> · <b style="color:#e06666">빨강 = 아직 없음</b> · <b style="color:#8aa0b8">회색 = 학습 안 함 (규칙·기존 그대로)</b>
 > 자세한 내용: [학습용 skill 구성](skill-learning.html) · [skill별 학습 조건](skill-training.html) · [스킬·플랜 한 장](skill-plan.html)
 > PR: [#57 통합 → isaac-setup](https://github.com/visualkhh/Lv2_bee_Assignment/pull/57) · [#53 skill 목록·플래너 학습](https://github.com/visualkhh/Lv2_bee_Assignment/pull/53) · [#54 hand_relative](https://github.com/visualkhh/Lv2_bee_Assignment/pull/54) · [#55 로봇 배포](https://github.com/visualkhh/Lv2_bee_Assignment/pull/55) · [#56 Isaac 학습 환경](https://github.com/visualkhh/Lv2_bee_Assignment/pull/56) · (먼저) [#49 미션 흐름](https://github.com/visualkhh/Lv2_bee_Assignment/pull/49)
 
@@ -39,7 +39,7 @@ flowchart LR
 
 | 덩어리 | 지금 | 막힌 곳 |
 |---|---|---|
-| ① 시뮬 학습 | 환경 14개 완성 · 대기열 8개 중 **5개 끝** (`dock_box` 98.6 % · `drive_straight` 100 % · `load_slot` 98.3 % · `unload_slot` 98.1 % · `pregrasp` 95.4 %) · 기준 못 넘은 `load_slot`(놓침 1.0 %) · `pregrasp`(95.4 %) **재학습 중** (19:36~) | 남은 3개(`park_home` · `drive_arc` · `regrasp_after_stand`)는 동료 |
+| ① 시뮬 학습 | 환경 14개 완성 · 대기열 8개 중 **5개 끝** (`dock_box` 98.6 % · `drive_straight` 100 % · `load_slot` 98.3 % · `unload_slot` 98.1 % · `pregrasp` 95.4 %) · 재학습 끝: `load_slot` 99.0 %·놓침 0.49 % ✅ · `pregrasp`는 고친 환경에서 기준선 99.5 %로 충분 | 남은 3개(`park_home` · `drive_arc` · `regrasp_after_stand`)는 동료 |
 | ② 결과물 | 로봇에 넣은 정책 **5개** (`place_cell`·`pick_standing_puck` 팀원 · `dock_box` · `drive_straight` · `load_slot`) + 플래너 1개 | 학습 중 5개는 끝나면 넣기 |
 | ③ 시뮬 미션 | 무작위 문제를 끝까지 풂 (문제 #1 20점, #7 10점) | 점수를 깎는 건 **skill 실패** (집다 떨어뜨림 · 놓다 누움) |
 | ④ 로봇 | **배포 코드 완료** (PR #55) · 팀원 처짐 적분과 합친 통합본 테스트 **71개** 통과 (PR #57) | **실기 · 전체 bringup 시험 전** · PR 병합 · #57은 isaac-setup과 자산 충돌 정리 필요 |
@@ -291,7 +291,7 @@ flowchart TB
     g4_a1["place_cell ✅ 99 % (팀원)"]:::ok
     g4_a2["load_slot ✅ 재학습 99.0 % · 놓침 0.49 %"]:::ok
     g4_a3["unload_slot ✅ 94 → 98.1 %"]:::ok
-    g4_a4["pregrasp ⏳ 95.4 % → 재학습"]:::wip
+    g4_a4["pregrasp — 기준선 99.5 % (충분)"]:::keep
     g4_a5["regrasp_after_stand ⏳ 동료 학습"]:::wip
     g4_a6["pick_standing_puck · stand_lying_puck<br/>팀원 정책 있음, 평가 필요"]:::wip
     g4_a7["move_pose · camera_clear_view<br/>camera_look_down — 기준선 100 %"]:::keep
@@ -326,12 +326,12 @@ flowchart TB
 | 주행 | `drive_turn` | 강화학습 | drive task=turn | 100 % | 기준선으로 충분 |
 | 주행 | `navigate` | 강화학습 | 없음 | — | Nav2 그대로 |
 | 팔 | `place_cell` | 강화학습 | pip (팀원) | 96.3 → **99.0 %** | ✅ `arm_correction/place_cell.policy` (팀원 정책) |
-| 팔 | `load_slot` | 강화학습 | load | 94.8 → 98.3 % (놓침 1.0 %) → **재학습 99.0 % · 놓침 0.49 %** ✅ (놓침 벌점 5→20) | 1차 `load_slot.policy` 들어 있음 (재학습 결과로 바꿀 예정) |
+| 팔 | `load_slot` | 강화학습 | load | 94.8 → 98.3 % (놓침 1.0 %) → **재학습 99.0 % · 놓침 0.49 %** ✅ (놓침 벌점 5→20) | ✅ 재학습본 `load_slot.policy`로 바꿈 |
 | 팔 | `pick_standing_puck` | 강화학습 | pick (팀원) | — (평가 필요) | ✅ `arm_correction/pick_standing_puck.policy` (팀원 정책) |
 | 팔 | `unload_slot` | 강화학습 | unload | 93.7 → **98.1 %** | 넣을 차례 |
 | 팔 | `stand_lying_puck` | 강화학습 | `stand` (팀원 파일 right_env, 예전 이름 right) | — | 🟡 팀원 정책 · 로봇 입력 모양 필요 |
 | 팔 | `regrasp_after_stand` | 강화학습 | `stand_lying` regrasp=1 | 동료 학습 | ⏳ |
-| 팔 | `pregrasp` | 강화학습 | reach target=above | 89.3 → 95.4 % → **재학습 중** (못 가는 목표 5번 뺌 · 멈춤 1.2 s → 기준선 99.5 %) | 로봇 입력 모양 필요 |
+| 팔 | `pregrasp` | 강화학습 | reach target=above | 89.3 → 95.4 % → 환경 고친 뒤 기준선 **99.5 %** = 학습 99.6 % | 기준선으로 충분 (MoveIt만) |
 | 팔 | `camera_look_down` | 강화학습 | reach target=look | 100 % | 기준선으로 충분 (높이 0.08 m — 확인 필요) |
 | 팔 | `move_pose` · `camera_clear_view` | 강화학습 | reach pose · clear | 100 % | 기준선으로 충분 |
 | 팔 | `nudge_cell` · `stand_puck_in_cell` | 강화학습 | 없음 | — | 🔴 동작부터 설계 |
