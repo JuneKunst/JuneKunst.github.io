@@ -4,7 +4,8 @@
 
 - 코드: 브랜치 `feature/skill-envs` · `lv2_module6/isaac/lab/` (팀원 `feature/isaac-lab` 위에 추가)
 - skill 목록·나눈 이유: [학습용 skill 구성](skill-learning.html)
-- 기준선 결과는 2026-11-03 pa27(RTX 5060 8 GB)에서 잔차 0으로 128판씩 돌린 값입니다.
+- 기준선 결과는 2026-11-03 pa27(RTX 5060 8 GB)에서 잔차 0으로 128~256판씩 돌린 값입니다.
+- **지금 pa27에서 skill별 본 학습을 차례로 돌리는 중**입니다 (512 env × 1500회, 끝날 때마다 평가). 결과는 아래 [산출물 현황](#7-산출물-현황)에 채웁니다.
 
 ---
 
@@ -41,18 +42,18 @@ flowchart LR
 | `place_cell` | 팔 | `pip` (팀원) | 96.3 % (place, 10-31) | 학습됨 99.0 % (팀원) |
 | `pick_upright` | 팔 | `pick` (팀원) | — | 팀원 정책 있음 |
 | `stand_up` | 팔 | `right` (팀원) | — | 팀원 정책 있음 |
-| `regrasp_stood` | 팔 | `right`, `regrasp=1` (팀원) | — | 연결만, 미시험 |
-| `load_slot` | 팔 | `load` (**새로**) | 71.1 % | 450회 시연 학습 69.3 % — **놓침 약 20 %는 학습으로 안 줄어듦, 원인 확인 중** (사각·원기둥 비슷) |
-| `unload_slot` | 팔 | `unload` (**새로**) | 90.6 % | 학습 대기 |
+| `regrasp_stood` | 팔 | `right`, `regrasp=1` (팀원) | — | 본 학습 대기열 8번째 (기준선도 그때 잼) |
+| `load_slot` | 팔 | `load` (**새로**) | **93.8 %** (고친 뒤) | 본 학습 대기열 3번째. 처음 71.1 %는 환경 오류였음 (아래) |
+| `unload_slot` | 팔 | `unload` (**새로**) | 90.6 % | 본 학습 대기열 4번째 |
 | `move_pose` | 팔 | `reach`, `target=pose` (**새로**) | 100 % | 시뮬에선 기준선으로 충분 |
 | `camera_clear_view` | 팔 | `reach`, `target=clear` (**새로**) | 100 % | 시뮬에선 기준선으로 충분 |
-| `pregrasp` | 팔 | `reach`, `target=above` (**새로**) | 88.3 % | 300회 학습 89.1 % — 실패는 특정 목표 자세(약 20 mm), 확인 필요 |
+| `pregrasp` | 팔 | `reach`, `target=above` (**새로**) | 88~91 % | 본 학습 대기열 5번째. 실패 원인 확인함 (아래) |
 | `camera_look_down` | 팔 | `reach`, `target=look` (**새로**) | 100 % | 높이 확인 필요 (아래) |
-| `drive_straight` | 주행 | `drive`, `task=straight` (**새로**) | 68.0 % | 학습 대상 (멈춘 자리 오차 중앙값 8.3 mm, 허용 10 mm) |
+| `drive_straight` | 주행 | `drive`, `task=straight` (**새로**) | 68.0 % | 본 학습 대기열 2번째 |
 | `drive_turn` | 주행 | `drive`, `task=turn` (**새로**) | 100 % | 시뮬에선 기준선으로 충분 |
-| `drive_arc` | 주행 | `drive`, `task=arc` (**새로**) | 94.5 % | 학습 대기 |
-| `dock_box` | 주행 | `drive`, `task=dock` (**새로**) | **31.4 %** | **학습 중** (512 env, 1000회) |
-| `park_home` | 주행 | `drive`, `task=park` (**새로**) | 87.5 % | 학습 대기 |
+| `drive_arc` | 주행 | `drive`, `task=arc` (**새로**) | 94.5 % | 본 학습 대기열 7번째 |
+| `dock_box` | 주행 | `drive`, `task=dock` (**새로**) | **31.4 %** | **본 학습 중** (대기열 1번째, 고친 설정으로 다시) |
+| `park_home` | 주행 | `drive`, `task=park` (**새로**) | 87.5 % | 본 학습 대기열 6번째 |
 | `nudge_cell` · `stand_in_place` | 팔 | 없음 | — | 기준 동작부터 설계 필요 |
 | `navigate` | 주행 | 없음 | — | Nav2·장애물 장면 필요 |
 | `plan_next` | 플랜 | 가상 미션 (CPU) | 계산기 38.11점 | **skill 완성 후** (마지막) |
@@ -121,7 +122,7 @@ flowchart LR
 | 무작위화 | 칸 위치 ±1 mm (적재함은 로봇에 고정, 보정 오차만) · 손 안 퍽 ±2 mm · 퍽 질량·마찰 |
 | 보상 | `place_cell`과 같은 항·가중치, 목표만 적재함 칸 중심 |
 | 성공 | 칸 중심 10 mm 안 · 칸 바닥 높이 ±5 mm · 기울기 5° 이하 · 손에서 빠짐 · 정지 |
-| 기준선 | **71.1 %** — 128판 중 28판은 내려가는 중 퍽이 손에서 빠짐 (링 모서리에 걸리는 것으로 보임, 확인 필요) |
+| 기준선 | **93.8 %** (192판, 놓침 0). 처음 71.1 %는 환경 오류: 뒤쪽 칸(0~3번) 위 자세는 손이 20° 기울어 있는데 퍽을 똑바로 세워 넣어서, 시작 0.02초에 퍽이 손가락과 겹쳐 튕겨 나갔음 → 퍽을 손 방향대로 쥐게 고침 |
 
 </details>
 
@@ -160,9 +161,10 @@ flowchart LR
 |---|---|---|---|
 | `move_pose` | `target=pose` | stow · carry 왼쪽 · carry 오른쪽 | 100 % (≤ 0.3 mm) |
 | `camera_clear_view` | `target=clear` | stow (scan 자세가 정해질 때까지 대신) | 100 % |
-| `pregrasp` | `target=above` | 시작 박스 위 3×3 위치 × 손목 3방향 중 IK 되는 27개, 손끝 아래로 퍽 윗면 50 mm 위 | **88.3 %** (최대 18.8 mm) → 학습 뒤 89.1 % |
+| `pregrasp` | `target=above` | 시작 박스 위 3×3 위치 × 손목 3방향 중 IK 되는 27개, 손끝 아래로 퍽 윗면 50 mm 위 | **88~91 %** |
 | `camera_look_down` | `target=look` | 퍽 윗면 **0.08 m** 위, 카메라 기울기 25°까지 허용 (18개) | 100 % |
 
+- **`pregrasp` 실패 원인**: ① 먼 줄 목표(18·20·22·25번)는 위치는 0.2~1.2 mm로 맞는데 **팔을 길게 뻗어 판정 시간 안에 흔들림이 안 멈춤** → 학습으로 줄일 대상. ② 목표 5번(손목 −2.35 rad)만 18 mm 어긋남 → 확인 필요.
 - `move_pose`·`camera_clear_view`·`camera_look_down`은 시뮬에서 기준선이 이미 100 %라 **학습으로 얻을 게 없습니다.** 실제 처짐을 잰 뒤 시뮬 처짐을 맞추고 다시 봅니다.
 - ❓ **확인 필요**: coordinator `plan.yaml`의 `inspect_height_m = 0.15`는 시작 박스(70 mm) 위 퍽에서 손끝을 아래로 향한 채로는 **팔이 닿지 않습니다** (IK 계산: 박스 가운데 ≤ 0.10 m, 박스 전체 0.08 m).
 
@@ -193,7 +195,8 @@ flowchart LR
 
 - `dock_box`는 박스에 닿으면(도킹 거리보다 2 cm 넘게 가까워짐) 실패로 끝납니다.
 - 기준선 (잔차 0, 128판): straight **68.0 %** · turn **100 %** · arc **94.5 %** · dock **31.4 %** (p90 51 mm) · park **87.5 %**
-- `dock_box`가 가장 낮아 먼저 학습 중입니다. straight는 기준 제어가 1 cm 안에 들어오면 멈춰서, 허용 10 mm 경계에 걸립니다.
+- `dock_box`가 가장 낮아 먼저 학습합니다. straight는 기준 제어가 1 cm 안에 들어오면 멈춰서, 허용 10 mm 경계에 걸립니다.
+- **첫 학습에서 고친 것**: 처음 `dock_box` 학습은 보정 폭(v ±0.05, w ±0.3)이 기준 제어를 흔들어 보상이 20 → 12로 떨어지고, 행동 표준편차가 **0.00으로 무너져** 더 배우지 못했습니다. → 보정 폭을 **v ±0.02 m/s, w ±0.1 rad/s**로 줄이고, 새 환경은 표준편차를 **로그 공간**으로 학습(0이 될 수 없음), 엔트로피 0.002 → 0.005.
 
 ---
 
@@ -201,10 +204,28 @@ flowchart LR
 
 | 순서 | 할 일 | 이유 |
 |---|---|---|
-| 1 | 주행 학습: dock → straight → park → arc | 기준선 낮은 순 |
-| 2 | `load_slot` 놓침 원인 확인 | 기준선·학습 뒤 모두 약 20 %가 손에서 빠짐 |
+| 1 | 대기열 본 학습: dock → straight → load → unload → pregrasp → park → arc → regrasp (`train_queue.sh`) | 기준선 낮은 순 · pa27 한 대 약 5~6시간, 4대로 나누면 1~2시간 |
+| 2 | `pregrasp` 목표 5번 18 mm 확인 | 손목 한계 근처인지 |
 | 3 | skill별 본 학습 (env 512, 1500회 ≈ 35분/skill) | 한 번에 하나 (8 GB GPU) |
 | 4 | `nudge_cell`·`stand_in_place` 기준 동작 설계 | 지금 스크립트가 없음 |
 | 5 | `navigate` 환경 (Nav2 + 장애물) | 가장 무거움 |
 | 6 | 실측 2개 (`compensate_sag`·`grip_force`) 절차·맞추기 | 시뮬 처짐·힘을 실기에 맞춤 |
 | 마지막 | `plan_next` | skill 성공률이 나온 뒤 |
+
+---
+
+## 7. 산출물 현황
+
+학습이 끝난 skill의 정책 파일과 평가 결과입니다. 정책은 **기준선보다 좋을 때만** 씁니다.
+
+| skill | 정책 파일 | 기준선 | 학습 뒤 | 쓸 수 있나 |
+|---|---|---|---|---|
+| `place_cell` | `place_residual*.pt/.onnx` (팀원) | 96.3 % | **99.0 %** | ✅ |
+| `pick_upright` | `pick_residual*.pt/.onnx` (팀원) | — | 기록 없음 | 평가 필요 |
+| `stand_up` | `right_residual*.pt/.onnx` (팀원, 여러 버전) | — | 기록 없음 | 평가 필요 |
+| `dock_box` | 학습 중 | 31.4 % | — | — |
+| 나머지 대기열 7개 | 차례로 | — | — | — |
+
+- 오늘 앞서 나온 `pregrasp_residual.pt`(300회 시험)·`load_viz.pt`(화면 시연)는 **환경이 학습까지 도는지 확인한 시험 결과**라 쓰지 않습니다 (기준선보다 나아지지 않았고, `load`는 그 뒤 환경을 고침).
+- 기준선이 이미 100 %라 학습이 필요 없는 것 (시뮬 기준): `move_pose` · `camera_clear_view` · `camera_look_down` · `drive_turn`
+- 환경이 아직 없는 것: `nudge_cell` · `stand_in_place` · `navigate`
