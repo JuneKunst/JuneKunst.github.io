@@ -227,6 +227,75 @@ flowchart LR
 
 ---
 
+## 3-3. 이 방식으로 갈 때 노드 현황 — 완료 · 고칠 것 · 새로 만들 것
+
+```mermaid
+flowchart TB
+  subgraph gz_DONE["✅ 그대로 씀"]
+    direction LR
+    gz_d1["perception<br/>YOLO · AprilTag"]:::ok
+    gz_d2["signal_decoder · body_filter"]:::ok
+    gz_d3["MoveIt · arm_controller(JTC)<br/>gripper_controller · OpenCR 하드웨어"]:::ok
+    gz_d4["Nav2 · velocity_smoother"]:::ok
+    gz_d5["cuVSLAM · nvblox · state_manager"]:::ok
+    gz_d6["hand_relative<br/>(오늘 만듦 · 병합 전)"]:::ok
+  end
+  subgraph gz_FIX["🟡 있지만 고칠 것"]
+    direction LR
+    gz_f1["coordinator<br/>닿는 구간 IK · 도킹 방식 · 목표·skill 정보 보내기"]:::wip
+    gz_f2["rl_arm_correction<br/>틀만 (Δ = 0)"]:::wip
+    gz_f3["rl_nav_correction<br/>틀만 (Δ = 0) · 도킹 모드 없음"]:::wip
+    gz_f4["mission_manager · mission_solver<br/>PR #49 · plan_next 없음"]:::wip
+  end
+  subgraph gz_NEW["🔴 새로 만들 것"]
+    direction LR
+    gz_n1["skill 정보 메시지<br/>coordinator → 보정 노드"]:::no
+    gz_n2["정책 파일 배치·설정<br/>model/arm_correction · nav_correction"]:::no
+    gz_n3["ONNX 런타임 (C++ · Jetson)"]:::no
+    gz_n4["plan_next 불러오기<br/>(마지막)"]:::no
+  end
+  classDef ok fill:#123d2a,stroke:#3fbf7f,color:#e8eef8
+  classDef wip fill:#3d3112,stroke:#e2a83a,color:#e8eef8
+  classDef no fill:#3d1616,stroke:#e06666,color:#e8eef8
+```
+
+### ✅ 완료 — 그대로 씀
+
+| 노드 | 하는 일 | 어디 |
+|---|---|---|
+| `perception` | YOLO(퍽·신호등) · AprilTag · 상자 | develop |
+| `signal_decoder` · `body_filter` | 신호 12회 판독 · 자기 몸 점구름 빼기 | develop |
+| MoveIt `move_group` · `arm_controller`(JTC) · `gripper_controller` · OpenCR 하드웨어 | 팔 빈 공간 이동 · 관절 명령 · 모터 | develop |
+| Nav2 · `velocity_smoother` | 먼 길 주행 | develop |
+| cuVSLAM · nvblox · `state_manager` | 위치 추정 · 지도 · 모드 | develop (PR #43) |
+| **`hand_relative`** | 손 카메라 상대값 → 보정 정책 입력 | **오늘 만듦** · `feature/hand-relative` (PR 전) |
+
+### 🟡 있지만 고칠 것
+
+| 노드 | 지금 | 고칠 것 | 누가 |
+|---|---|---|---|
+| `coordinator` | 팔은 전부 MoveIt · approach는 0.05 m/s 직선 (정렬 0.10 m) | ① **닿는 구간**(pick·place·load·unload·stand)을 시뮬과 같은 **IK + 관절 보간 → JTC**로 ② **approach를 시뮬과 같은 제어로** (돌기-직진-돌기, 최대 0.12 m/s, 정렬 0.24 m) — 또는 시뮬을 로봇 approach에 맞춰 `dock_box` 다시 학습 ③ 닿는 구간 시작 전 **`/hand_relative/target`** 보내기 ④ 보정 노드에 **skill 정보**(무슨 skill · 단계 · 목표) 보내기 | coordinator (사용자 트랙 ②) |
+| `rl_arm_correction` | ros2_control 컨트롤러 틀 · JTC 뒤에 붙음 · **정책 추론 `TODO`라 Δ = 0** · `reset_sag` 없음 | ONNX 추론 · skill마다 정책 고르기 · 입력 만들기(관절 상태 + skill 정보 + `/hand_relative` + 처짐 적분) · `reset_sag` | 송정혁 |
+| `rl_nav_correction` | Nav2 출력 보정용 노드 틀 · **추론 `TODO`** | **도킹 모드** 추가(approach 명령에 보정) · ONNX 추론 · 입력(도킹 목표 상대 위치, odom 속도) | 송정혁 |
+| `mission_manager` · `mission_solver` | PR #49 열림 · 다음 skill은 규칙으로 | 병합 · (마지막에) `plan_next`로 다음 skill 고르기 | 사용자 · 나 |
+
+### 🔴 새로 만들 것
+
+| 무엇 | 왜 | 누가 |
+|---|---|---|
+| **skill 정보 메시지** (coordinator → `rl_arm_correction`·`rl_nav_correction`) — skill 이름 · 단계 · 목표 관절(지금 기준 · 내려갈 곳 · 위) / 도킹 목표 자세 | 정책이 "지금 어느 skill 어느 단계"인지 알아야 그 정책을 켜고 입력을 만듦 | coordinator + 송정혁 (형식 합의) |
+| **정책 파일 배치·설정** — `ros2_ws/model/arm_correction/`·`nav_correction/`(폴더만 있음)에 skill별 `.onnx` · skill → 파일 · skill별 켜기/끄기 | 어떤 정책을 쓸지 · 문제 생기면 skill별로 끄기 | 나 (파일) · 송정혁 (불러오기) |
+| **ONNX 런타임** (C++, Jetson Orin Nano) | 보정 노드에서 정책 계산 | 송정혁 |
+| `plan_next` 불러오기 (ONNX 또는 TorchScript) | mission_manager에서 다음 skill 고르기 | 나 (마지막 단계) |
+
+### 순서 (막히는 것부터)
+1. **skill 정보 메시지 형식 합의** — coordinator와 보정 노드가 같이 씀 (사용자·송정혁)
+2. **coordinator** 닿는 구간 IK · approach · 목표·skill 정보 보내기 ‖ **보정 노드** ONNX 추론 · 입력 (동시에)
+3. 정책 파일 배치 → 실기에서 skill별로 켜 보며 시험 (문제면 그 skill만 끔)
+4. PR #49 병합 → 마지막에 `plan_next`
+
+---
+
 ## 4. skill 37개 지도 — 영역별 상태
 
 ```mermaid
