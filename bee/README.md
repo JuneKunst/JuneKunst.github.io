@@ -4,6 +4,7 @@
 - 학습 지도: https://junekunst.github.io/bee/skills.html
 - 순차 미션 학습: https://junekunst.github.io/bee/skills.html#mission-flow
 - 메시지·역할 사전: https://junekunst.github.io/bee/messages.html
+- **전체 지도 (학습부터 로봇까지, 상태 색 표시)**: https://junekunst.github.io/bee/system-map.html
 - 스킬·플랜 한 장 (설명용): https://junekunst.github.io/bee/skill-plan.html
 - 학습용 skill 구성·학습 플랜 (결정 중): https://junekunst.github.io/bee/skill-learning.html
 - skill별 학습 조건 (환경·보상·성공·기준선): https://junekunst.github.io/bee/skill-training.html
