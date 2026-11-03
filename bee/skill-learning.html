@@ -42,5 +42,5 @@ fetch('skill-learning.md?v=20261103').then(r => r.text()).then(md => {
   doc.querySelectorAll('table').forEach(t => { const w = document.createElement('div'); w.className = 'tbl'; t.replaceWith(w); w.appendChild(t); });
   mermaid.initialize({startOnLoad: false, theme: 'dark'});
   mermaid.run({querySelector: 'pre.mermaid'});
-}).catch(() => { document.getElementById('doc').innerHTML = '<p>불러오지 못했습니다. <a href="skill-plan.html">스킬·플랜 한 장</a><a href="skill-learning.md">md 원본</a>을 여세요.</p>'; });
+}).catch(() => { document.getElementById('doc').innerHTML = '<p>불러오지 못했습니다. <a href="skill-learning.md">md 원본</a>을 여세요.</p>'; });
 </script></body></html>
