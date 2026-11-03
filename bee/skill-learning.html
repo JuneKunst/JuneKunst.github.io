@@ -1,0 +1,46 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>BEE · 학습용 skill 구성</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;background:#0b1220;color:#e8eef8;font:15px/1.65 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif}
+header{position:sticky;top:0;z-index:2;display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:8px max(16px,env(safe-area-inset-right)) 8px max(16px,env(safe-area-inset-left));background:#0b1220;border-bottom:1px solid #26354d;font-size:13px}
+header strong{margin-right:auto}
+a{color:#67d7e8}
+main{max-width:980px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-right)) 64px max(16px,env(safe-area-inset-left))}
+h1{font-size:1.6rem;line-height:1.3}
+h2{font-size:1.2rem;margin-top:2.2em;padding-top:.6em;border-top:1px solid #26354d}
+h3{font-size:1rem;margin-top:1.4em}
+blockquote{margin:0;padding:4px 12px;border-left:3px solid #e2a83a;color:#9aa6b4}
+code{font:13px ui-monospace,Menlo,monospace;background:#18263a;padding:1px 5px;border-radius:4px}
+pre{background:#111b2b;border:1px solid #26354d;border-radius:8px;padding:12px;overflow-x:auto}
+pre code{background:none;padding:0}
+pre.mermaid{background:#0f1726;text-align:center}
+.tbl{overflow-x:auto;margin:8px 0}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:560px}
+th,td{text-align:left;vertical-align:top;padding:6px 8px;border-bottom:1px solid #26354d}
+th{color:#9aa6b4;font-weight:500}
+td ul{margin:0;padding-left:1.1em}
+hr{display:none}
+details{background:#111b2b;border:1px solid #26354d;border-radius:8px;margin:8px 0;padding:0 12px}
+summary{cursor:pointer;padding:10px 0;color:#67d7e8;font-weight:500}
+details[open]{padding-bottom:10px}
+summary:focus-visible{outline:2px solid #67d7e8}
+</style></head><body>
+<header><strong>학습용 skill 구성</strong><a href="skills.html">학습 지도</a><a href="./">전체 노드 흐름</a><a href="skill-plan.html">스킬·플랜 한 장</a><a href="skill-learning.md">md 원본</a></header>
+<main id="doc">불러오는 중…</main>
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+// 원본은 skill-plan.md 하나 — 여기서는 읽어서 그리기만
+fetch('skill-learning.md?v=20261103').then(r => r.text()).then(md => {
+  const doc = document.getElementById('doc');
+  doc.innerHTML = marked.parse(md);
+  doc.querySelectorAll('pre code.language-mermaid').forEach(c => {
+    const p = document.createElement('pre'); p.className = 'mermaid'; p.textContent = c.textContent;
+    c.parentElement.replaceWith(p);
+  });
+  doc.querySelectorAll('table').forEach(t => { const w = document.createElement('div'); w.className = 'tbl'; t.replaceWith(w); w.appendChild(t); });
+  mermaid.initialize({startOnLoad: false, theme: 'dark'});
+  mermaid.run({querySelector: 'pre.mermaid'});
+}).catch(() => { document.getElementById('doc').innerHTML = '<p>불러오지 못했습니다. <a href="skill-plan.html">스킬·플랜 한 장</a><a href="skill-learning.md">md 원본</a>을 여세요.</p>'; });
+</script></body></html>
