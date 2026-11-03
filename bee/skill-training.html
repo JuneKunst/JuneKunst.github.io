@@ -32,7 +32,7 @@ summary:focus-visible{outline:2px solid #67d7e8}
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
 <script>
 // 원본은 skill-plan.md 하나 — 여기서는 읽어서 그리기만
-fetch('skill-training.md?v=20261103-10').then(r => r.text()).then(md => {
+fetch('skill-training.md?v=r20261103').then(r => r.text()).then(md => {
   const doc = document.getElementById('doc');
   doc.innerHTML = marked.parse(md);
   doc.querySelectorAll('pre code.language-mermaid').forEach(c => {
@@ -41,6 +41,9 @@ fetch('skill-training.md?v=20261103-10').then(r => r.text()).then(md => {
   });
   doc.querySelectorAll('table').forEach(t => { const w = document.createElement('div'); w.className = 'tbl'; t.replaceWith(w); w.appendChild(t); });
   mermaid.initialize({startOnLoad: false, theme: 'dark'});
-  mermaid.run({querySelector: 'pre.mermaid'});
+  // 그림마다 고유 id로 하나씩 (한꺼번에 run 하면 같은 순간에 그려져 id가 겹치고 그림이 첫 칸에 몰림)
+  (async () => { let k = 0; for (const p of doc.querySelectorAll('pre.mermaid')) {
+    try { const {svg} = await mermaid.render('mmd' + (k++), p.textContent); p.innerHTML = svg; }
+    catch (e) { p.textContent = '그림을 그리지 못했습니다: ' + e.message; } } })();
 }).catch(() => { document.getElementById('doc').innerHTML = '<p>불러오지 못했습니다. <a href="skill-training.md">md 원본</a>을 여세요.</p>'; });
 </script></body></html>
