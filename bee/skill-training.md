@@ -50,10 +50,10 @@ flowchart LR
 | `camera_clear_view` | 팔 | `reach`, `target=clear` (**새로**) | 100 % | 시뮬에선 기준선으로 충분 |
 | `pregrasp` | 팔 | `reach`, `target=above` (**새로**) | 88~91 % | 본 학습 대기열 5번째. 실패 원인 확인함 (아래) |
 | `camera_look_down` | 팔 | `reach`, `target=look` (**새로**) | 100 % | 높이 확인 필요 (아래) |
-| `drive_straight` | 주행 | `drive`, `task=straight` (**새로**) | 68.0 % | 본 학습 대기열 2번째 |
+| `drive_straight` | 주행 | `drive`, `task=straight` (**새로**) | 68.0 % | **본 학습 중** (2048 env × 500회, 약 28분) |
 | `drive_turn` | 주행 | `drive`, `task=turn` (**새로**) | 100 % | 시뮬에선 기준선으로 충분 |
 | `drive_arc` | 주행 | `drive`, `task=arc` (**새로**) | 94.5 % | 본 학습 대기열 7번째 |
-| `dock_box` | 주행 | `drive`, `task=dock` (**새로**) | **31.4 %** | **본 학습 중** (대기열 1번째, 고친 설정으로 다시) |
+| `dock_box` | 주행 | `drive`, `task=dock` (**새로**) | **30.2 %** | ✅ **학습 완료 98.6 %** (512 env × 1500회) |
 | `park_home` | 주행 | `drive`, `task=park` (**새로**) | 87.5 % | 본 학습 대기열 6번째 |
 | `nudge_cell` · `stand_in_place` | 팔 | 없음 | — | 기준 동작부터 설계 필요 |
 | `navigate` | 주행 | 없음 | — | Nav2·장애물 장면 필요 |
@@ -224,7 +224,7 @@ flowchart LR
 | `place_cell` | `place_residual*.pt/.onnx` (팀원) | 96.3 % | **99.0 %** | ✅ |
 | `pick_upright` | `pick_residual*.pt/.onnx` (팀원) | — | 기록 없음 | 평가 필요 |
 | `stand_up` | `right_residual*.pt/.onnx` (팀원, 여러 버전) | — | 기록 없음 | 평가 필요 |
-| `dock_box` | 학습 중 | 31.4 % | — | — |
+| `dock_box` | `policies/dock_box.pt/.onnx` | 30.2 % | **98.6 %** (1024판) | ✅ |
 | 나머지 대기열 7개 | 차례로 | — | — | — |
 
 - 오늘 앞서 나온 `pregrasp_residual.pt`(300회 시험)·`load_viz.pt`(화면 시연)는 **환경이 학습까지 도는지 확인한 시험 결과**라 쓰지 않습니다 (기준선보다 나아지지 않았고, `load`는 그 뒤 환경을 고침).
@@ -280,6 +280,7 @@ flowchart LR
 | 16:35 | 다시 실행: **상자 이동 0 mm**, 놓은 퍽 4개 모두 칸 안 (0.7~3.9 mm), 누운 퍽 세우기 성공 · L3 남서 칸이 벽 여유 경계(0.265 m)에 걸려 정지 → 정렬 위치는 벽 쪽만 0.22 m 허용 |
 | 16:45 | 학습 대기열: dock_box 끝나면 나머지 7개를 **2048 env × 500회**로 (같은 경험 양, 더 빠르게) |
 | 17:20 | **문제 #1 첫 완주 — 20 / 40점** (아래 표) |
+| 17:30 | 학습: **dock_box 30.2 % → 98.6 %** (첫 본 학습 결과물) · 나머지 7개 2048 env × 500회로 전환, GPU 4.7 GB · skill당 약 28분 |
 | 17:25 | pa27 화면에 **문제 #7** (신호 R5 Y5 G2, 바코드 P2-04 내림차순 → L1 R · L2 Y · L3 G, 누운 퍽 3개)을 Newton 뷰어로 띄움 — 플래너가 누운 퍽 세우기부터 시작 |
 
 **문제 #1 완주 결과** (학습된 플래너 `plan_next`, skill은 팀원 정책 + 기준 동작, 시뮬 시간 1968초 ≈ 33분, 27걸음)
