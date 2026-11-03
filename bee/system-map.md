@@ -283,7 +283,7 @@ flowchart TB
     g4_d1["dock_box ✅ 30 → 98.6 %"]:::ok
     g4_d2["drive_straight ✅ 61 → 100 %"]:::ok
     g4_d3["park_home ⏳ 동료 학습"]:::wip
-    g4_d4["drive_arc ⏳ 대기열"]:::wip
+    g4_d4["drive_arc ⏳ 동료 학습"]:::wip
     g4_d5["drive_turn — 기준선 100 %"]:::keep
     g4_d6["navigate ✖ 환경 없음 (Nav2)"]:::no
   end
@@ -292,7 +292,7 @@ flowchart TB
     g4_a2["load_slot ⏳ 98.3 % · 놓침 1 % → 재학습"]:::wip
     g4_a3["unload_slot ✅ 94 → 98.1 %"]:::ok
     g4_a4["pregrasp ⏳ 95.4 % → 재학습"]:::wip
-    g4_a5["regrasp_after_stand ⏳ 대기열"]:::wip
+    g4_a5["regrasp_after_stand ⏳ 동료 학습"]:::wip
     g4_a6["pick_standing_puck · stand_lying_puck<br/>팀원 정책 있음, 평가 필요"]:::wip
     g4_a7["move_pose · camera_clear_view<br/>camera_look_down — 기준선 100 %"]:::keep
     g4_a8["nudge_cell · stand_puck_in_cell<br/>✖ 동작·환경 없음"]:::no
@@ -322,7 +322,7 @@ flowchart TB
 | 주행 | `dock_box` | 강화학습 | drive task=dock | 30.2 → **98.6 %** | ✅ `nav_correction/dock_box.policy` |
 | 주행 | `drive_straight` | 강화학습 | drive task=straight | 61.4 → **100 %** | ✅ `nav_correction/drive_straight.policy` |
 | 주행 | `park_home` | 강화학습 | drive task=park | 87.5 % → 동료 학습 | ⏳ |
-| 주행 | `drive_arc` | 강화학습 | drive task=arc | 94.5 % → 대기열 | ⏳ |
+| 주행 | `drive_arc` | 강화학습 | drive task=arc | 94.5 % → 동료 학습 | ⏳ |
 | 주행 | `drive_turn` | 강화학습 | drive task=turn | 100 % | 기준선으로 충분 |
 | 주행 | `navigate` | 강화학습 | 없음 | — | Nav2 그대로 |
 | 팔 | `place_cell` | 강화학습 | pip (팀원) | 96.3 → **99.0 %** | ✅ `arm_correction/place_cell.policy` (팀원 정책) |
@@ -330,7 +330,7 @@ flowchart TB
 | 팔 | `pick_standing_puck` | 강화학습 | pick (팀원) | — (평가 필요) | ✅ `arm_correction/pick_standing_puck.policy` (팀원 정책) |
 | 팔 | `unload_slot` | 강화학습 | unload | 93.7 → **98.1 %** | 넣을 차례 |
 | 팔 | `stand_lying_puck` | 강화학습 | `stand` (팀원 파일 right_env, 예전 이름 right) | — | 🟡 팀원 정책 · 로봇 입력 모양 필요 |
-| 팔 | `regrasp_after_stand` | 강화학습 | `stand` regrasp=1 | 대기열 | ⏳ |
+| 팔 | `regrasp_after_stand` | 강화학습 | `stand_lying` regrasp=1 | 동료 학습 | ⏳ |
 | 팔 | `pregrasp` | 강화학습 | reach target=above | 89.3 → 95.4 % → **재학습 중** (못 가는 목표 5번 뺌 · 멈춤 1.2 s → 기준선 99.5 %) | 로봇 입력 모양 필요 |
 | 팔 | `camera_look_down` | 강화학습 | reach target=look | 100 % | 기준선으로 충분 (높이 0.08 m — 확인 필요) |
 | 팔 | `move_pose` · `camera_clear_view` | 강화학습 | reach pose · clear | 100 % | 기준선으로 충분 |
