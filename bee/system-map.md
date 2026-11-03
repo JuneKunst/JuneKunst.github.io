@@ -1,6 +1,6 @@
 # BEE 전체 지도 — 학습부터 로봇까지
 
-> **2026-11-03 19:50 기준** (pa27 시각). 오늘 정리: [11-03 정리](wrapup-1103.html). 지금까지 만든 것 전부를 한 장에 그렸습니다. 색: <b style="color:#3fbf7f">초록 = 완료</b> · <b style="color:#67b7e8">파랑 = 코드 완료, 실기 시험 전</b> · <b style="color:#e2a83a">노랑 = 진행 중 · 일부</b> · <b style="color:#e06666">빨강 = 아직 없음</b> · <b style="color:#8aa0b8">회색 = 학습 안 함 (규칙·기존 그대로)</b>
+> **2026-11-03 20:25 기준** (pa27 시각). 오늘 정리: [11-03 정리](wrapup-1103.html). 지금까지 만든 것 전부를 한 장에 그렸습니다. 색: <b style="color:#3fbf7f">초록 = 완료</b> · <b style="color:#67b7e8">파랑 = 코드 완료, 실기 시험 전</b> · <b style="color:#e2a83a">노랑 = 진행 중 · 일부</b> · <b style="color:#e06666">빨강 = 아직 없음</b> · <b style="color:#8aa0b8">회색 = 학습 안 함 (규칙·기존 그대로)</b>
 > 자세한 내용: [학습용 skill 구성](skill-learning.html) · [skill별 학습 조건](skill-training.html) · [스킬·플랜 한 장](skill-plan.html)
 > PR: [#57 통합 → isaac-setup](https://github.com/visualkhh/Lv2_bee_Assignment/pull/57) · [#53 skill 목록·플래너 학습](https://github.com/visualkhh/Lv2_bee_Assignment/pull/53) · [#54 hand_relative](https://github.com/visualkhh/Lv2_bee_Assignment/pull/54) · [#55 로봇 배포](https://github.com/visualkhh/Lv2_bee_Assignment/pull/55) · [#56 Isaac 학습 환경](https://github.com/visualkhh/Lv2_bee_Assignment/pull/56) · (먼저) [#49 미션 흐름](https://github.com/visualkhh/Lv2_bee_Assignment/pull/49)
 
@@ -289,7 +289,7 @@ flowchart TB
   end
   subgraph g4_ARM["팔"]
     g4_a1["place_cell ✅ 99 % (팀원)"]:::ok
-    g4_a2["load_slot ⏳ 98.3 % · 놓침 1 % → 재학습"]:::wip
+    g4_a2["load_slot ✅ 재학습 99.0 % · 놓침 0.49 %"]:::ok
     g4_a3["unload_slot ✅ 94 → 98.1 %"]:::ok
     g4_a4["pregrasp ⏳ 95.4 % → 재학습"]:::wip
     g4_a5["regrasp_after_stand ⏳ 동료 학습"]:::wip
@@ -326,7 +326,7 @@ flowchart TB
 | 주행 | `drive_turn` | 강화학습 | drive task=turn | 100 % | 기준선으로 충분 |
 | 주행 | `navigate` | 강화학습 | 없음 | — | Nav2 그대로 |
 | 팔 | `place_cell` | 강화학습 | pip (팀원) | 96.3 → **99.0 %** | ✅ `arm_correction/place_cell.policy` (팀원 정책) |
-| 팔 | `load_slot` | 강화학습 | load | 94.8 → 98.3 % (놓침 1.0 %) → **재학습 중** (놓침 벌점 5→20) | 1차 `load_slot.policy` 들어 있음 (재학습 결과로 바꿀 예정) |
+| 팔 | `load_slot` | 강화학습 | load | 94.8 → 98.3 % (놓침 1.0 %) → **재학습 99.0 % · 놓침 0.49 %** ✅ (놓침 벌점 5→20) | 1차 `load_slot.policy` 들어 있음 (재학습 결과로 바꿀 예정) |
 | 팔 | `pick_standing_puck` | 강화학습 | pick (팀원) | — (평가 필요) | ✅ `arm_correction/pick_standing_puck.policy` (팀원 정책) |
 | 팔 | `unload_slot` | 강화학습 | unload | 93.7 → **98.1 %** | 넣을 차례 |
 | 팔 | `stand_lying_puck` | 강화학습 | `stand` (팀원 파일 right_env, 예전 이름 right) | — | 🟡 팀원 정책 · 로봇 입력 모양 필요 |

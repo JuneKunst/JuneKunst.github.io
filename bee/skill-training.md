@@ -58,7 +58,7 @@ flowchart LR
 | `pick_standing_puck` | 팔 | `pick` (팀원) | — | 팀원 정책 있음 |
 | `stand_lying_puck` | 팔 | `right` (팀원) | — | 팀원 정책 있음 |
 | `regrasp_after_stand` | 팔 | `right`, `regrasp=1` (팀원) | — | 본 학습 대기열 8번째 (기준선도 그때 잼) |
-| `load_slot` | 팔 | `load` (**새로**) | **94.8 %** (고친 뒤) | 1차 98.3 %지만 **놓침 1.0 %** (기준 0.5 % 넘음) → **재학습 중** (놓침 벌점 5 → 20) |
+| `load_slot` | 팔 | `load` (**새로**) | **94.8 %** (고친 뒤) | ✅ **재학습 99.0 %, 놓침 0.49 %** (1차 98.3 %·1.0 % → 놓침 벌점 5 → 20) |
 | `unload_slot` | 팔 | `unload` (**새로**) | 90.6 % | ✅ **학습 완료 98.1 %** (놓침 0.1 %) |
 | `move_pose` | 팔 | `reach`, `target=pose` (**새로**) | 100 % | 시뮬에선 기준선으로 충분 |
 | `camera_clear_view` | 팔 | `reach`, `target=clear` (**새로**) | 100 % | 시뮬에선 기준선으로 충분 |
@@ -240,9 +240,9 @@ flowchart LR
 | `stand_lying_puck` | `right_residual*.pt/.onnx` (팀원, 여러 버전) | — | 기록 없음 | 평가 필요 |
 | `dock_box` | `policies/dock_box.pt/.onnx` | 30.2 % | **98.6 %** (1024판) | ✅ |
 | `drive_straight` | `policies/drive_straight.pt/.onnx` | 61.4 % | **100 %** | ✅ |
-| `load_slot` | `policies/load_slot.pt` (1차 → `load_slot_v1.pt`로 보관) | 94.8 % | 98.3 % · 놓침 1.0 % | ⚠️ 재학습 중 |
+| `load_slot` | `policies/load_slot.pt` (재학습 · 1차는 `load_slot_v1.pt`) | 94.8 % | **99.0 % · 놓침 5/1024 = 0.49 %** (1차 98.3 % · 10/1024) | ✅ 합격 (로봇 정책 파일 바꿀 차례) |
 | `unload_slot` | `policies/unload_slot.pt/.onnx` | 93.7 % | **98.1 %** | ✅ (넣을 차례) |
-| `pregrasp` | `policies/pregrasp.pt` (1차 → `pregrasp_v1.pt`로 보관) | 89.3 % | 95.4 % | ⚠️ 재학습 중 |
+| `pregrasp` | `policies/pregrasp.pt` (1차 → `pregrasp_v1.pt`로 보관) | 89.3 % → 고친 뒤 99.5 % | 1차 95.4 % | ⏳ 재학습 중 (20:23 34/500회, 20:45쯤 끝) |
 | `park_home` · `drive_arc` · `regrasp_after_stand` | 동료 | — | — | — |
 
 ### 재학습 (11-03 19:36 시작, pa27 `bee-retrain`) — 무엇을 왜 고쳤나
