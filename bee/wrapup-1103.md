@@ -1,9 +1,36 @@
-# 11-03 정리 — skill 학습부터 로봇 배포까지
+# 정리 · 결정 기록 — skill 학습부터 로봇 배포까지
 
 > 2026-11-03 20:50 (pa27 시각) 기준. 오늘 이야기하고 정하고 만든 것을 한 장에 모았습니다.
 > 자세한 내용: [실기 디버깅 가이드](debug-guide.html) · [전체 지도](system-map.html) · [skill별 학습 조건](skill-training.html) · [학습용 skill 구성](skill-learning.html)
 
 ---
+
+## 11-04 추가
+
+### 정한 것
+| # | 결정 | 이유 |
+|---|---|---|
+| 11 | **skill마다 노드 하나** — coordinator가 하던 팔·주행 동작을 skill 노드 9개로 (`/skills/<skill>` 액션). coordinator는 계획 검증·순서·적재함 장부·모드 취소만 | skill 단위로 고치고·바꾸고·시험하기 · coordinator가 너무 큼 (1645줄) |
+| 12 | **학습 정책은 skill 노드가 갖고 관리** — `model/skills/<skill>/` (`.policy` · `.onnx` · `meta.yaml`). 팔 정책 **계산은 그대로 제어 루프 안** (skill 노드가 정책 경로를 알려 줌) · 주행 정책은 `skill_approach`가 직접 | 노드에서 팔 정책을 계산하면 지연·흔들림으로 시뮬과 달라짐 · 주행은 원래 20 Hz 노드라 그대로 |
+| 13 | 프로세스는 두 컨테이너 (팔 `arm_skills` · 주행 `base_skills`) | Jetson 부담 · 팔은 한 번에 하나 |
+| 14 | 동료 정책 `park_home` · `drive_arc` 사용, `regrasp_after_stand`(78.2 %)는 보류 (`use: false`) | 합격 기준 · 로봇 입력 모양 없음 |
+| 15 | Nav2 전역 경로 A* (PR #58) · L2 장소 박스 205 (운영 확인) · 처짐 적분 발열 방지 (stow에선 풂 · 막히면 풂) | |
+
+### 노드 — 새로 생긴 것
+| | 이름 | 무엇 |
+|---|---|---|
+| 🆕 패키지 | `skills` | skill 노드 9개 (컴포넌트) — skill_navigate · skill_approach · skill_pose · skill_inspect · skill_pick · skill_place · skill_load · skill_unload · skill_stand |
+| 🆕 액션 | `plan/action/Skill` · `/skills/<skill>` | goal: target · pose · shape · tag · slot · values → result: success · reason |
+| ✏️ 바뀜 | `coordinator` | 계획 검증 · 순서 · 물체 → 좌표 · 적재함 장부 · 모드 취소만 (팔·주행 동작 · 시작·스캔 자세는 skill 노드로) |
+| ✏️ 바뀜 | `rl_arm_correction` | 정책을 미리 들지 않고 `/skill_context`의 정책 경로를 받아 씀 · `~/debug` · 발열 방지 |
+| ✏️ 바뀜 | `rl_nav_correction` | 도킹 모드 뺌 → 속도 제한만 (주행 정책은 skill_approach) |
+| 🆕 파일 | `model/skills/<skill>/` 10개 | 8개 사용 · 2개 보류 |
+
+자세히: [skill 노드 구성](skill-nodes.html) · 성능: [스펙·성능표](robot-spec.html)
+
+---
+
+> 아래는 **11-03 기록** (노드 표 4장은 skill 노드로 나누기 전 구성)
 
 ## 1. 정한 것 (결정)
 

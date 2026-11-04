@@ -334,6 +334,8 @@ flowchart LR
 
 ## 9. 실제 로봇에 올리는 조건 (2026-11-03 결정)
 
+> **11-04 바뀜**: 아래의 "coordinator 닿는 구간 · approach · rl_nav_correction 도킹 모드"는 이제 **skill 노드**가 합니다 (`skill_pick` · `skill_place` · `skill_load` · `skill_unload` · `skill_approach`). 정책 파일은 `model/skills/<skill>/` — [skill 노드 구성](skill-nodes.html)
+
 ### 왜 정해야 했나
 잔차 정책은 **"기준 동작 + 작은 보정"**이라, 보정은 **학습할 때 쓴 기준 동작 위에서만 맞습니다.** 시뮬은 팀원 환경대로 오프라인 IK + 관절 보간으로 학습했는데, 로봇은 11-02에 "팔 동작은 전부 MoveIt"으로 정해져 있었습니다. 이대로면 학습한 보정이 로봇에서 맞지 않습니다. 학습 계획에 **배포 조건**(기준 동작이 로봇과 같은지, 입력을 로봇에서 얻을 수 있는지, 어느 노드에서 돌리는지)이 빠져 있어서 생긴 일이라, `skills.yaml`에 `deploy` 항목을 추가하고 테스트로 강제합니다.
 

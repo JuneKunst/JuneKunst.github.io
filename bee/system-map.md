@@ -2,9 +2,9 @@
 
 > **11-04 구조 변경 (PR #59, `feature/skill-nodes`)** — skill마다 노드 하나: coordinator는 계획 검증·순서·적재함 장부만, 팔·주행 동작은 **skill 노드 9개** (`/skills/<skill>` 액션 — navigate · approach · pose · inspect · pick · place · load · unload · stand). 학습 정책은 **skill 노드가 갖고 관리** (`model/skills/<skill>/` = `.policy` · `.onnx` · `meta.yaml`). 팔 정책 계산은 그대로 `rl_arm_correction` 100 Hz 루프 안 (skill 노드가 정책 경로를 알려 줌) · 주행 정책은 `skill_approach`가 직접 계산. 아래 그림의 "coordinator가 하는 팔·주행 동작"은 이제 skill 노드가 합니다. 스펙·성능표: [robot-spec](robot-spec.html)
 
-> **2026-11-03 20:50 기준** (pa27 시각). 오늘 정리: [11-03 정리](wrapup-1103.html). 지금까지 만든 것 전부를 한 장에 그렸습니다. 색: <b style="color:#3fbf7f">초록 = 완료</b> · <b style="color:#67b7e8">파랑 = 코드 완료, 실기 시험 전</b> · <b style="color:#e2a83a">노랑 = 진행 중 · 일부</b> · <b style="color:#e06666">빨강 = 아직 없음</b> · <b style="color:#8aa0b8">회색 = 학습 안 함 (규칙·기존 그대로)</b>
+> **2026-11-04 기준**. 색: <b style="color:#3fbf7f">초록 = 완료</b> · <b style="color:#67b7e8">파랑 = 코드 완료, 실기 시험 전</b> · <b style="color:#e2a83a">노랑 = 진행 중 · 일부</b> · <b style="color:#e06666">빨강 = 아직 없음</b> · <b style="color:#8aa0b8">회색 = 학습 안 함</b>
 > 자세한 내용: [학습용 skill 구성](skill-learning.html) · [skill별 학습 조건](skill-training.html) · [스킬·플랜 한 장](skill-plan.html)
-> PR: [#57 통합 → isaac-setup](https://github.com/visualkhh/Lv2_bee_Assignment/pull/57) · [#53 skill 목록·플래너 학습](https://github.com/visualkhh/Lv2_bee_Assignment/pull/53) · [#54 hand_relative](https://github.com/visualkhh/Lv2_bee_Assignment/pull/54) · [#55 로봇 배포](https://github.com/visualkhh/Lv2_bee_Assignment/pull/55) · [#56 Isaac 학습 환경](https://github.com/visualkhh/Lv2_bee_Assignment/pull/56) · (먼저) [#49 미션 흐름](https://github.com/visualkhh/Lv2_bee_Assignment/pull/49)
+> PR: [#59 skill 노드](https://github.com/visualkhh/Lv2_bee_Assignment/pull/59) → [#57 통합 → isaac-setup](https://github.com/visualkhh/Lv2_bee_Assignment/pull/57) · [#49 미션 흐름 + 배포](https://github.com/visualkhh/Lv2_bee_Assignment/pull/49) (#55 병합됨) · [#53](https://github.com/visualkhh/Lv2_bee_Assignment/pull/53) · [#54](https://github.com/visualkhh/Lv2_bee_Assignment/pull/54) · [#56](https://github.com/visualkhh/Lv2_bee_Assignment/pull/56) · [#58 A*](https://github.com/visualkhh/Lv2_bee_Assignment/pull/58)
 
 ---
 
@@ -13,24 +13,24 @@
 ```mermaid
 flowchart LR
   subgraph g1_SIM["① 시뮬에서 학습 (Isaac Lab · pa27)"]
-    g1_E["skill별 학습 환경<br/>팔 9 · 주행 5"]:::ok --> g1_Q["학습 대기열<br/>8개 중 5개 끝 · 진행 중"]:::wip
+    g1_E["skill별 학습 환경<br/>팔 9 · 주행 5"]:::ok --> g1_Q["학습 끝<br/>정책 10개 평가 (8개 사용)"]:::ok
     g1_MS["가상 미션<br/>(플래너 학습)"]:::ok
   end
   subgraph g1_OUT["② 결과물"]
-    g1_P["skill 정책 파일 .policy<br/>4개 사용 가능 · 나머지 학습 중"]:::wip
+    g1_P["skill 정책 폴더 model/skills/<br/>8개 사용 · 2개 보류"]:::ok
     g1_PN["플래너 plan_next"]:::ok
   end
   subgraph g1_CHECK["③ 시뮬에서 미션 전체 풀기"]
     g1_MR["무작위 출제 → 계산기 → 플래너 → skill<br/>첫 완주 20점 · 10점"]:::wip
   end
   subgraph g1_ROBOT["④ 실제 로봇 (ROS 2)"]
-    g1_R["배포 코드 완료 (PR #55)<br/>보정 컨트롤러 · 닿는 구간 · 도킹 · plan_next"]:::code
+    g1_R["skill 노드 9개 (PR #59)<br/>coordinator 순서·장부 · 보정 컨트롤러 · plan_next"]:::code
   end
   g1_Q --> g1_P
   g1_MS --> g1_PN
   g1_P --> g1_MR
   g1_PN --> g1_MR
-  g1_P -->|"export_policy.py → model/"| g1_R
+  g1_P -->|"skill 노드가 자기 정책 폴더를 씀"| g1_R
   g1_PN -->|"planner: plan_next"| g1_R
   classDef ok fill:#123d2a,stroke:#3fbf7f,color:#e8eef8
   classDef code fill:#1d3a5c,stroke:#67b7e8,color:#e8eef8
@@ -41,10 +41,10 @@ flowchart LR
 
 | 덩어리 | 지금 | 막힌 곳 |
 |---|---|---|
-| ① 시뮬 학습 | 환경 14개 완성 · 대기열 8개 중 **5개 끝** (`dock_box` 98.6 % · `drive_straight` 100 % · `load_slot` 98.3 % · `unload_slot` 98.1 % · `pregrasp` 95.4 %) · 재학습 끝: `load_slot` 99.0 %·놓침 0.49 % ✅ · `pregrasp`는 고친 환경에서 기준선 99.5 %로 충분 | 남은 3개(`park_home` · `drive_arc` · `regrasp_after_stand`)는 동료 |
-| ② 결과물 | 로봇에 넣은 정책 **6개** (`place_cell`·`pick_standing_puck` 팀원 · `dock_box` · `drive_straight` · `load_slot` 재학습본 · `unload_slot`) + 플래너 1개 · `pregrasp`는 기준선으로 충분 | 동료 학습 3개는 끝나면 넣기 |
-| ③ 시뮬 미션 | 무작위 문제를 끝까지 풂 (문제 #1 20점, #7 10점) | 점수를 깎는 건 **skill 실패** (집다 떨어뜨림 · 놓다 누움) |
-| ④ 로봇 | **배포 코드 완료** (PR #55) · 팀원 처짐 적분과 합친 통합본 테스트 **71개** 통과 (PR #57) | **실기 · 전체 bringup 시험 전** · PR 병합 · #57은 isaac-setup과 자산 충돌 정리 필요 |
+| ① 시뮬 학습 | 학습 정책 10개 평가 끝 (1024판): `dock_box` 98.6 · `drive_straight` 100 · `park_home` 96.5 · `drive_arc` 100 · `load_slot` 99.0 · `unload_slot` 98.1 · `place_cell` 99.0 · `pick_standing_puck` 100 · `regrasp_after_stand` 78.2 · `pregrasp` 기준선 99.5 % — [성능표](robot-spec.html) | 세우기+다시 쥐기 78 % (재학습 필요) · 플래너는 임시 확률로 학습 → 실제 성공률로 재학습 |
+| ② 결과물 | 정책 폴더 `model/skills/<skill>/` (`.policy` · `.onnx` · `meta.yaml`) — **8개 사용** · `regrasp_after_stand` · `pregrasp` 보류 · 플래너 `plan_next` | — |
+| ③ 시뮬 미션 | Isaac Lab 실행기로 무작위 문제 끝까지 (#1 20점, #7 10점) · Isaac Sim 디지털 트윈(전체 ROS · SLAM)은 10-30 기동 확인 | 점수를 깎는 건 skill 실패 · 디지털 트윈엔 출제 스크립트 · skill 노드 반영 필요 |
+| ④ 로봇 | **skill 노드 구조** (PR #59): skill마다 노드 · 정책은 skill이 관리 · 테스트 66개 · 노드 9개 기동 | **실기 · 전체 bringup 시험 전** · PR 병합 · #57은 isaac-setup과 자산 충돌 정리 필요 |
 
 ---
 
@@ -72,27 +72,26 @@ flowchart TB
 
 ---
 
-## 3. 로봇에서 한 skill이 움직이는 길 (2026-11-03 배포 결정)
+## 3. 로봇에서 한 skill이 움직이는 길 (11-04 skill 노드 구조)
+
+> 자세히: [skill 노드 구성](skill-nodes.html) — skill마다 노드 하나 (`/skills/<skill>` 액션) · 정책은 skill 노드가 갖고 관리 (`model/skills/<skill>/`)
 
 ```mermaid
 flowchart LR
-  g3_MM["mission_manager<br/>(PR #49 · planner #55)"]:::wip -->|"다음 skill"| g3_CO["coordinator<br/>skill 실행 (#55)"]:::code
-  g3_CO -->|"① 빈 공간 이동"| g3_MV["MoveIt<br/>stow → 퍽 위 5 cm"]:::ok
-  g3_CO -->|"② 닿는 구간<br/>(시뮬과 같은 IK + 보간)"| g3_IK["IK 궤적<br/>내려가기 → 쥐기·놓기 → 올리기"]:::code
-  g3_MV --> g3_JTC["arm_controller<br/>(JTC)"]:::ok
-  g3_IK --> g3_JTC
+  g3_MM["mission_manager<br/>(PR #49 · planner)"]:::wip -->|"계획 단계"| g3_CO["coordinator<br/>순서 · 장부 (#59)"]:::code
+  g3_CO -->|"🎬 /skills/pick · place · load · unload · …"| g3_AS["팔 skill 노드<br/>(arm_skills · #59)"]:::code
+  g3_CO -->|"🎬 /skills/navigate · approach"| g3_BS["주행 skill 노드<br/>(base_skills · #59)"]:::code
+  g3_AS -->|"① 빈 공간"| g3_MV["MoveIt<br/>stow → 퍽 위 5 cm"]:::ok
+  g3_AS -->|"② 닿는 구간<br/>(시뮬과 같은 IK + 보간)"| g3_JTC["arm_controller (JTC)"]:::ok
+  g3_MV --> g3_JTC
   g3_JTC --> g3_RC["rl_arm_correction<br/>처짐 적분 + 정책 Δ"]:::code
   g3_RC --> g3_HW["팔 하드웨어"]:::ok
-  g3_CAM["손 카메라 검출<br/>perception"]:::ok --> g3_HR["hand_relative<br/>퍽 − 손 · 칸 − 퍽 (#54)"]:::code
-  g3_CO -->|"/hand_relative/target"| g3_HR
-  g3_CO -->|"/skill_context"| g3_RC
-  g3_HR -->|"/hand_relative"| g3_RC
-  g3_CO -->|"먼 길"| g3_NAV["Nav2"]:::ok
-  g3_CO -->|"상자 앞 도킹<br/>(시뮬과 같은 P 제어)"| g3_AP["approach"]:::code
-  g3_NAV --> g3_NC["rl_nav_correction<br/>도킹 모드"]:::code
-  g3_AP --> g3_NC
-  g3_CO -->|"/skill_context"| g3_NC
-  g3_NC --> g3_BASE["바퀴"]:::ok
+  g3_AS -->|"/skill_context<br/>+ 정책 파일 경로"| g3_RC
+  g3_AS -->|"/hand_relative/target"| g3_HR["hand_relative (#54)"]:::code
+  g3_CAM["손 카메라 검출"]:::ok --> g3_HR -->|"/hand_relative"| g3_RC
+  g3_BS -->|"먼 길"| g3_NAV["Nav2"]:::ok
+  g3_BS -->|"짧은 정밀 이동<br/>기준 제어 + 🧠 정책"| g3_NC["rl_nav_correction<br/>속도 제한"]:::ok
+  g3_NAV --> g3_NC --> g3_BASE["바퀴"]:::ok
   classDef ok fill:#123d2a,stroke:#3fbf7f,color:#e8eef8
   classDef code fill:#1d3a5c,stroke:#67b7e8,color:#e8eef8
   classDef wip fill:#3d3112,stroke:#e2a83a,color:#e8eef8
@@ -101,13 +100,13 @@ flowchart LR
 | 칸 | 상태 | 남은 것 |
 |---|---|---|
 | MoveIt · JTC · Nav2 · 하드웨어 | ✅ 있음 | — |
-| `hand_relative` (손 카메라 상대값) | 🔵 PR #54 · 노드 시험 통과 | 실기 |
-| coordinator → `/hand_relative/target` · `/skill_context` | 🔵 PR #55 | 실기 |
-| coordinator 닿는 구간 = 시뮬과 같은 IK 궤적 (`contact_mode: sim`) | 🔵 PR #55 · 집기 · 놓기 · 싣기 · 꺼내기 | 실기 · 세우기는 아직 예전 방식 |
-| approach 도킹 = 시뮬과 같은 P 제어 (`approach_mode: sim`) | 🔵 PR #55 | 실기 |
-| `rl_arm_correction` (정책 계산 · 처짐 적분) | 🔵 PR #55 · C++ = TorchScript 검산 · **#57: 처짐 적분·`~/reset_sag`는 팀원 방식** (시간 기준 · 멈춤일 때 · 4.2/s · 늘) + 정책 Δ | 실기 (컨트롤러 체인에서 불러오기 · 주기) |
-| `rl_nav_correction` 도킹 모드 | 🔵 PR #55 | 실기 |
-| mission_manager · mission_solver | 🟡 PR #49 | 병합 |
+| **skill 노드 9개** (`skills` 패키지) | 🔵 PR #59 · 9개 기동 · 정책 8개 읽기 · approach 보정 확인 | 전체 bringup · 실기 |
+| coordinator (순서 · 장부 · 모드 취소) | 🔵 PR #59 · skill 액션 → 장부 테스트 | 실기 |
+| `hand_relative` (손 카메라 상대값) | 🔵 PR #54 · CI 통과 | 실기 |
+| 닿는 구간 = 시뮬과 같은 IK 궤적 | 🔵 skill 노드 (pick · place · load · unload) | 실기 · 세우기는 기준 동작만 |
+| `rl_arm_correction` (정책 계산 · 처짐 적분 · 발열 방지) | 🔵 정책은 skill 노드가 경로로 알려 줌 · 팀원 처짐 적분 + 정책 Δ | 실기 |
+| 주행 정책 (dock_box · park_home · drive_arc · drive_straight) | 🔵 `skill_approach`가 직접 계산 | 실기 |
+| mission_manager · mission_solver | 🟡 PR #49 (CI 통과) | 리뷰 · 병합 |
 
 ---
 
@@ -120,51 +119,52 @@ flowchart TB
   subgraph gx_MM["mission_manager (skill 하나 끝날 때마다)"]
     gx_PN["🧠 plan_next.policy<br/>다음 skill 고르기"]:::model
   end
-  gx_PN -->|"① navigate → ② dock_box → ③ unload_slot → ④ place_cell"| gx_CO["coordinator<br/>skill 하나씩 실행 · 단계 관리"]
+  gx_PN -->|"① navigate → ② approach(dock_box) → ③ unload → ④ place"| gx_CO["coordinator<br/>단계 순서 · 적재함 장부"]
+  gx_CO -->|"🎬 /skills/navigate"| gx_SN["skill_navigate"] --> gx_NAV["Nav2<br/>① L1 앞까지"]
+  gx_CO -->|"🎬 /skills/approach"| gx_SA["skill_approach<br/>🧠 dock_box (model/skills/dock_box)<br/>돌기-직진-돌기 + Δv·Δw"]:::model
+  gx_CO -->|"🎬 /skills/unload"| gx_SU["skill_unload<br/>🧠 unload_slot"]:::model
+  gx_CO -->|"🎬 /skills/place"| gx_SP["skill_place<br/>🧠 place_cell"]:::model
   subgraph gx_BASE_PATH["주행 (①②)"]
-    gx_NAV["Nav2<br/>① L1 앞까지"] --> gx_NC
-    gx_AP["approach<br/>② 돌기-직진-돌기 P 제어"] --> gx_NC["rl_nav_correction 노드<br/>🧠 dock_box.policy<br/>속도 명령 + Δv·Δw"]:::model
-    gx_NC --> gx_VS["velocity_smoother"] --> gx_OC["OpenCR → 바퀴 모터"]
+    gx_NAV --> gx_NC["rl_nav_correction<br/>속도 제한"]
+    gx_SA -->|"/cmd_vel_nav"| gx_NC
+    gx_NC --> gx_OC["OpenCR → 바퀴 모터"]
   end
   subgraph gx_ARM_PATH["팔 (③④)"]
-    gx_MV["MoveIt<br/>빈 공간: stow → carry → 칸 위"] --> gx_JTC
-    gx_IK["IK 궤적<br/>닿는 구간: 내려가기 → 쥐기/놓기 → 올리기"] --> gx_JTC["arm_controller (JTC)<br/>목표 관절각"]
-    gx_JTC --> gx_RC["rl_arm_correction 컨트롤러 (100Hz, controller_manager 안)<br/>🧠 unload_slot.policy · place_cell.policy<br/>목표 관절각 + 처짐 적분 + Δ (±0.05 rad)"]:::model
+    gx_MV["MoveIt<br/>빈 공간: stow → carry → 칸 위"] --> gx_JTC["arm_controller (JTC)"]
+    gx_IK["IK 궤적<br/>닿는 구간"] --> gx_JTC
+    gx_JTC --> gx_RC["rl_arm_correction (100Hz)<br/>skill 노드가 알려 준 정책 파일로<br/>목표 + 처짐 적분 + Δ (±0.05 rad)"]:::model
     gx_RC --> gx_DX["OpenCR → 팔 모터 XM430"]
   end
-  gx_CO --> gx_NAV
-  gx_CO --> gx_AP
-  gx_CO --> gx_MV
-  gx_CO --> gx_IK
-  gx_CO -->|"/skill_context<br/>지금 skill·단계·목표"| gx_RC
-  gx_CO -->|"/hand_relative/target<br/>무엇을 잴지"| gx_HR["hand_relative<br/>손 카메라 상대값"]
-  gx_CAM["perception (≤4Hz)<br/>🧠 YOLO bee_yolo11n_v3<br/>+ AprilTag"]:::model --> gx_HR
-  gx_HR -->|"/hand_relative<br/>퍽 − 손 · 칸 − 퍽"| gx_RC
+  gx_SU --> gx_MV
+  gx_SU --> gx_IK
+  gx_SP --> gx_MV
+  gx_SP --> gx_IK
+  gx_SU -->|"/skill_context + 정책 경로"| gx_RC
+  gx_SP -->|"/skill_context + 정책 경로"| gx_RC
+  gx_CAM["perception (≤4Hz)<br/>🧠 YOLO"]:::model --> gx_HR["hand_relative"] -->|"/hand_relative"| gx_RC
   classDef model fill:#2a1f4d,stroke:#a78bfa,color:#e8eef8
 ```
 <b style="color:#a78bfa">🧠 보라 = 학습된 모델이 도는 곳</b>
 
-| 순서 | skill | 누가 움직이나 | 🧠 학습된 모델 (어디서 · 무엇을) | 끝 판정 |
+| 순서 | 단계 | 맡는 skill 노드 | 🧠 학습된 모델 (어디서 · 무엇을) | 끝 판정 |
 |---|---|---|---|---|
-| 0 | (고르기) | mission_manager | **`plan_next`** — mission_manager 안 (`planner: plan_next`일 때). skill이 하나 끝날 때마다 "다음 퍽 + 복귀할지" | — |
-| ① | `navigate` | Nav2 | 없음 (Nav2 그대로) | L1 앞 도착 |
-| ② | `dock_box` | coordinator approach (돌기-직진-돌기) | **`dock_box`** — `rl_nav_correction`. approach 속도 명령에 작은 Δv·Δw | 상자 앞 1 cm · 1.5° 안 0.5 s 정지 |
-| ③ | `unload_slot` | [1] MoveIt: stow → carry → 칸 5 위 · [2] IK 궤적: 내려가기 → 쥐기 → 칸 위 | **`unload_slot`** — `rl_arm_correction`. [2] 구간만. 입력: 관절 상태 + 단계 + `/hand_relative`(퍽 − 손) | 퍽이 손 안 (전류 + 손가락 위치) |
-| ④ | `place_cell` | [1] MoveIt: carry → 칸 4 위 5 cm · [2] IK 궤적: 내려가기 → 벌리기 → 올리기 | **`place_cell`** — 같은 `rl_arm_correction`. 입력에 `/hand_relative`(칸 − 손 안 퍽) | `judge_cell` (규칙): 칸 중심 10 mm 안 |
-| → | (다음) | mission_manager | **`plan_next`** 다시 | — |
+| 0 | (고르기) | mission_manager | **`plan_next`** — mission_manager 안 (`planner: plan_next`일 때) | — |
+| ① | `navigate` | `skill_navigate` → Nav2 | 없음 | L1 앞 도착 |
+| ② | `approach` (dock_box) | `skill_approach` | **`dock_box`** — skill_approach가 직접 (20 Hz). 기준 속도 명령에 Δv·Δw | 1 cm · 1.5° 안 0.5 s 정지 (정책 meta) |
+| ③ | `unload` 칸 5 | `skill_unload` (칸·모양은 coordinator 장부) | **`unload_slot`** — rl_arm_correction (skill_unload가 경로를 알려 줌). 닿는 구간만 | 퍽이 손 안 (전류 + 손가락 위치) |
+| ④ | `place` 칸 4 | `skill_place` | **`place_cell`** — 같은 방식 | `judge_cell` (규칙): 칸 중심 10 mm 안 |
 
-**정리 — 모델은 4곳에서만 돕니다**
+**정리 — 모델이 도는 곳**
 
-| 모델 | 도는 곳 | 얼마나 자주 | 하는 일 | 없으면 |
-|---|---|---|---|---|
-| `plan_next` | mission_manager (노드) | skill 하나 끝날 때 1번 | 다음 퍽·복귀 시점 | 규칙 순서 |
-| `dock_box` 등 주행 정책 | rl_nav_correction (노드) | approach 명령마다 (20Hz) | 속도 명령에 작은 보정 | 보정 0 — 기준 P 제어만 |
-| `place_cell` 등 팔 정책 | rl_arm_correction (ros2_control 컨트롤러, JTC 바로 뒤) | 100Hz 루프, 정책은 50Hz | 목표 관절각에 작은 보정 (닿는 구간만) | 보정 0 — 기준 궤적만 |
-| YOLO | perception (노드) | 카메라당 ≤ 4Hz | 퍽·신호등 찾기 | — |
+| 모델 | 도는 곳 | 얼마나 자주 | 없으면 |
+|---|---|---|---|
+| `plan_next` | mission_manager | skill 하나 끝날 때 | 규칙 순서 |
+| 주행 정책 4개 | **skill_approach** (노드) | 20 Hz | 기준 제어만 |
+| 팔 정책 4개 | rl_arm_correction (컨트롤러) — **정책 파일은 skill 노드가 관리·지정** | 100 Hz 루프, 정책 50 Hz | 기준 궤적만 |
+| YOLO | perception | 카메라당 ≤ 4 Hz | — |
 
-- 학습된 skill 정책은 **로봇을 처음부터 움직이지 않습니다.** 늘 기준 동작(Nav2 · MoveIt · IK 궤적 · P 제어)이 움직이고, 정책은 그 위에 몇 mm·몇 cm/s만 고칩니다. 정책을 끄면(Δ = 0) 지금 로봇과 똑같이 움직입니다.
-- 팔 정책 파일은 skill마다 하나씩이고, **coordinator가 `/skill_context`로 "지금 어떤 skill의 어느 단계인지" 알려 주면 `rl_arm_correction`이 그 skill의 정책만 켭니다.**
-- 정책 계산은 ONNX 런타임 없이 C++로 직접 (`ml/mlp_policy.hpp`) — Jetson에 따로 설치할 것 없음. 정책 파일은 `.policy` (TorchScript에서 `export_policy.py`로 변환, 검산값 포함).
+- 학습된 정책은 늘 기준 동작(Nav2 · MoveIt · IK 궤적 · P 제어) 위에 몇 mm·몇 cm/s만 고칩니다. 정책을 끄면(`meta.yaml` `use: false`) 기준 동작과 똑같습니다.
+- 정책 계산은 ONNX 런타임 없이 C++ (`ml/mlp_policy.hpp`) · 파일 `.policy` (검산값 포함) + 원본 `.onnx`
 
 ---
 
@@ -192,7 +192,7 @@ flowchart LR
   end
   gy_ma --> gy_N1["rl_arm_correction<br/>(JTC 뒤 · 모터 앞)"]:::node
   gy_mb --> gy_N1
-  gy_mc --> gy_N2["rl_nav_correction"]:::node
+  gy_mc --> gy_N2["skill_approach"]:::node
   gy_md --> gy_N3["mission_manager"]:::node
   classDef model fill:#2a1f4d,stroke:#a78bfa,color:#e8eef8
   classDef keep fill:#1c2635,stroke:#8aa0b8,color:#e8eef8
@@ -201,12 +201,12 @@ flowchart LR
 
 | 영역 | skill (학습 모델 씀) | 기준 동작 | 학습 보정이 도는 곳 | 로봇 연결 |
 |---|---|---|---|---|
-| 팔 · 닿는 구간 | `place_cell` · `load_slot` · `pick_standing_puck` · `unload_slot` | IK 궤적 (시뮬과 같음) | `rl_arm_correction` | 🔵 연결됨 (#55) |
+| 팔 · 닿는 구간 | `place_cell` · `load_slot` · `pick_standing_puck` · `unload_slot` | IK 궤적 (시뮬과 같음) | `rl_arm_correction` (정책은 skill 노드가 지정) | 🔵 연결됨 (#59) |
 | 팔 · 닿는 구간 | `stand_lying_puck` · `regrasp_after_stand` | 원호 경유점 | `rl_arm_correction` | 🔴 입력 모양 추가 필요 |
 | 팔 · 닿는 구간 | `nudge_cell`* · `stand_puck_in_cell`* | — | — | 🔴 환경 없음 |
 | 팔 · 끝 자세 | `pregrasp` | MoveIt 경로 | `rl_arm_correction` | 🔴 입력 모양 추가 필요 |
-| 주행 · 짧은 이동 | `dock_box` · `park_home` · `drive_straight` · `drive_arc` | approach P 제어 | `rl_nav_correction` | 🔵 연결됨 (#55) |
-| 플랜 | `plan_next` | (규칙 순서 대신) | `mission_manager` | 🔵 연결됨 (#55) |
+| 주행 · 짧은 이동 | `dock_box` · `park_home` · `drive_straight` · `drive_arc` | approach P 제어 | `skill_approach` | 🔵 연결됨 (#59) · park_home은 출발 구역 보정 |
+| 플랜 | `plan_next` | (규칙 순서 대신) | `mission_manager` | 🔵 연결됨 (#49에 병합) · 재학습 필요 |
 
 \* 아직 학습 환경 없음
 
@@ -228,7 +228,7 @@ flowchart LR
 
 ---
 
-## 3-3. 노드 현황 — 무엇이 끝났고 무엇이 남았나
+## 3-3. 노드 현황 — 무엇이 끝났고 무엇이 남았나 (11-04)
 
 ```mermaid
 flowchart TB
@@ -238,23 +238,23 @@ flowchart TB
     gz_d3["MoveIt · JTC · 그리퍼 · OpenCR · Nav2"]:::ok
     gz_d5["cuVSLAM · nvblox · state_manager"]:::ok
   end
-  subgraph gz_CODE["🔵 오늘 만듦 — 코드 완료 · 실기 시험 전"]
+  subgraph gz_CODE["🔵 코드 완료 · 실기 시험 전"]
     direction LR
     gz_d6["hand_relative (#54)"]:::code
-    gz_d7["SkillContext /skill_context"]:::code
-    gz_d8["coordinator 닿는 구간 · approach"]:::code
-    gz_d10["rl_arm_correction 정책 · 처짐 적분"]:::code
-    gz_d11["rl_nav_correction 도킹 모드"]:::code
+    gz_d8["skill 노드 9개 (#59)"]:::code
+    gz_d9["coordinator 순서·장부 (#59)"]:::code
+    gz_d10["rl_arm_correction 정책 · 처짐 적분 · 발열 방지"]:::code
     gz_d12["plan_next · planner 파라미터"]:::code
-    gz_d13["정책 파일 5개 + 플래너"]:::code
+    gz_d13["정책 폴더 8개 사용 + 2개 보류"]:::code
+    gz_d14["디버그 토픽 · 블랙박스 기록"]:::code
   end
   subgraph gz_LEFT["🔴 남은 것"]
     direction LR
     gz_l1["실기 · 전체 bringup 시험"]:::no
-    gz_l2["대기열 정책 5개 넣기"]:::no
-    gz_l3["세우기 · pregrasp 입력 모양"]:::no
-    gz_l4["PR 병합 #49 → #54 → #55"]:::no
-    gz_l5["처짐 실측"]:::no
+    gz_l3["세우기 입력 모양 · 재학습"]:::no
+    gz_l4["PR 병합 #49 · #54 · #58 · #59"]:::no
+    gz_l5["플래너 재학습 (실제 성공률)"]:::no
+    gz_l6["Isaac Sim 실행 파일을 skill 노드에 맞춤"]:::no
   end
   classDef ok fill:#123d2a,stroke:#3fbf7f,color:#e8eef8
   classDef code fill:#1d3a5c,stroke:#67b7e8,color:#e8eef8
@@ -263,17 +263,16 @@ flowchart TB
 
 | 노드·부품 | 한 일 | 확인 |
 |---|---|---|
-| **정책 계산** `ml/mlp_policy.hpp` · `export_policy.py` | ONNX 런타임 없이 C++ MLP (실시간 루프 할당 없음) · `.pt` → `.policy` | 정책 6개 모두 **C++ 값 = TorchScript 값** |
-| **`/skill_context`** (`ml/SkillContext`) | coordinator → 보정 노드: skill · 단계 · 처짐 적분 여부 · 보정 가능 여부 · 목표 관절 · 도킹 목표 | 빌드 |
-| **coordinator 닿는 구간** `contact_mode: sim` | 퍽·칸 위 5 cm까지 MoveIt → 정지 0.3 s → 시뮬과 같은 보간(해석 IK)으로 내려가기 → 안정 → 쥐기/놓기 → 올리기 → 대기 · 집기·놓기·싣기·꺼내기 | 기존 테스트 통과 · `moveit`이면 예전 |
-| **coordinator approach** `approach_mode: sim` | 시뮬 dock_box 기준 제어 (돌기 → 직진 ≤ 0.12 m/s → 마지막 방향) | `legacy`면 예전 |
-| **`rl_arm_correction`** | 명령 = JTC + 처짐 적분 + 정책 Δ, 정책 있는 skill의 닿는 구간만 · 입력 = 시뮬과 같은 순서 | 입력·적분 테스트 |
-| **`rl_nav_correction`** 도킹 모드 | 도킹 skill이면 시뮬 drive_env 입력 13개 → Δv·Δw | 입력 테스트 |
-| **`plan_next`** | C++ 플래너 · `planner: plan_next`면 BUILD에서 다음 퍽·복귀 시점 | Python과 40개 상태 모두 같은 행동 |
-| **`hand_relative`** | 손 카메라 → 퍽 − 손 · 칸 − 퍽 · 면 방향 | 노드 시험 (가짜 TF·검출) |
-| 정책 파일 | `place_cell` · `pick_standing_puck` (팀원) · `dock_box` · `drive_straight` · `load_slot` · `plan_next` | 설치·불러오기 |
+| **skill 노드 9개** (`skills`) | skill마다 액션 서버 · 공통 틀(goal 하나 · 취소 · 서버 대기 · 진단) · 팔 공통(MoveIt · 그리퍼 · 닿는 구간 · 잡기 판정) | 기동 · 정책 읽기 · approach 보정 |
+| **coordinator** | 계획 검증 · 단계 순서 · 물체 → 좌표 · 다가가기 · 적재함 장부 · 모드·비상정지 취소 | skill 액션 → 장부 테스트 |
+| **정책 폴더** `model/skills/<skill>/` | `.policy` · `.onnx` · `meta.yaml` (use · 시뮬 성공률 · 출처 · 판정값) | 폴더 검사 테스트 · C++ = TorchScript 검산 |
+| **`/skill_context`** | 팔 skill 노드 → rl_arm_correction: skill · 단계 · **정책 경로 · 입력 모양** | 빌드 |
+| **`rl_arm_correction`** | 받은 경로의 정책을 루프 밖에서 읽어 두고 100 Hz 루프에서 계산 · 처짐 적분(팀원) · 발열 방지 · `~/debug` | 74개 테스트 (11-03) |
+| **`rl_nav_correction`** | 속도 제한만 (주행 정책은 skill_approach로) | 테스트 |
+| **`plan_next`** | C++ 플래너 · `planner: plan_next`면 BUILD에서 다음 퍽·복귀 | Python과 40개 상태 같은 행동 |
+| **`hand_relative`** | 손 카메라 → 퍽 − 손 · 칸 − 퍽 · 면 방향 · 진단 | CI 통과 |
 
-전체: pa27 ROS Lyrical에서 빌드, **ml·plan 53개 + perception 8개 테스트 통과**. 실제 로봇·전체 bringup에서는 아직 안 돌려 봄.
+전체: pa27 ROS Lyrical — ml · plan · skills 테스트 66개 통과. 실제 로봇·전체 bringup에서는 아직 안 돌려 봄.
 
 ---
 
@@ -307,7 +306,7 @@ flowchart TB
     g4_s4["맵 cuVSLAM · nvblox — 유지"]:::keep
   end
   subgraph g4_PLANS["플랜"]
-    g4_p1["plan_next ✅ 가상 미션 학습<br/>🔵 로봇 코드 (#55)"]:::ok
+    g4_p1["plan_next ✅ 1차 학습 (임시 확률)<br/>🔵 로봇 코드 · 재학습 차례"]:::ok
   end
   classDef ok fill:#123d2a,stroke:#3fbf7f,color:#e8eef8
   classDef code fill:#1d3a5c,stroke:#67b7e8,color:#e8eef8
@@ -373,17 +372,14 @@ flowchart LR
 
 ---
 
-## 6. 남은 일 — 순서대로
+## 6. 남은 일 — 순서대로 (11-04)
 
 ```mermaid
 flowchart LR
-  g6_A["학습 대기열 끝<br/>(남은 5개)"]:::wip --> g6_B["정책 export → model/<br/>(PR #55에 추가)"]:::no
-  g6_A --> g6_S["학습 정책을 시뮬 미션에 연결<br/>→ 다시 풀기"]:::no
-  g6_S --> g6_C["skill 실패 줄이기<br/>pick 평가·재학습 · stand_puck_in_cell · nudge_cell"]:::no
-  g6_M["PR 병합<br/>#49 → #54 → #55"]:::wip --> g6_F["실기 · 전체 bringup 시험<br/>skill 하나씩 보정 켜 보기"]:::no
-  g6_B --> g6_F
-  g6_H["처짐 실측"]:::no --> g6_F
-  g6_L["세우기 · pregrasp<br/>입력 모양 추가"]:::no --> g6_F
+  g6_P["PR 병합<br/>#59 → skill-all · #49 · #54 · #58"]:::wip --> g6_F["실기 · 전체 bringup 시험<br/>보정 끈 채로 → skill 하나씩 켜기"]:::no
+  g6_S["Isaac Sim 디지털 트윈<br/>SLAM 매핑 → skill 노드 → 출제 스크립트"]:::no --> g6_F
+  g6_R["세우기+다시 쥐기 재학습<br/>→ stand 입력 모양"]:::no --> g6_F
+  g6_L["플래너 재학습<br/>(실제 성공률·시간)"]:::no --> g6_I
   g6_F --> g6_I["planner: plan_next로<br/>실기 미션 (마지막)"]:::no
   classDef wip fill:#3d3112,stroke:#e2a83a,color:#e8eef8
   classDef no fill:#3d1616,stroke:#e06666,color:#e8eef8
@@ -391,15 +387,12 @@ flowchart LR
 
 | 할 일 | 막히면 |
 |---|---|
-| 학습 대기열 남은 5개 (`unload_slot` · `pregrasp` · `park_home` · `drive_arc` · `regrasp_after_stand`) → 기준선보다 좋으면 `export_policy.py`로 `model/`에 | 그 skill은 보정 0 (지금 동작 그대로) |
-| 학습 정책을 시뮬 미션 실행기에 연결 → 다시 풀어 점수 비교 | — |
-| skill 실패 줄이기: `pick_standing_puck` 평가·재학습 · `stand_puck_in_cell`·`nudge_cell` 동작·환경 | 놓다 누우면 그 장소 0점 |
-| PR 병합: #49 → #54 → #55 (+ #53 · #56) | 로봇에 배포 코드가 없음 |
-| **실기 · 전체 bringup 시험**: 보정 끈 채로 먼저, 그다음 skill 하나씩 켜기 (`enabled` · 정책 파일) | 정책이 실기에서 맞는지 모름 |
-| 처짐 실측 · 처짐 적분 이득 확인 | 팔 정책이 실기에서 어긋날 수 있음 |
-| 세우기 · pregrasp 입력 모양 추가 | 그 skill은 보정 0 |
-| 상자 밀림 보정 (`HandTarget.box_tag`) · `camera_look_down` 높이 (0.15 m → 0.08~0.10 m) | — |
-| 마지막: `planner: plan_next`로 실기 미션 | 규칙 순서로 동작 |
+| PR 병합: #59(skill 노드 → skill-all) · #49(미션 흐름 + 배포) · #54 · #58(A*) | 로봇에 새 구조가 없음 |
+| Isaac Sim 디지털 트윈: SLAM 매핑 시연 → `isaac_system.launch.py`를 skill 노드에 맞춤 → 무작위 출제 스크립트 → 미션 전체 | 실기 전에 전체 연결을 못 봄 |
+| **실기 · 전체 bringup 시험**: 보정 끈 채로(`meta.yaml` `use: false`) 먼저, 그다음 skill 하나씩 켜기 · [실기 디버깅](debug-guide.html) | 정책이 실기에서 맞는지 모름 |
+| 세우기+다시 쥐기 재학습 (놓침 벌점) → stand 입력 모양 · 동작 순서 맞춤 | 기준 동작만 (시뮬 74.6 %) |
+| 플래너 재학습 (가상 미션 확률·시간을 평가값으로) → Isaac 미션 비교 | 규칙 순서로 동작 |
+| 처짐·발열 실측 · 실기에서 조정할 값 15개 ([스펙 6장](robot-spec.html)) | — |
 
 ---
 
@@ -410,7 +403,9 @@ flowchart LR
 | [#49](https://github.com/visualkhh/Lv2_bee_Assignment/pull/49) | `feature/mission-flow` → develop | mission_manager · mission_solver · coordinator 좌표 skill (먼저 병합) |
 | [#53](https://github.com/visualkhh/Lv2_bee_Assignment/pull/53) | `feature/skill-learning` → develop | `learning/skills.yaml` (skill 37개 · 계약 · 배포 조건) · `learning/plan/` (가상 미션 · 플래너 학습 · 계산기 순서) |
 | [#54](https://github.com/visualkhh/Lv2_bee_Assignment/pull/54) | `feature/hand-relative` → develop | 인식 `hand_relative` · `HandTarget`/`HandRelative` · API.md |
-| [#55](https://github.com/visualkhh/Lv2_bee_Assignment/pull/55) | `feature/policy-deploy` → `feature/mission-flow` | 로봇 배포: 보정 컨트롤러 · `SkillContext` · coordinator 닿는 구간·approach · `plan_next` · 정책 파일 (`ros2_ws/model/`) — #49·#54 포함, 최신 develop 포함 |
+| [#55](https://github.com/visualkhh/Lv2_bee_Assignment/pull/55) ✅ 병합 | `feature/policy-deploy` → `feature/mission-flow` | 로봇 배포 (보정 컨트롤러 · `SkillContext` · 닿는 구간 · `plan_next`) — 이제 #49에 들어 있음 |
+| [#58](https://github.com/visualkhh/Lv2_bee_Assignment/pull/58) | `feature/nav-astar` → develop | Nav2 전역 경로 A* (`use_astar: true`) |
+| [#59](https://github.com/visualkhh/Lv2_bee_Assignment/pull/59) | `feature/skill-nodes` → `feature/skill-all` | **skill마다 노드 하나** · `skills` 패키지 · coordinator 순서·장부 · 정책 폴더 `model/skills/` · 동료 정책 park_home · drive_arc · [자세히](skill-nodes.html) |
 | [#56](https://github.com/visualkhh/Lv2_bee_Assignment/pull/56) | `feature/skill-envs` → 팀원 `feature/isaac-lab` | Isaac 학습 환경 `slot_env` · `reach_env` · `drive_env` · 학습 대기열 `train_queue.sh` · 미션 실행기 `mission_run.py` · `--task stand` |
 | [#57](https://github.com/visualkhh/Lv2_bee_Assignment/pull/57) | `feature/skill-all` → `feature/isaac-setup` | **위 전부 + 팀원 `isaac-lab` 통합** · 처짐 적분은 팀원 방식 · 테스트 71개 · ⚠️ isaac-setup과 Isaac 자산 약 66개 파일 충돌 (정리 전) |
 | — | pa27 `~/bee_skill` | 학습 중인 복사본 · `logs/queue_summary.tsv` (학습 결과 한 줄씩) |

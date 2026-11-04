@@ -111,13 +111,13 @@ flowchart LR
 | Nav2 제어 · 계획 · BT | 20 Hz · 5 Hz · 10 ms | `nav2_params.yaml:23,47,191` |
 | 비용 지도 (지역 · 전역) | 갱신 5 / 1 Hz · 발행 2 / 1 Hz | `nav2_params.yaml:239-240,288-289` |
 | velocity_smoother | 20 Hz | `nav2_params.yaml:327` |
-| approach (도킹) | 20 Hz | `coordinator.cpp:723` |
+| approach (도킹 · 주차) — `skill_approach` 정책 계산 | 20 Hz | `skills/src/approach_skill.cpp` |
 | YOLO 추론 | 0.25 s 타이머 (카메라마다 ≤ 4 Hz) · CPU 2스레드 | `perception_node.py:765`, `perception.yaml:10-13` |
 | `/tracked_objects` | 10 Hz | `perception.yaml:4` |
 | `hand_relative` | 검출 올 때마다 (≤ 4 Hz) · 적재함 20 Hz | `hand_relative.py:10` |
 | cuVSLAM | 15 Hz (실측) | `CUVSLAM.md:186` |
 | nvblox | 깊이 15 Hz · ESDF 5 Hz · 메시 2 Hz | `nvblox.yaml:20-24` |
-| MoveIt 계획 | 최대 5 s · 3번 시도 · 속도 배율 0.3 | `coordinator.cpp:632-635` |
+| MoveIt 계획 (팔 skill 노드) | 최대 5 s · 3번 시도 · 속도 배율 0.3 | `skills/src/arm_io.cpp` |
 
 **알려진 지연**
 | 지연 | 값 | 근거 |
@@ -140,15 +140,16 @@ RL/TL = reliable + transient_local (늦게 붙어도 마지막 값) · 숫자만
 | `/joint_states` | ros2_control 기본 | 10 |
 | `/imu` | ros2_control 기본 | SDQ 1 |
 | `/odom` | diff_drive 기본 | 10 |
-| `/cmd_vel_nav` → `/cmd_vel_corrected` | 10 → reliable 1 | rl_nav_correction 10 → twist_mux |
+| `/cmd_vel_nav` (Nav2 · skill_approach) → `/cmd_vel_corrected` | 10 → reliable 1 | rl_nav_correction 10 (속도 제한) → twist_mux |
 | `/tracked_objects` | 5 | reliable 5 |
 | `/perception/<cam>/detections` | 5 | 5 |
-| `/skill_context` | reliable 10 | reliable 10 |
+| `/skill_context` (팔 skill 노드 → rl_arm_correction, 정책 경로 포함) | reliable 10 | reliable 10 |
 | `/hand_relative` | 10 | 10 |
 | `/hand_relative/target` | RL/TL 1 | RL/TL 1 |
 | `/task/sub_goals` · `/task/status` | RL/TL 10 | RL/TL 10 |
 | `/mission/state` · `/mission/signal` · `/mission/qr` | RL/TL 1 | RL/TL 1 |
 | `/coordinator/basket` | RL/TL 1 | RL/TL 1 |
+| `/skills/<skill>` 액션 (coordinator → skill 노드) | 액션 기본 (reliable · goal 상태 transient_local) | — |
 | `/state/*` (모드 · 비상정지 · 지도) | RL/TL 1 | RL/TL 1 |
 | `/arm_safety_event` | reliable 10 | reliable 10 |
 | `/motor_status` | RL/TL 1 (0.5 s, 바뀔 때만) | RL/TL 1 |
@@ -167,11 +168,11 @@ RL/TL = reliable + transient_local (늦게 붙어도 마지막 값) · 숫자만
 | 처짐 적분 (팀원) | sag_gain · sag_max · still_rate | 4.2 /s · 0.2 rad · 0.005 rad/s | `controllers.yaml` |
 | 발열 방지 | rest_pose · rest_tol · windup_s | stow · 0.03 rad · 2 s | `controllers.yaml` |
 | 손 카메라 | max_cam_age_s | 1.0 s | 코드 기본 |
-| 잡기 판정 | grasp_min_pos_m · grasp_min_effort · grip_current_a | 3 mm · 0.25 A · 0.35 A | `plan.yaml` |
-| 놓기 | held_bottom_m · place_release_m · place_spacing | 0.0606 · 0.02 · 0.08 m | `plan.yaml` |
+| 잡기 판정 | grasp_min_pos_m · grasp_min_effort · grip_current_a | 3 mm · 0.25 A · 0.35 A | `skills/params/arm.yaml` |
+| 놓기 | held_bottom_m · place_release_m · place_spacing | 0.0606 · 0.02 · 0.08 m | `skills.yaml` (skill_place) · `plan.yaml` |
 | 다가가기 | reach_m · approach_m | 0.30 · 0.24 m | `plan.yaml` |
 | 도킹 | standoff · approach_gap · 허용 | 0.25 · 0.085 m · 5 mm · 0.03 rad | `plan.yaml` |
-| 태그 읽기 | inspect_height_m · inspect_wait_s | 0.15 m · 1.0 s | `plan.yaml` |
+| 태그 읽기 | inspect_height_m · inspect_wait_s | 0.15 m · 1.0 s | `skills.yaml` (skill_inspect) |
 | 미션 | place_tol · tag_correction_max · retries | 10 mm · 0.05 m · 2 | `plan.yaml` |
 | Nav2 도착 | xy · yaw | 0.10 m · 0.15 rad | `nav2_params.yaml:86-88` |
 | Nav2 경로 | 계획기 | NavFn **A*** (PR #58) · tolerance 0.20 m | `nav2_params.yaml:193-197` |
@@ -191,9 +192,9 @@ RL/TL = reliable + transient_local (늦게 붙어도 마지막 값) · 숫자만
 |---|---|---|---|---|
 | 1 | 팔 관절 부호 · 0점 | 모두 +1 · 0.0 | 관절마다 부호 확인 (TODO 김현하) · 0점 실측 | `config.h:22-25`, `urdf.xacro:942-977` |
 | 2 | 과전류 접촉 문턱 | 3.0 A (전체) | 퍽 든 정상 전류를 재고 관절별로 | `control.yaml:7` |
-| 3 | 잡기 판정 | 3 mm · 0.25 A · 쥐는 힘 0.35 A | "실기에서 다시 맞출 값" — 원기둥 0.33~0.42 A 측정치 참고 | `plan.yaml:32-43` |
+| 3 | 잡기 판정 | 3 mm · 0.25 A · 쥐는 힘 0.35 A | "실기에서 다시 맞출 값" — 원기둥 0.33~0.42 A 측정치 참고 | `skills/params/arm.yaml` |
 | 4 | 그리퍼 기본 전류 · 75 mm 끝점 | 600 mA · 외삽 | 실측 | `config.h:32-37` |
-| 5 | 세우기 쥐는 힘 | 5.5 mA | mA ↔ N 실측 필요 (0.6 N부터 퍽이 안 돎) | `plan.yaml:49` |
+| 5 | 세우기 쥐는 힘 | 5.5 mA | mA ↔ N 실측 필요 (0.6 N부터 퍽이 안 돎) | `skills.yaml` (skill_stand) |
 | 6 | 처짐 적분 · 발열 방지 | 4.2 /s · 0.2 rad · 2 s · 0.03 rad | stow 주행 중 전류·온도·`corr` 기록 ([디버깅](debug-guide.html)) | `controllers.yaml:54-67` |
 | 7 | 팔 속도·가속 한계 | 3.0 · 5.0 (추정) | XM430 실측 | `joint_limits.yaml` |
 | 8 | 적재함 사용 칸 | 0~11 전부 | 팔이 잘 못 닿는 칸 확인 후 뺌 | `plan.yaml:37-38` |
@@ -203,7 +204,7 @@ RL/TL = reliable + transient_local (늦게 붙어도 마지막 값) · 숫자만
 | 12 | cuVSLAM 분산 | 0.0025 | 실측으로 | `cuvslam_slam.py:93-95` |
 | 13 | 카메라 끝단 지연 | 기록 없음 | bag으로 영상 시각 ↔ 처리 시각 | |
 | 14 | MoveIt 충돌 행렬 | 임시 | 실기 치수 확정 뒤 SRDF 다시 | `beebot.srdf:67` |
-| 15 | `camera_look_down` 높이 | 0.15 m | 시뮬은 0.08 m에서 100 % — 태그 크기 보고 0.08~0.10 | `plan.yaml:75` |
+| 15 | `camera_look_down` 높이 | 0.15 m | 시뮬은 0.08 m에서 100 % — 태그 크기 보고 0.08~0.10 | `skills.yaml` (skill_inspect) |
 
 **알아 둘 것**
 - `urdf:=default`(launch 기본)와 `urdf/README.md`의 기본(`beebot_mesh`)이 다르게 적혀 있음 — 실기 bringup 전에 어느 모델인지 확인
@@ -221,7 +222,9 @@ RL/TL = reliable + transient_local (늦게 붙어도 마지막 값) · 숫자만
 | `ros2_ws/src/ros_system/config/nav2_params.yaml` | Nav2 전부 · 비용 지도 · 충돌 감시 |
 | `ros2_ws/src/ros_system/config/{ekf,twist_mux,nvblox,scan_pose}.yaml` | 위치 융합 · 속도 우선순위 · 지도 · 스캔 자세 |
 | `ros2_ws/src/ros_system/config/moveit/` | 관절 한계 · IK · OMPL · SRDF |
-| `ros2_ws/src/plan/config/plan.yaml` | coordinator · mission_manager · explorer · VLM |
+| `ros2_ws/src/plan/config/plan.yaml` | coordinator (순서·장부) · mission_manager · explorer · VLM |
+| `ros2_ws/src/skills/config/skills.yaml` · `skills/params/{arm,basket,stand_table}.yaml` | skill 노드 9개 · 팔 공통 (잡기 판정 · 쥐는 힘) · 자세·적재함·세우기 표 |
+| `ros2_ws/model/skills/<skill>/meta.yaml` | 정책 쓸지(`use`) · 시뮬 성공률 · 주행 도착 판정값 |
 | `ros2_ws/src/perception/config/perception.yaml` | YOLO · 추적 · hand_relative · 신호등 · body_filter |
 | `ros2_ws/src/control/config/control.yaml` | 접촉 감시 · 수동 조작 |
 | `ros2_ws/src/ml/config/ml.yaml` | grasp_scorer · rl_nav_tuner · rl_nav_correction |

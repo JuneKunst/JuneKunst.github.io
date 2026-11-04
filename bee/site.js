@@ -15,6 +15,7 @@ const MENU = [
     { href: 'skills.html', title: '학습 지도 (구조 → 미션 → 동작)', desc: '단계를 따라가며 보는 인터랙티브 지도', updated: '11-02' },
   ]},
   { group: '구조', items: [
+    { href: 'skill-nodes.html', title: 'skill 노드 구성', desc: 'skill마다 노드 하나 · 액션 /skills/<skill> · 정책은 skill이 관리', updated: '11-04' },
     { href: 'flow.html', title: '노드 흐름 (인터랙티브)', desc: '전체 노드 연결 — 연결을 누르면 메시지·역할 설명', updated: '11-02' },
     { href: 'messages.html', title: '메시지 사전', desc: '연결마다 목적 · 나눈 이유 · 메시지 예시', updated: '11-02' },
     { href: 'mission-vs-skill.html', title: '그림: 누가 판단하고 누가 실행하나', desc: '다이어그램 원본', updated: '11-02', raw: true },
