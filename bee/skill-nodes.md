@@ -135,3 +135,21 @@ sequenceDiagram
 | MoveIt 붙인 팔 닿는 구간 | ⏳ Isaac Sim 또는 실기 |
 | `regrasp_after_stand` 로봇 입력 | 🔴 stand 입력 모양 · 동작 순서를 시뮬과 맞춰야 (재학습 뒤) |
 | Isaac Sim 실행 파일 (`isaac_system.launch.py`) | 🔴 예전 coordinator 파라미터를 고침 → skill 노드 이름으로 바꿔야 |
+
+---
+
+## 7. skill 37개는 로봇에서 어디서 도나
+
+skill 37개는 **학습·평가 단위**(`learning/skills.yaml`), skill 노드 9개는 **계획 한 단계를 실행하는 단위**(`SubGoal` 동사)입니다. 그래서 1:1이 아닙니다 — 한 노드 안에 skill 여럿이 들어가거나(정책 여러 개 · 동작의 한 구간), 기존 노드가 맡습니다. onnx와는 상관없습니다 (로봇은 같은 가중치를 `.policy`로 C++에서 계산, `.onnx`는 원본 보관).
+
+| 어디서 | skill | 개수 |
+|---|---|---|
+| **skill 노드 (학습 정책)** | `skill_approach`: dock_box · park_home · drive_arc · drive_straight · `skill_pick`: pick_standing_puck · `skill_place`: place_cell · `skill_load`: load_slot · `skill_unload`: unload_slot · `skill_stand`: stand_lying_puck · regrasp_after_stand (보류) | 10 |
+| **skill 노드 (동작의 한 구간 · 기준 동작으로 충분)** | `skill_pick` 앞 구간: pregrasp · `skill_pose`: move_pose · camera_clear_view (scan) · `skill_inspect`: camera_look_down · `skill_approach`: drive_turn (기준 제어의 돌기) · `skill_navigate`: navigate (Nav2) | 6 |
+| **팔 공통 · 보정 컨트롤러** | compensate_sag (`rl_arm_correction` 처짐 적분) · grip_force (팔 공통 `grip_current_a`) | 2 |
+| **인지 노드** | detect_puck · classify_color · classify_shape_pose (YOLO, perception) · read_puck_tag · detect_location_box (AprilTag, perception) · read_signal_barcode (signal_decoder · perception) · judge_cell (mission_manager 재확인) | 7 |
+| **상태·비상** | monitor_battery · monitor_current · monitor_motor (하드웨어 진단 · arm_safety_monitor) · detect_tip_impact · estop (state_manager · twist_mux) · basket_ledger (coordinator 장부) | 6 |
+| **지도** | slam_localize · build_map · align_arena (cuVSLAM · nvblox · mission_manager 시작 자세) | 3 |
+| **플랜** | plan_next (mission_manager 안) | 1 |
+| **아직 없음** | nudge_cell · stand_puck_in_cell (학습 환경·동작 없음) | 2 |
+| | **합계** | **37** |
