@@ -19,7 +19,7 @@
 | 팔 | `unload_slot` | 93.7 % | **98.1 %** | 놓침 0.1 % | ✅ 정책 | |
 | 팔 | `place_cell` (팀원) | 96.3 % | **99.0 %** | | ✅ 정책 | |
 | 팔 | `pick_standing_puck` (팀원) | 평가 필요 | | | ✅ 정책 | 예전 `pick_upright` |
-| 팔 | `regrasp_after_stand` (동료, 세우기+다시 쥐기) | 74.6 % · 놓침 2.6 % | 평가 중 | | 로봇 입력 모양 만드는 중 | 예전 `regrasp_stood` |
+| 팔 | `regrasp_after_stand` (동료, 세우기+다시 쥐기) | 74.6 % | **78.2 %** ⚠️ | 놓침 2.6 % → 1.6 % | 합격 기준 못 넘음 · 로봇 입력 모양 만드는 중 | 예전 `regrasp_stood` · 중심 오차 중앙값 21 mm |
 | 팔 | `stand_lying_puck` (팀원) | 평가 필요 | | | 위와 같은 정책 | 예전 `stand_up` |
 | 팔 | `pregrasp` | **99.5 %** | 99.6 % | — | 기준선 (MoveIt) | 손 못 가는 목표 1개 뺌 |
 | 팔 | `move_pose` · `camera_clear_view` · `camera_look_down` | 100 % | — | — | 기준선 | |
