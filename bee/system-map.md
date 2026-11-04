@@ -396,16 +396,13 @@ flowchart LR
 
 ---
 
-## 7. 브랜치 · PR · 파일 위치
+## 7. 브랜치 · PR · 파일 위치 (11-04)
 
-| PR | 브랜치 → base | 들어 있는 것 |
-|---|---|---|
-| [#49](https://github.com/visualkhh/Lv2_bee_Assignment/pull/49) | `feature/mission-flow` → develop | mission_manager · mission_solver · coordinator 좌표 skill (먼저 병합) |
-| [#53](https://github.com/visualkhh/Lv2_bee_Assignment/pull/53) | `feature/skill-learning` → develop | `learning/skills.yaml` (skill 37개 · 계약 · 배포 조건) · `learning/plan/` (가상 미션 · 플래너 학습 · 계산기 순서) |
-| [#54](https://github.com/visualkhh/Lv2_bee_Assignment/pull/54) | `feature/hand-relative` → develop | 인식 `hand_relative` · `HandTarget`/`HandRelative` · API.md |
-| [#55](https://github.com/visualkhh/Lv2_bee_Assignment/pull/55) ✅ 병합 | `feature/policy-deploy` → `feature/mission-flow` | 로봇 배포 (보정 컨트롤러 · `SkillContext` · 닿는 구간 · `plan_next`) — 이제 #49에 들어 있음 |
-| [#58](https://github.com/visualkhh/Lv2_bee_Assignment/pull/58) | `feature/nav-astar` → develop | Nav2 전역 경로 A* (`use_astar: true`) |
-| [#59](https://github.com/visualkhh/Lv2_bee_Assignment/pull/59) | `feature/skill-nodes` → `feature/skill-all` | **skill마다 노드 하나** · `skills` 패키지 · coordinator 순서·장부 · 정책 폴더 `model/skills/` · 동료 정책 park_home · drive_arc · [자세히](skill-nodes.html) |
-| [#56](https://github.com/visualkhh/Lv2_bee_Assignment/pull/56) | `feature/skill-envs` → 팀원 `feature/isaac-lab` | Isaac 학습 환경 `slot_env` · `reach_env` · `drive_env` · 학습 대기열 `train_queue.sh` · 미션 실행기 `mission_run.py` · `--task stand` |
-| [#57](https://github.com/visualkhh/Lv2_bee_Assignment/pull/57) | `feature/skill-all` → `feature/isaac-setup` | **위 전부 + 팀원 `isaac-lab` 통합** · 처짐 적분은 팀원 방식 · 테스트 71개 · ⚠️ isaac-setup과 Isaac 자산 약 66개 파일 충돌 (정리 전) |
+| PR | 브랜치 → base | 상태 | 들어 있는 것 |
+|---|---|---|---|
+| [#58](https://github.com/visualkhh/Lv2_bee_Assignment/pull/58) | `feature/nav-astar` → develop | ✅ 병합 | Nav2 A* |
+| [#49](https://github.com/visualkhh/Lv2_bee_Assignment/pull/49) | `feature/mission-flow` → develop | ✅ 병합 | 미션 흐름 + [#55](https://github.com/visualkhh/Lv2_bee_Assignment/pull/55) 배포(보정 컨트롤러 · `plan_next` · 정책) + [#54](https://github.com/visualkhh/Lv2_bee_Assignment/pull/54) hand_relative · L2 205 |
+| [#53](https://github.com/visualkhh/Lv2_bee_Assignment/pull/53) | `feature/skill-learning` → develop | ✅ 병합 | `learning/` skill 37개 · 플래너 학습 |
+| [#59](https://github.com/visualkhh/Lv2_bee_Assignment/pull/59) | `feature/skill-nodes` → **develop** | 🔵 리뷰 대기 | **skill 노드 구조** + 팀원 isaac-lab + Isaac 학습 환경(#56) + 통합분(#57: 처짐 적분 · 발열 방지 · 디버그 도구 · 정책) — #56 · #57은 닫음 |
+| [#62](https://github.com/visualkhh/Lv2_bee_Assignment/pull/62) | `feature/isaac-twin` → `feature/skill-nodes` | 🔵 #59 다음 | Isaac 디지털 트윈 미션 시뮬 · 무작위 출제 · 바코드 · 정답 비교 · RViz 상태 화면 |
 | — | pa27 `~/bee_skill` | 학습 중인 복사본 · `logs/queue_summary.tsv` (학습 결과 한 줄씩) |
