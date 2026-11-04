@@ -1,14 +1,9 @@
-# BEE · 전체 흐름과 학습 지도
+# BEE · 페이지 모음
 
-- 전체 연결도: https://junekunst.github.io/bee/
-- 학습 지도: https://junekunst.github.io/bee/skills.html
-- 순차 미션 학습: https://junekunst.github.io/bee/skills.html#mission-flow
-- 메시지·역할 사전: https://junekunst.github.io/bee/messages.html
-- **전체 지도 (학습부터 로봇까지, 상태 색 표시)**: https://junekunst.github.io/bee/system-map.html
-- **11-03 정리 (결정 · 만든 것 · 결과 · 노드 · 남은 일)**: https://junekunst.github.io/bee/wrapup-1103.html
-- 스킬·플랜 한 장 (설명용): https://junekunst.github.io/bee/skill-plan.html
-- 학습용 skill 구성·학습 플랜 (결정 중): https://junekunst.github.io/bee/skill-learning.html
-- skill별 학습 조건 (환경·보상·성공·기준선): https://junekunst.github.io/bee/skill-training.html
+- **홈 (페이지 목록 · 지금 상태)**: https://junekunst.github.io/bee/
+- 메뉴는 모든 페이지 위쪽 한 곳 (`site.js`의 `MENU`) — 현황 · skill·학습 · 구조 · 실기
+- md 문서 페이지(정리 · 전체 지도 · 스펙 · 학습 조건 …)는 `<body data-md="이름.md">`만 두면 `site.js`가 읽어서 그림 (버전 번호 안 올려도 늘 최신)
+- 노드 흐름(인터랙티브 Archify)은 `flow.html` (11-04 전엔 `index.html`)
 
 ## 학습 순서
 

@@ -139,7 +139,7 @@ m.update(title=D['meta']['title'], updated='2026-11-02', components=len(N), conn
          evidence_snapshot=REV, perception='PR #45 (feature/perception): 12-blink signal + signal_status, location_box/start_box, puck shape/yaw. Not merged; not a hardware test.',
          contract_explanations=len(C['edges']),
          connections_with_illustrative_examples=sum(any(c['example'] is not None for c in e['channels']) for e in C['edges']),
-         artifact_sha256=hashlib.sha256((ROOT / 'index.html').read_bytes()).hexdigest(),
+         artifact_sha256=hashlib.sha256((ROOT / 'flow.html').read_bytes()).hexdigest(),
          native_artifact_sha256=hashlib.sha256((ROOT / 'diagram.html').read_bytes()).hexdigest(),
          contracts_sha256=hashlib.sha256((ROOT / 'contracts.json').read_bytes()).hexdigest())
 (ROOT / 'manifest.json').write_text(json.dumps(m, ensure_ascii=False, indent=2) + '\n')

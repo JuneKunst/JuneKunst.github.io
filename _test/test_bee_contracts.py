@@ -96,7 +96,7 @@ class BeeContractTests(unittest.TestCase):
         archived = json.loads((ROOT / '2026-10-28-contracts.json').read_text())
         self.assertIn('rtabmap', archived['nodes'])
         self.assertIn('nvblox_node', (ROOT / 'diagram.html').read_text())
-        self.assertIn('iframe', (ROOT / 'index.html').read_text())
+        self.assertIn('iframe', (ROOT / 'flow.html').read_text())  # 노드 흐름 (11-04: index.html은 페이지 목록)
 
 
 if __name__ == '__main__':

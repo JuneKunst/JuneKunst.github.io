@@ -1,1 +1,35 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>BEE · 전체 흐름과 메시지·역할 설명</title><style>*{box-sizing:border-box}html,body{margin:0;height:100%;background:#0b1220;color:#e8eef8;font:12px/1.5 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif}header{height:40px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 12px;border-bottom:1px solid #26354d}header p{margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}nav{display:flex;gap:14px;white-space:nowrap}a{color:#67d7e8}iframe{display:block;width:100%;height:calc(100dvh - 40px);border:0}@media(max-width:650px){header{height:54px;font-size:11px;align-items:flex-start;padding-top:7px;flex-direction:column;gap:2px}iframe{height:calc(100dvh - 54px)}nav{gap:18px}}</style></head><body><header><p id="status" role="status">원본 Archify와 메시지 설명을 불러오는 중…</p><nav><a href="system-map.html"><b>전체 지도</b></a><a href="wrapup-1103.html">11-03 정리</a><a href="skills.html">skill·동작 흐름</a><a href="skill-plan.html">스킬·플랜 한 장</a><a href="skill-learning.html">학습용 skill 구성</a><a href="skill-training.html">skill별 학습 조건</a><a href="messages.html" target="_blank" rel="noopener">전체 연결·메시지 사전</a><a href="diagram.html">원본 보기</a></nav></header><iframe id="diagram" title="BEE 인터랙티브 Archify 전체 흐름" allow="clipboard-write; fullscreen" allowfullscreen></iframe><script type="module" src="inspector.js?v=20261030-slam"></script></body></html>
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>BEE · 홈</title><meta name="description" content="BEE 로봇 (Lv2 주사위 기억 미션) — 현황 · skill·학습 · 구조 · 실기 페이지 모음">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;background:#0b1220;color:#e8eef8;font:15px/1.6 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif}
+main{max-width:1100px;margin:0 auto;padding:24px max(16px,env(safe-area-inset-right)) 64px max(16px,env(safe-area-inset-left))}
+h1{font-size:1.7rem;line-height:1.3;margin:.2em 0 .3em}
+.lead{color:#b3c0d5;margin:0 0 20px}
+.now{background:#111b2b;border:1px solid #26354d;border-left:3px solid #67d7e8;border-radius:8px;padding:12px 16px;margin:0 0 8px}
+.now b{color:#67d7e8}
+.now ul{margin:6px 0 0;padding-left:1.2em}
+h2{font-size:1.05rem;color:#9aa6b4;font-weight:600;margin:28px 0 10px;letter-spacing:.02em}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(250px,100%),1fr));gap:10px}
+.card{display:flex;flex-direction:column;gap:4px;padding:14px 16px;background:#111b2b;border:1px solid #26354d;border-radius:10px;color:#e8eef8;text-decoration:none;min-height:96px}
+.card:hover,.card:focus-visible{border-color:#67d7e8;outline:none}
+.card b{font-size:15px}
+.card span{color:#9aa6b4;font-size:13px;flex:1}
+.card em{font-style:normal;color:#6b7d95;font-size:12px}
+.card.raw{min-height:0;padding:10px 14px;background:transparent}
+.card.raw b{font-weight:500;font-size:14px}
+.card.raw span{display:none}
+a{color:#67d7e8}
+</style>
+<script src="site.js?v=20261104" defer></script></head>
+<body><main>
+<h1>BEE — 주사위 기억 미션 로봇</h1>
+<p class="lead">학습(Isaac Lab) → skill 노드 → 실제 로봇까지, 진행 상황과 설계를 모은 곳입니다. 코드: <a href="https://github.com/visualkhh/Lv2_bee_Assignment">visualkhh/Lv2_bee_Assignment</a></p>
+<div class="now"><b>지금 (11-04)</b>
+<ul>
+<li>skill마다 노드 하나로 구조 변경 — 정책은 skill 노드가 관리 (PR #59) · <a href="system-map.html">전체 지도</a></li>
+<li>시뮬 성능: 학습 정책 9개 중 7개가 합격 기준(97 %) 넘음 · park_home 96.5 %는 기준선(81 %)보다 좋아 사용 · 세우기+다시 쥐기 78 %는 보류 · <a href="robot-spec.html">성능표</a></li>
+<li>다음: 플래너 재학습 (실제 성공률로) · 실기 bringup · <a href="debug-guide.html">실기 디버깅 준비</a></li>
+</ul></div>
+<div id="site-hub"></div>
+</main></body></html>
