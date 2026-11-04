@@ -1,5 +1,7 @@
 # BEE 전체 지도 — 학습부터 로봇까지
 
+> **11-04 구조 변경 (PR #59, `feature/skill-nodes`)** — skill마다 노드 하나: coordinator는 계획 검증·순서·적재함 장부만, 팔·주행 동작은 **skill 노드 9개** (`/skills/<skill>` 액션 — navigate · approach · pose · inspect · pick · place · load · unload · stand). 학습 정책은 **skill 노드가 갖고 관리** (`model/skills/<skill>/` = `.policy` · `.onnx` · `meta.yaml`). 팔 정책 계산은 그대로 `rl_arm_correction` 100 Hz 루프 안 (skill 노드가 정책 경로를 알려 줌) · 주행 정책은 `skill_approach`가 직접 계산. 아래 그림의 "coordinator가 하는 팔·주행 동작"은 이제 skill 노드가 합니다. 스펙·성능표: [robot-spec](robot-spec.html)
+
 > **2026-11-03 20:50 기준** (pa27 시각). 오늘 정리: [11-03 정리](wrapup-1103.html). 지금까지 만든 것 전부를 한 장에 그렸습니다. 색: <b style="color:#3fbf7f">초록 = 완료</b> · <b style="color:#67b7e8">파랑 = 코드 완료, 실기 시험 전</b> · <b style="color:#e2a83a">노랑 = 진행 중 · 일부</b> · <b style="color:#e06666">빨강 = 아직 없음</b> · <b style="color:#8aa0b8">회색 = 학습 안 함 (규칙·기존 그대로)</b>
 > 자세한 내용: [학습용 skill 구성](skill-learning.html) · [skill별 학습 조건](skill-training.html) · [스킬·플랜 한 장](skill-plan.html)
 > PR: [#57 통합 → isaac-setup](https://github.com/visualkhh/Lv2_bee_Assignment/pull/57) · [#53 skill 목록·플래너 학습](https://github.com/visualkhh/Lv2_bee_Assignment/pull/53) · [#54 hand_relative](https://github.com/visualkhh/Lv2_bee_Assignment/pull/54) · [#55 로봇 배포](https://github.com/visualkhh/Lv2_bee_Assignment/pull/55) · [#56 Isaac 학습 환경](https://github.com/visualkhh/Lv2_bee_Assignment/pull/56) · (먼저) [#49 미션 흐름](https://github.com/visualkhh/Lv2_bee_Assignment/pull/49)
