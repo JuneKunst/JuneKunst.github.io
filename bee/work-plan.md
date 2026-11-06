@@ -55,6 +55,7 @@
 
 | 일 | 상태 |
 |---|---|
+| **팔 정책 배포 경로 하나로 정리** (결정 19) — 연결 안 된 `rl_policy_node.py` · `plan/arm_ik` · `rl_segment` · `stand_geometry` · `model/arm_correction/` · `ml/policies/` 지우기 · `.pt` ↔ `.policy` 같은 출력 시험 · `meta.yaml` 관측 확인 | ⏳ 동료(송정혁)와 협의 — [지금 구조 6·7절](system-now.html) |
 | #62 트윈을 develop에 맞춤 (충돌 · 새 stow · 손목 카메라 문 닫기 · 자동 Play · `YOLO_VENV`) | 🔧 rebase · 수정 · pa27 빌드 · 매핑 실행 확인 (자동 Play · 손목 카메라 문 OK) |
 | explorer — 탐사 끝 뒤 멈춤 (새 목표 안 보냄 · EXPLORE 다시 들어오면 새로) | ✅ #62에 커밋 |
 | twin.sh 매핑 — 3분마다 지도 저장 (`nvblox ~/save_map`) | ✅ #62에 커밋 예정 · Isaac이 멈춰도 지도 유지 |

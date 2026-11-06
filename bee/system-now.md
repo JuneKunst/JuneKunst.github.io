@@ -195,10 +195,41 @@ skill_approach (도킹 정책 4개, ≤0.12 m/s) ──────────�
 
 ---
 
-## 6. 들어왔지만 아직 연결 안 된 것 (#75)
+## 6. 들어왔지만 아직 연결 안 된 것 (#75) — 같은 일은 이미 다른 경로로 돈다
 
-| 것 | 상태 |
+동료가 11-04 세우기 실기 시험(`292ec509`)에서 만든 것으로, coordinator가 팔을 직접 움직이던 **#59 이전 구조**용 코드입니다.
+develop에 들어왔지만 빌드·실행 경로가 없고, **같은 일은 지금 구조에서 이미 다른 코드가 하고 있습니다** — 지워도 잃는 기능 없음.
+
+| 연결 안 된 코드 | 하려던 일 | 연결 안 된 이유 | 같은 일을 지금 하는 곳 (실제로 도는 경로) |
+|---|---|---|---|
+| `ml/scripts/rl_policy_node.py` | 팔 잔차 정책(pick·place, PyTorch `.pt`)을 파이썬으로 50 Hz 계산 → `/rl_arm_correction/delta` | 설치·launch 없음 · 입력 `/rl_policy/context`를 내는 곳 없음 · `rl_arm_correction`이 `delta`를 구독 안 함 · `ml/policies/` 설치 안 됨 | skill 노드 → `/skill_context`(정책 경로) → **`rl_arm_correction` 플러그인이 제어 루프 안에서 C++로** (`model/skills/<skill>/<skill>.policy`) |
+| `plan/arm_ik` | 손이 아래를 보는 IK — 수치해(Levenberg–Marquardt, `arm_base_link`) | `plan/CMakeLists.txt`에 없음 (시험도) | `skills/stand_plan` `ik_down` · `ik_down_sym` — 해석해 (`base_footprint`) → `ArmIO::ik_ee` · `ik_ee_yaw` → pick · inspect · stand |
+| `plan/rl_segment` | 시뮬과 같은 RL 구간 시간표(단계 · 기준 궤적 · 사다리꼴 시간) + 1번 노드에 줄 JSON | 같음 | `ArmIO::contact_step` · `traj_step` (닿는 구간 = 시뮬과 같은 IK + 보간) · `stand_plan` `trapezoid_duration` · `move_s` · 구간 정보는 `/skill_context` |
+| `plan/stand_geometry` | 세우기 손끝 경로(MoveIt 직교 경로용 자세) · 퍽 방향 · 받침 높이 맞추기(`snap_support`) | 같음 | `skills/stand_plan` `waypoints` · `plan_ik` (+ #75 대각선 끌기 — 주석 "기하는 실기 stand_geometry"). 받침 높이: 세우기 0.07 고정(`stand_box_top_m`) · 서 있는 퍽 `standing_grasp_z` |
+| `model/arm_correction/*.onnx` · `ml/policies/*` | 위 1번이 쓰려던 정책 사본 | 참조하는 곳 없음 | `model/skills/<skill>/` (`.policy` · `.onnx` · `meta.yaml`) |
+
+남은 확인은 이 코드와 상관없이 원래 해야 하는 것 — **실기에서 정책 보정을 켜고 끝까지 돌려 보기**.
+
+---
+
+## 7. 팔 정책은 어디서 도나 — 결정 (11-06)
+
+**배포 경로는 하나: skill 노드 → `/skill_context` → `rl_arm_correction`(컨트롤러 플러그인, C++)**
+
+| 기준 | 지금 구조 (컨트롤러 안 C++) | 연결 안 된 방식 (파이썬 노드 → 토픽) |
+|---|---|---|
+| 시뮬과 같은 타이밍 | 정책이 제어 주기에 맞춰 50 Hz로 바로 계산 · 같은 주기에 명령에 들어감 = 학습 조건 | 토픽 왕복 지연 · 흔들림 — 잔차 정책은 Δ가 들어가는 시점에 민감 |
+| 어떤 정책이 켜졌나 | skill 노드가 자기 단계에 맞춰 알림 — skill 상태와 정책이 한 곳 | 구간 JSON을 따로 보내야 함 (지금 구조엔 보낼 주체 없음) |
+| 실패할 때 | 정책 없음·이상 → Δ = 0, 기준 동작만 · Δ 상한을 컨트롤러가 직접 자름 | 노드가 죽거나 늦으면 Δ 끊김·옛 값 남음 |
+| Jetson | 작은 MLP를 C++로 — PyTorch 불필요 | PyTorch 필요 (메모리 · 시작 시간) |
+| 층 나누기 | 하드웨어 = 처짐 상태 · 컨트롤러 = 앞먹임·적분·정책 Δ · skill = 언제 어떤 정책 | 정책 계산이 제어 루프 밖 층으로 하나 더 |
+
+**약점과 막는 방법**
+
+| 약점 | 막는 방법 |
 |---|---|
-| `ml/scripts/rl_policy_node.py` (파이썬 정책 노드) | 설치·launch 없음 · `rl_arm_correction`이 그 출력을 안 받음 — 지금 정책 경로는 skill 노드 → `/skill_context` |
-| `plan/arm_ik` · `rl_segment` · `stand_geometry` (+ 시험) | `plan/CMakeLists.txt`에 없어 빌드·시험 안 됨 |
-| `model/arm_correction/*.onnx` · `ml/policies/*` | 참조하는 곳 없음 — 실제 정책은 `model/skills/<skill>/` |
+| 학습 결과 `.pt` → `.policy` 변환 단계 — 틀리면 조용히 다르게 돎 | 같은 입력에 `.pt`와 `.policy`가 같은 출력인지 시험 (`plan_next`처럼) |
+| 관측을 C++(`arm_obs`)로 다시 만듦 — 시뮬 관측이 바뀌면 같이 고쳐야 함 (#75 `twist_state`가 예) | `meta.yaml`에 관측 구성·크기 · CI에서 확인 |
+| 실험은 파이썬이 빠름 (`.pt` 바로 꽂기) | "학습 → `.policy` 변환 → 같은 출력 시험"을 명령 하나로 |
+| 큰 모델은 100 Hz 루프를 늦출 수 있음 (지금 정책은 1 ms 미만) | 모델이 커지면 다시 검토 |
+| 실기에서 정책 보정 켜고 끝까지 돌린 적 없음 | 실기 확인 |
