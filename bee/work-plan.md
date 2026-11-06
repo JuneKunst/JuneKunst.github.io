@@ -1,6 +1,6 @@
 # 할 일 · 진행 — 실제 문제를 잘 풀기 위해
 
-> 2026-11-06 기준 · 작업이 끝날 때마다 이 표의 **상태**를 고칩니다. 근거: 발제 채점표(`documents/mission/README.md` 7장) · develop 코드
+> 2026-11-06 기준 · **PR 정리(11-06 저녁): #75(Isaac 재구성 · 팔 처짐 TF)를 먼저 develop에 넣고, 내 PR #72·#73·#74와 트윈(#62)은 그 기준으로 다시 만듦 — 지금은 닫아 둠(브랜치 유지)** · 작업이 끝날 때마다 이 표의 **상태**를 고칩니다. 근거: 발제 채점표(`documents/mission/README.md` 7장) · develop 코드
 > 관련: [정리 · 결정 기록](wrapup-1103.html) · [전체 지도](system-map.html) · [로봇 스펙 · 성능표](robot-spec.html)
 
 ---
@@ -26,7 +26,7 @@
 
 | # | 일 | 왜 | 어디 | 담당 | 상태 |
 |---|---|---|---|---|---|
-| 1 | **물체 기억** — 퍽은 tag로 기억, 집기 직전에 트랙 다시 찾기 | 인지가 안 보이는 퍽을 2초 뒤 지움(`long_memory: false`) → `pick <옛 id>`가 "not tracked"로 거부 | `mission_manager` `grab` · `locate` · `puck_for` | 나 | ✅ **PR #72** (생성 · 시험 28개 통과) |
+| 1 | **물체 기억** — 퍽은 tag로 기억, 집기 직전에 트랙 다시 찾기 | 인지가 안 보이는 퍽을 2초 뒤 지움(`long_memory: false`) → `pick <옛 id>`가 "not tracked"로 거부 | `mission_manager` `grab` · `locate` · `puck_for` | 나 | ✅ 코드 완료 (PR #72 → #75 뒤 다시) |
 | 2 | 위치 추정 정확도 확인 | 도킹 1 cm · 칸 10 mm가 전부 `map` 좌표 기준 · 트윈 11-04: 2~4 m · **11-06 (develop 반영 · RTX 렌더): 0.2~0.5 m · 방향 +7~11° 고정 치우침** | ① cuVSLAM 지도 저장·불러오기 ② 상자 태그로 경기장 정렬 ③ 회전 속도 제한 · 카메라 30 fps · (IMU 섞기) | 나 | 🔍 **원인 찾음**: ⓐ 제자리 빠른 회전(50~87°/s, 15 fps)에서 cuVSLAM 방향이 2~4°씩 미끄러짐 ⓑ 그래서 저장 지도가 **4.25° 돌아** 만들어짐 ⓒ 미션 때 cuVSLAM은 저장 지도를 안 불러오고 0°에서 새로 시작 → 지도와 4° 어긋나 벽이 겹치고 경로 확인 실패(미션 첫 이동에서 멈춤) |
 | 3 | 신호 · 바코드 시작 단계 실기 시험 | 34점 · 틀리면 안전 정지 | signal_decoder 두 사이클 확인 · STOP 기준 (조명·거리 바꿔서) | 인지 + 나(흐름) | ⏳ |
 | 4 | 중력 보정 → 하드웨어 층 (명령 · 상태 양쪽) | 명령만 고치면 TF·자세 확인·정책 입력이 d만큼 어긋남 | `BeebotSystemHardware` read · write | 송정혁과 협의 | 💬 공유 필요 |
@@ -58,9 +58,9 @@
 | #62 트윈을 develop에 맞춤 (충돌 · 새 stow · 손목 카메라 문 닫기 · 자동 Play · `YOLO_VENV`) | 🔧 rebase · 수정 · pa27 빌드 · 매핑 실행 확인 (자동 Play · 손목 카메라 문 OK) |
 | explorer — 탐사 끝 뒤 멈춤 (새 목표 안 보냄 · EXPLORE 다시 들어오면 새로) | ✅ #62에 커밋 |
 | twin.sh 매핑 — 3분마다 지도 저장 (`nvblox ~/save_map`) | ✅ #62에 커밋 예정 · Isaac이 멈춰도 지도 유지 |
-| **nvblox TSDF 감쇠 끔** — 지나온 곳이 몇 초 뒤 지도에서 사라지던 것 (실기도 같음) | ✅ **PR #74** · 트윈에서 지도 유지 확인 |
+| **nvblox TSDF 감쇠 끔** — 지나온 곳이 몇 초 뒤 지도에서 사라지던 것 (실기도 같음) | ✅ 트윈에서 지도 유지 확인 (PR #74 → #75 뒤 다시) |
 | ⚠️ Isaac 메모리 누수 — 분당 0.7~1.1 GB · 약 25분이면 30 GB 바닥 (12:44 OOM) | ✅ **원인 찾음**: Isaac 6.1이 ROS Lyrical을 '실험'으로 붙여 **camera_info 발행 노드(ROS2CameraInfoHelper)**가 샘 (렌더 방식·브리지 아님 — 하나씩 끄며 9번 측정). 고침: 그 노드 끄기 (camera_adapter가 이미 camera_info를 따로 냄) 또는 Isaac을 내장 Jazzy로 (둘 다 누수 0 확인) |
 | ⚠️ 같은 ROS 도메인(0)에 다른 기기 노드(`/xstingbase` 등)가 있음 — 트윈은 도메인 31로 | 메모 |
 | 트윈 **자동 채점** — 정답(`problem.json`) + Isaac 실제 위치(`truth.json`) vs 로봇 기록 → 원점수 100 · 통합 25 | 🔧 `score_run.py` 자체 확인 통과 · 미션 실행으로 확인 남음 |
-| 문서 정리 — `learning/skills.yaml` `runs_in` · bee 페이지 속도 경로(`/cmd_vel_corrected` → `/cmd_vel_nav`) · 빈 `model/nav_tuner/` | ✅ skills.yaml **PR #73** · `nav_tuner`는 동료가 #71로 삭제 · bee 페이지 경로는 아래에서 |
+| 문서 정리 — `learning/skills.yaml` `runs_in` · bee 페이지 속도 경로(`/cmd_vel_corrected` → `/cmd_vel_nav`) · 빈 `model/nav_tuner/` | ✅ skills.yaml (PR #73 → #75 뒤 다시) · `nav_tuner`는 동료가 #71로 삭제 · bee 페이지 경로는 아래에서 |
 | 새 stow(11-05)로 팔 정책 재평가 (1024판) | ✅ pregrasp 100 % · load_slot 99.1 % · unload_slot 97.6 % — 떨어짐 없음 ([성능표](robot-spec.html)) |
