@@ -21,7 +21,7 @@
 | 16 | **물체 기억은 mission_manager** — 퍽은 tag와 조사한 자리로 기억, 트랙 id는 집기 직전에 다시 찾음 (PR #72) | 인지는 "본 것만" (11-04 결정) · coordinator·skill은 실행부 |
 | 17 | 중력 보정은 **하드웨어 인터페이스에서 명령 · 상태 양쪽**이 맞음 (제안 — 송정혁과 협의) | 명령만 고치면 TF · 자세 확인 · 정책 입력이 어긋남 |
 | 18 | 보정은 **오차가 생기는 층에 하나씩** — 한곳에 모으지 않음 (보는 곳 = 디버그 토픽은 모음) | 주기·책임이 다름 · 끄고 켜서 원인 나누기 |
-| 19 | **팔 정책 배포 경로는 하나** — skill 노드 → `/skill_context` → `rl_arm_correction`(컨트롤러 플러그인 안 C++). #75로 함께 들어온 파이썬 정책 노드(`rl_policy_node.py`) · `plan/arm_ik` · `rl_segment` · `stand_geometry` · 정책 사본은 #59 이전 구조용이라 연결 안 됨 — 같은 일은 skills 쪽이 이미 함 → 정리 대상 | 시뮬과 같은 타이밍(제어 주기 안 계산) · 실패하면 Δ = 0 · Jetson에 PyTorch 불필요. 약점(변환 · C++ 관측)은 같은 출력 시험 · `meta.yaml` 관측 확인으로 막음 — [지금 구조 6·7절](system-now.html) |
+| 19 | **팔 정책 배포 경로는 하나** — skill 노드 → `/skill_context` → `rl_arm_correction`(컨트롤러 플러그인 안 C++). #75로 함께 들어온 파이썬 정책 노드(`rl_policy_node.py`) · `plan/arm_ik` · `rl_segment` · `stand_geometry` · 정책 사본은 #59 이전 구조용이라 연결 안 됨 — 같은 일은 skills 쪽이 이미 함 → 정리 대상 | 시뮬과 같은 타이밍(제어 주기 안 계산) · 실패하면 Δ = 0 · Jetson에 PyTorch 불필요. 약점(변환 · C++ 관측)은 같은 출력 시험 · `meta.yaml` 관측 확인으로 막음 — [두 방식 비교](policy-path.html) · 정리 PR #77 |
 | 20 | 중력 처짐은 **상태 = 하드웨어(`twist_state`) · 명령 = 컨트롤러 앞먹임**으로 나눔 (#75, 둘 다 기본 켬) | TF · MoveIt · 손 카메라 위치가 실제 팔과 맞음 → 카메라 hand-eye 보정은 이 뒤 |
 
 ### 지금 주행 명령 경로

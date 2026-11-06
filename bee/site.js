@@ -17,6 +17,7 @@ const MENU = [
     { href: 'skills.html', title: '학습 지도 (구조 → 미션 → 동작)', desc: '단계를 따라가며 보는 인터랙티브 지도', updated: '11-02' },
   ]},
   { group: '구조', items: [
+    { href: 'policy-path.html', title: '팔 정책은 어디서 도나 — 두 방식 비교', desc: '컨트롤러 안 C++ vs 파이썬 노드 · 비교표 · 결정(A) · 약점과 막는 법', updated: '11-06' },
     { href: 'skill-nodes.html', title: 'skill 노드 구성', desc: 'skill마다 노드 하나 · 액션 /skills/<skill> · 정책은 skill이 관리', updated: '11-04' },
     { href: 'flow.html', title: '노드 흐름 (인터랙티브)', desc: '전체 노드 연결 — 연결을 누르면 메시지·역할 설명', updated: '11-02' },
     { href: 'messages.html', title: '메시지 사전', desc: '연결마다 목적 · 나눈 이유 · 메시지 예시', updated: '11-02' },
