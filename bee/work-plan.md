@@ -40,6 +40,7 @@
 | 12 | 문서: `API.md` 51 · `09-nodes.md` 12 · `stand_test` 설명 — "퍽은 안 보여도 기억" (#63 뒤로 인지는 본 것만) | 문서 | 고치기 |
 | 13 | 문서·주석: `05-arm.md` · `stand_table_export.py` 사용법이 옛 `isaac/lab` 경로 · `rl_arm_correction.hpp`의 `isaac/sim` | 문서 | 고치기 (출처 설명은 그대로) |
 | 14 | 중력 토크 식 사본 3곳 · 강성 값 2곳 (`urdf.xacro` · `controllers.yaml`) | 유지보수 | 메모 |
+| 15 | `ml/CMakeLists.txt` 겹친 `find_package` 6줄 (#75 병합 때) | 정리 | **PR #77에 추가** |
 
 ---
 
