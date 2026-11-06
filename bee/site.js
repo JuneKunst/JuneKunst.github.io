@@ -4,7 +4,8 @@
 //   첫 화면(index.html): <div id="site-hub"></div> → MENU 묶음별 카드
 const MENU = [
   { group: '현황', items: [
-    { href: 'wrapup-1103.html', title: '정리 · 결정 기록', desc: '정한 것 · 만든 것 · 학습 결과 · 노드 · 남은 일', updated: '11-04' },
+    { href: 'work-plan.html', title: '할 일 · 진행', desc: '실제 문제를 잘 풀기 위한 할 일 — 점수 구조 · P0~P2 · 진행 상태', updated: '11-06' },
+    { href: 'wrapup-1103.html', title: '정리 · 결정 기록', desc: '정한 것 · 만든 것 · 학습 결과 · 노드 · 남은 일', updated: '11-06' },
     { href: 'system-map.html', title: '전체 지도', desc: '학습부터 로봇까지 한 장 — 완료·진행·없음 색 표시', updated: '11-04' },
     { href: 'robot-spec.html', title: '로봇 스펙 · 성능표', desc: 'skill 성능 · 하드웨어 · 주기·지연 · QoS · 실기에서 조정할 값', updated: '11-04' },
   ]},

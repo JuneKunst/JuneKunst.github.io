@@ -1,7 +1,31 @@
 # 정리 · 결정 기록 — skill 학습부터 로봇 배포까지
 
-> 2026-11-03 20:50 (pa27 시각) 기준. 오늘 이야기하고 정하고 만든 것을 한 장에 모았습니다.
+> 2026-11-03 20:50 (pa27 시각) 기준 · 11-04 · 11-06 추가는 바로 아래. 오늘 이야기하고 정하고 만든 것을 한 장에 모았습니다.
 > 자세한 내용: [실기 디버깅 가이드](debug-guide.html) · [전체 지도](system-map.html) · [skill별 학습 조건](skill-training.html) · [학습용 skill 구성](skill-learning.html)
+
+---
+
+## 11-06 추가 — 동료 develop 변경 반영
+
+### 동료가 develop에 넣은 것 (#59 이후)
+| PR · 커밋 | 내용 | 내 구조와 |
+|---|---|---|
+| #63 인지 | YOLO v4 · **물체 기억을 인지에서 뺌** (`long_memory: false` — 안 보이면 2초 뒤 지움) | 기억은 **mission_manager(나)가** → PR #72 |
+| #64 Isaac | 관절 비틀림 시뮬 · 렌더 RTX Real-Time · 자동 Play(`BEE_AUTOPLAY`) 삭제 | #62 다시 맞춤 필요 |
+| #65 주행 | Nav2 컨트롤러 = **`RlNavController`** (ONNX, 속도를 직접 냄 · 끄면 DWB) · **`rl_nav_correction` · `rl_nav_tuner` 삭제** · twist_mux 입력 `/cmd_vel_nav` | 충돌 없음 — 도킹 정책은 #59에서 `skill_approach`로 옮겨 둠 |
+| 직접 커밋 | stow 자세 변경 `[0, −1.9024, 1.344, 0.9023, 0]` · 매핑 중 자동 스캔 자세 끔 · `rl_arm_correction` 중력 앞먹임(기본 끔) | 모든 설정 일관되게 바뀜 |
+
+### 정한 것
+| # | 결정 | 이유 |
+|---|---|---|
+| 16 | **물체 기억은 mission_manager** — 퍽은 tag와 조사한 자리로 기억, 트랙 id는 집기 직전에 다시 찾음 (PR #72) | 인지는 "본 것만" (11-04 결정) · coordinator·skill은 실행부 |
+| 17 | 중력 보정은 **하드웨어 인터페이스에서 명령 · 상태 양쪽**이 맞음 (제안 — 송정혁과 협의) | 명령만 고치면 TF · 자세 확인 · 정책 입력이 어긋남 |
+| 18 | 보정은 **오차가 생기는 층에 하나씩** — 한곳에 모으지 않음 (보는 곳 = 디버그 토픽은 모음) | 주기·책임이 다름 · 끄고 켜서 원인 나누기 |
+
+### 지금 주행 명령 경로
+`Nav2(NavFn A*) → RlNavController` · `skill_approach(도킹 정책 4개)` → `/cmd_vel_nav` → twist_mux → velocity_smoother → collision_monitor → `/cmd_vel`
+
+할 일 목록: [할 일 · 진행](work-plan.html)
 
 ---
 
