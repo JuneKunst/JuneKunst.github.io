@@ -74,6 +74,8 @@ flowchart TB
 
 ## 3. 로봇에서 한 skill이 움직이는 길 (11-04 skill 노드 구조)
 
+> **11-06 최신 구조(노드 · 플러그인 구별, #65 · #75 반영): [지금 구조](system-now.html)** — 아래는 11-04 기준
+
 > 자세히: [skill 노드 구성](skill-nodes.html) — skill마다 노드 하나 (`/skills/<skill>` 액션) · 정책은 skill 노드가 갖고 관리 (`model/skills/<skill>/`)
 
 ```mermaid
@@ -100,13 +102,13 @@ flowchart LR
 | 칸 | 상태 | 남은 것 |
 |---|---|---|
 | MoveIt · JTC · Nav2 · 하드웨어 | ✅ 있음 | — |
-| **skill 노드 9개** (`skills` 패키지) | 🔵 PR #59 · 9개 기동 · 정책 8개 읽기 · approach 보정 확인 | 전체 bringup · 실기 |
-| coordinator (순서 · 장부 · 모드 취소) | 🔵 PR #59 · skill 액션 → 장부 테스트 | 실기 |
-| `hand_relative` (손 카메라 상대값) | 🔵 PR #54 · CI 통과 | 실기 |
+| **skill 노드 9개** (`skills` 패키지) | ✅ develop (#59) · #75에서 세우기·집기 실기 수정 | 실기 |
+| coordinator (순서 · 장부 · 모드 취소) | ✅ develop (#59) | 실기 |
+| `hand_relative` (손 카메라 상대값) | ✅ develop (#54) | 실기 |
 | 닿는 구간 = 시뮬과 같은 IK 궤적 | 🔵 skill 노드 (pick · place · load · unload) | 실기 · 세우기는 기준 동작만 |
-| `rl_arm_correction` (정책 계산 · 처짐 적분 · 발열 방지) | 🔵 정책은 skill 노드가 경로로 알려 줌 · 팀원 처짐 적분 + 정책 Δ | 실기 |
+| `rl_arm_correction` (**플러그인** — 정책 계산 · 처짐 적분 · 앞먹임 · 발열 방지) | ✅ develop · 11-06 중력 앞먹임 기본 켬 · 상태는 하드웨어 플러그인이 실제 각으로(`twist_state`) | 실기 |
 | 주행 정책 (dock_box · park_home · drive_arc · drive_straight) | 🔵 `skill_approach`가 직접 계산 | 실기 |
-| mission_manager · mission_solver | 🟡 PR #49 (CI 통과) | 리뷰 · 병합 |
+| mission_manager · mission_solver | ✅ develop (#49) | 물체 기억 (tag) — #75 뒤 다시 올림 |
 
 ---
 
