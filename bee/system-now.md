@@ -21,7 +21,7 @@
 ## 1. 전체 흐름
 
 ```mermaid
-flowchart LR
+flowchart TB
   subgraph SENSE["인지 (perception)"]
     CAM["realsense2_camera_node ×2<br/>pole_front_cam · gripper_cam"]:::node
     PN["perception_node<br/>YOLO · 추적 · AprilTag · 바코드"]:::node
