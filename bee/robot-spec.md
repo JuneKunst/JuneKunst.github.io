@@ -16,13 +16,13 @@
 | 주행 | `park_home` (동료) | 81.1 % | **96.5 %** | — | ✅ 정책 (출발 구역 보정) | 출발 구역 5 cm · 10° · 3 s 정지 |
 | 주행 | `drive_arc` (동료) | 91.8 % | **100 %** | — | ✅ 정책 | 곡선 |
 | 주행 | `drive_turn` | 100 % | — | — | 기준선 | |
-| 팔 | `load_slot` | 94.8 % | **99.0 %** | 놓침 0.49 % | ✅ 정책 (재학습본) | 1차 98.3 % · 놓침 1.0 % |
-| 팔 | `unload_slot` | 93.7 % | **98.1 %** | 놓침 0.1 % | ✅ 정책 | |
+| 팔 | `load_slot` | 94.8 % | **99.0 %** | 놓침 0.49 % | ✅ 정책 (재학습본) | 1차 98.3 % · 놓침 1.0 % · **11-06 새 stow 재평가 95.4 → 99.1 %** |
+| 팔 | `unload_slot` | 93.7 % | **98.1 %** | 놓침 0.1 % | ✅ 정책 | **11-06 새 stow 재평가 92.1 → 97.6 %** (판 사이 차이 수준) |
 | 팔 | `place_cell` (팀원) | 96.3 % | **99.0 %** | | ✅ 정책 | |
 | 팔 | `pick_standing_puck` (팀원) | 99.1 % | **100 %** | 놓침 0 | ✅ 정책 | 예전 `pick_upright` |
 | 팔 | `regrasp_after_stand` (동료, 세우기+다시 쥐기) | 74.6 % | **78.2 %** ⚠️ | 놓침 2.6 % → 1.6 % | 합격 기준 못 넘음 · 로봇 입력 모양 만드는 중 | 예전 `regrasp_stood` · 중심 오차 중앙값 21 mm |
 | 팔 | `stand_lying_puck` (팀원) | 평가 필요 | | | 위와 같은 정책 | 예전 `stand_up` |
-| 팔 | `pregrasp` | **99.5 %** | 99.6 % | — | 기준선 (MoveIt) | 손 못 가는 목표 1개 뺌 |
+| 팔 | `pregrasp` | **99.5 %** | 99.6 % | — | 기준선 (MoveIt) | 손 못 가는 목표 1개 뺌 · **11-06 새 stow 재평가 100 → 100 %** |
 | 팔 | `move_pose` · `camera_clear_view` · `camera_look_down` | 100 % | — | — | 기준선 | |
 | 플랜 | `plan_next` | 계산기 38.11점 | 37.55점 (가상 1000판) | | 파일 있음 · `planner: rule` 기본 | 마지막 단계 |
 
@@ -140,7 +140,7 @@ RL/TL = reliable + transient_local (늦게 붙어도 마지막 값) · 숫자만
 | `/joint_states` | ros2_control 기본 | 10 |
 | `/imu` | ros2_control 기본 | SDQ 1 |
 | `/odom` | diff_drive 기본 | 10 |
-| `/cmd_vel_nav` (Nav2 · skill_approach) → `/cmd_vel_corrected` | 10 → reliable 1 | rl_nav_correction 10 (속도 제한) → twist_mux |
+| `/cmd_vel_nav` (Nav2 `RlNavController` · skill_approach) | 10 | twist_mux 자동 입력 (11-05 #65: `rl_nav_correction` 삭제) |
 | `/tracked_objects` | 5 | reliable 5 |
 | `/perception/<cam>/detections` | 5 | 5 |
 | `/skill_context` (팔 skill 노드 → rl_arm_correction, 정책 경로 포함) | reliable 10 | reliable 10 |
@@ -156,7 +156,7 @@ RL/TL = reliable + transient_local (늦게 붙어도 마지막 값) · 숫자만
 | `/map` (nvblox) | RL/TL 1 | RL/TL 1 |
 | `/rl_arm_correction/debug` | 시스템 기본 | (bag) |
 
-**twist_mux 우선순위**: 자동 `/cmd_vel_corrected` 10 · 수동 100 · 비상정지 잠금 255 · 끊김 0.5 s (`twist_mux.yaml:9-21`)
+**twist_mux 우선순위**: 자동 `/cmd_vel_nav` 10 · 수동 100 · 비상정지 잠금 255 · 끊김 0.5 s (`twist_mux.yaml:9-21`)
 
 ---
 
@@ -227,6 +227,6 @@ RL/TL = reliable + transient_local (늦게 붙어도 마지막 값) · 숫자만
 | `ros2_ws/model/skills/<skill>/meta.yaml` | 정책 쓸지(`use`) · 시뮬 성공률 · 주행 도착 판정값 |
 | `ros2_ws/src/perception/config/perception.yaml` | YOLO · 추적 · hand_relative · 신호등 · body_filter |
 | `ros2_ws/src/control/config/control.yaml` | 접촉 감시 · 수동 조작 |
-| `ros2_ws/src/ml/config/ml.yaml` | grasp_scorer · rl_nav_tuner · rl_nav_correction |
+| `ros2_ws/src/ml/config/ml.yaml` | grasp_scorer · rl_nav_controller (규격 기록 — 실제 값은 `nav2_params.yaml` FollowPath) |
 | `ros2_ws/model/` | 학습 정책 파일 (`.policy`) · YOLO |
 | `isaac/lab/bee_common.py` | 시뮬 지연 · 팀 관절 한계 |

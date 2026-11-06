@@ -52,7 +52,7 @@ python3 snap_on_fail.py &        # 실패 → 3 s 더 담고 저장 (10 s 안에
 ```
 - 저장 위치: `~/bee_bags/blackbox_<시각>/` (저장할 때마다 `.mcap` 하나) · `~/bee_bags/snapshots.tsv` = `시각 · 이유`
 - 자동 저장 이유: `/task/status` FAILED (`grasp_failed_all` · `nav_failed` …) · `/arm_safety_event` (과전류 접촉) · `/state/emergency`
-- 담는 토픽: 관절·TF·주행 명령·odom · 팔/그리퍼 컨트롤러 · `rl_arm_correction/debug` · `rl_nav_correction/*` · `skill_context` · `hand_relative*` · 모터 상태 · 미션·coordinator·task · skill 노드 진행(`/skills/*` 피드백·결과는 숨은 토픽 — `--include-hidden-topics`로 담김) · 검출 결과 · 진단 · rosout · Nav2 경로 · **압축 영상만** (원본 영상·점구름은 뺌 — 필요하면 `full`에 `--topics`로)
+- 담는 토픽: 관절·TF·주행 명령·odom · 팔/그리퍼 컨트롤러 · `rl_arm_correction/debug` · `FollowPath` 디버그(`RlNavController`) · `skill_context` · `hand_relative*` · 모터 상태 · 미션·coordinator·task · skill 노드 진행(`/skills/*` 피드백·결과는 숨은 토픽 — `--include-hidden-topics`로 담김) · 검출 결과 · 진단 · rosout · Nav2 경로 · **압축 영상만** (원본 영상·점구름은 뺌 — 필요하면 `full`에 `--topics`로)
 - 노트북·pa27로 가져오기: `rsync -av robot:~/bee_bags/ ~/bee_bags/`
 
 pa27에서 시험함 (11-03): 가짜 `/joint_states` 50 Hz + `/state/emergency` → `snapshots.tsv`에 `emergency` 한 줄, 새 `.mcap` 생김.
@@ -82,7 +82,7 @@ Lichtblick은 `.mcap` 파일을 끌어다 놓으면 됨. 화면 구성(레이아
 |---|---|---|
 | **팔 보정** | `debug.ref[i]` · `debug.q[i]` · `debug.corr[i]` · `debug.delta[i]` · `/joint_states.effort[i]` | 처짐이 얼마나 · 보정이 어디서 쌓였나 · 정책이 무엇을 했나 · 전류 |
 | **닿는 구간** | `debug.policy_on` · `debug.cam_ok` · `debug.cam_age` · `/hand_relative.rel.*` · `/skill_context.phase` | 정책이 실제로 돌았나 · 손 카메라 값이 늦거나 빠졌나 |
-| **주행·도킹** | `/cmd_vel_nav` (skill_approach가 기준 + 보정을 더해 냄) · `/cmd_vel_corrected` · odom | 도킹 보정 · 미끄러짐 |
+| **주행·도킹** | `/cmd_vel_nav` (Nav2 `RlNavController` · skill_approach가 기준 + 보정을 더해 냄) · `/cmd_vel_mux` · odom | 도킹 보정 · 미끄러짐 |
 | **skill 진행** | `/diagnostics_agg` skill 묶음 (`skill_<이름>: 상태` — 단계 · 마지막 결과) · `/task/status` reason | 어느 skill · 어느 단계에서 실패했나 |
 
 ### `rl_arm_correction/debug` (`ml/ArmCorrectionDebug`, 20 Hz)
@@ -108,7 +108,7 @@ Lichtblick은 `.mcap` 파일을 끌어다 놓으면 됨. 화면 구성(레이아
 | `sag_blocked` 켜짐 | 어느 관절 · 그때 자세 | 그 자세가 몸체·적재함에 닿음 → 자세 · 경로 |
 | 집기·놓기 실패 (`grasp_failed`) | `policy_on` · `cam_ok` · `delta` · `/hand_relative.rel` | 손 카메라 늦음 → `max_cam_age_s` · 검출 / Δ가 엉뚱 → 시뮬과 다름 (아래 4) |
 | 과전류 접촉 (`arm_safety`) | `effort` · `delta` · 그 순간 영상 | `effort_threshold` · 기준 궤적 높이 |
-| 도킹이 비뚤 | `cmd_vel_nav` vs `cmd_vel_corrected` · odom | approach 기준 제어 · `dock_box` 무작위 범위 |
+| 도킹이 비뚤 | `cmd_vel_nav` vs `cmd_vel` (충돌 감시 뒤) · odom | approach 기준 제어 · `dock_box` 무작위 범위 |
 
 ---
 

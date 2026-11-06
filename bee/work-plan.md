@@ -27,7 +27,7 @@
 | # | 일 | 왜 | 어디 | 담당 | 상태 |
 |---|---|---|---|---|---|
 | 1 | **물체 기억** — 퍽은 tag로 기억, 집기 직전에 트랙 다시 찾기 | 인지가 안 보이는 퍽을 2초 뒤 지움(`long_memory: false`) → `pick <옛 id>`가 "not tracked"로 거부 | `mission_manager` `grab` · `locate` · `puck_for` | 나 | ✅ **PR #72** (생성 · 시험 28개 통과) |
-| 2 | 위치 추정 정확도 확인 | 도킹 1 cm · 칸 10 mm가 전부 `map` 좌표 기준 · 트윈에서 cuVSLAM 2~4 m 어긋남 | 실기 출발 자세 · 상자 태그로 확인 → 어긋나면 "위치 불일치" 실패 판정 | 나 | ⏳ |
+| 2 | 위치 추정 정확도 확인 | 도킹 1 cm · 칸 10 mm가 전부 `map` 좌표 기준 · 트윈 11-04: 2~4 m · **11-06 (develop 반영 · RTX 렌더): 0.2~0.5 m · 방향 +7~11° 고정 치우침** | 원인(시작 방향 · 카메라 외부값 · 바퀴) 찾기 → 실기 출발 자세 · 상자 태그로 확인 → 어긋나면 "위치 불일치" 실패 판정 | 나 | 🔍 트윈에서 원인 조사 중 |
 | 3 | 신호 · 바코드 시작 단계 실기 시험 | 34점 · 틀리면 안전 정지 | signal_decoder 두 사이클 확인 · STOP 기준 (조명·거리 바꿔서) | 인지 + 나(흐름) | ⏳ |
 | 4 | 중력 보정 → 하드웨어 층 (명령 · 상태 양쪽) | 명령만 고치면 TF·자세 확인·정책 입력이 d만큼 어긋남 | `BeebotSystemHardware` read · write | 송정혁과 협의 | 💬 공유 필요 |
 | 5 | `RlNavController` 후진 확인 | 정책이 −0.052 m/s 후진 가능 · 뒤를 보는 센서 없음 (DWB는 후진 금지) | `nav2_params` `v_min_ratio` | visualkhh에게 공유 | 💬 공유 필요 |
@@ -55,6 +55,7 @@
 
 | 일 | 상태 |
 |---|---|
-| #62 트윈을 develop에 맞춤 (충돌 · 새 stow · 손목 카메라 문 닫기 · 자동 Play · `YOLO_VENV`) | ⏳ 다음 |
-| 트윈 **자동 채점** — 정답(`problem.json`) vs 결과 → 100점 기준 점수 · 걸린 시간 | ⏳ |
-| 문서 정리 — `learning/skills.yaml` `runs_in` · bee 페이지 속도 경로(`/cmd_vel_corrected` → `/cmd_vel_nav`) · 빈 `model/nav_tuner/` | ⏳ |
+| #62 트윈을 develop에 맞춤 (충돌 · 새 stow · 손목 카메라 문 닫기 · 자동 Play · `YOLO_VENV`) | 🔧 rebase · 수정 · pa27 빌드 완료 → 지도 만들기 실행 중 |
+| 트윈 **자동 채점** — 정답(`problem.json`) + Isaac 실제 위치(`truth.json`) vs 로봇 기록 → 원점수 100 · 통합 25 | 🔧 `score_run.py` 자체 확인 통과 · 미션 실행으로 확인 남음 |
+| 문서 정리 — `learning/skills.yaml` `runs_in` · bee 페이지 속도 경로(`/cmd_vel_corrected` → `/cmd_vel_nav`) · 빈 `model/nav_tuner/` | ✅ skills.yaml **PR #73** · `nav_tuner`는 동료가 #71로 삭제 · bee 페이지 경로는 아래에서 |
+| 새 stow(11-05)로 팔 정책 재평가 (1024판) | ✅ pregrasp 100 % · load_slot 99.1 % · unload_slot 97.6 % — 떨어짐 없음 ([성능표](robot-spec.html)) |

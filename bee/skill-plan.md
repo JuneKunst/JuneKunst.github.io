@@ -14,7 +14,7 @@ mission_manager는 "무엇을, 어디서, 어떤 순서로" 할지 정해서 ski
 |---|---|---|
 | **mission_manager** | 무엇을 · 어디서 · 어떤 순서로? | <ul><li>미션 단계를 진행합니다: GO_OBSERVE → BARCODE → READ → SURVEY → BUILD → VERIFY → RETURN.</li><li>판단은 순수 함수 `mission_solver`가 합니다(신호 판정, 바코드, 배정, 할당, 주사위 칸, 칸 판정).</li><li>skill이 실패하면 다시 할지, 그 퍽만 건너뛸지, 미션을 멈출지 정합니다.</li><li>단계마다 기록을 `~/.ros/mission/<시각>/`에 남깁니다.</li></ul> |
 | **coordinator** | 이 skill 하나를 어떻게 움직이나? | <ul><li>모터로 가는 **유일한 길**입니다. 비상정지와 수동 모드도 여기서 막습니다.</li><li>실행 직전에 `/tracked_objects`를 다시 읽어 목표를 정합니다. 계획을 세울 때의 값은 쓰지 않습니다.</li><li>단계 순서는 바꾸지 않습니다. 예외는 `load`·`unload` 안의 carry 경유 하나입니다.</li><li>적재함 장부를 혼자 씁니다.</li><li>실패하면 이유를 붙여 바로 끝냅니다.</li></ul> |
-| **실행 계층** | 실제로 움직임 | <ul><li>주행: Nav2(NavFn + DWB). 상자 앞 마지막 도킹은 `approach`가 시뮬과 같은 돌기-직진-돌기 제어로 하고, `rl_nav_correction`이 학습 보정을 더합니다.</li><li>팔: 빈 공간 이동은 MoveIt move_group → ExecuteTrajectory → `arm_controller`(JTC), 퍽에 닿는 구간은 시뮬과 같은 IK 궤적 → JTC. 둘 다 → `rl_arm_correction`(학습 보정 Δ) → 하드웨어.</li><li>그리퍼: `gripper_controller`. 쥐는 힘은 goal의 `effort`로 보내고, 펌웨어 Goal Current가 됩니다.</li></ul> |
+| **실행 계층** | 실제로 움직임 | <ul><li>주행: Nav2(NavFn A* + RlNavController). 상자 앞 마지막 도킹은 `approach`가 시뮬과 같은 돌기-직진-돌기 제어로 하고, `skill_approach`가 학습 보정을 더합니다. 경로 따라가기 속도는 Nav2 컨트롤러 `RlNavController`(동료 RL, 끄면 DWB).</li><li>팔: 빈 공간 이동은 MoveIt move_group → ExecuteTrajectory → `arm_controller`(JTC), 퍽에 닿는 구간은 시뮬과 같은 IK 궤적 → JTC. 둘 다 → `rl_arm_correction`(학습 보정 Δ) → 하드웨어.</li><li>그리퍼: `gripper_controller`. 쥐는 힘은 goal의 `effort`로 보내고, 펌웨어 Goal Current가 됩니다.</li></ul> |
 
 ```mermaid
 flowchart LR

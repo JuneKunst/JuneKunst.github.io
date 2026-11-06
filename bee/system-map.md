@@ -90,7 +90,7 @@ flowchart LR
   g3_AS -->|"/hand_relative/target"| g3_HR["hand_relative (#54)"]:::code
   g3_CAM["손 카메라 검출"]:::ok --> g3_HR -->|"/hand_relative"| g3_RC
   g3_BS -->|"먼 길"| g3_NAV["Nav2"]:::ok
-  g3_BS -->|"짧은 정밀 이동<br/>기준 제어 + 🧠 정책"| g3_NC["rl_nav_correction<br/>속도 제한"]:::ok
+  g3_BS -->|"짧은 정밀 이동<br/>기준 제어 + 🧠 정책"| g3_NC["twist_mux → smoother<br/>→ 충돌 감시 (/cmd_vel_nav)"]:::ok
   g3_NAV --> g3_NC --> g3_BASE["바퀴"]:::ok
   classDef ok fill:#123d2a,stroke:#3fbf7f,color:#e8eef8
   classDef code fill:#1d3a5c,stroke:#67b7e8,color:#e8eef8
@@ -125,7 +125,7 @@ flowchart TB
   gx_CO -->|"🎬 /skills/unload"| gx_SU["skill_unload<br/>🧠 unload_slot"]:::model
   gx_CO -->|"🎬 /skills/place"| gx_SP["skill_place<br/>🧠 place_cell"]:::model
   subgraph gx_BASE_PATH["주행 (①②)"]
-    gx_NAV --> gx_NC["rl_nav_correction<br/>속도 제한"]
+    gx_NAV --> gx_NC["twist_mux<br/>(/cmd_vel_nav)"]
     gx_SA -->|"/cmd_vel_nav"| gx_NC
     gx_NC --> gx_OC["OpenCR → 바퀴 모터"]
   end
@@ -268,7 +268,7 @@ flowchart TB
 | **정책 폴더** `model/skills/<skill>/` | `.policy` · `.onnx` · `meta.yaml` (use · 시뮬 성공률 · 출처 · 판정값) | 폴더 검사 테스트 · C++ = TorchScript 검산 |
 | **`/skill_context`** | 팔 skill 노드 → rl_arm_correction: skill · 단계 · **정책 경로 · 입력 모양** | 빌드 |
 | **`rl_arm_correction`** | 받은 경로의 정책을 루프 밖에서 읽어 두고 100 Hz 루프에서 계산 · 처짐 적분(팀원) · 발열 방지 · `~/debug` | 74개 테스트 (11-03) |
-| **`rl_nav_correction`** | 속도 제한만 (주행 정책은 skill_approach로) | 테스트 |
+| ~~`rl_nav_correction`~~ | 11-05 #65로 삭제 — Nav2 컨트롤러가 `RlNavController`(동료 RL), 도킹 정책은 skill_approach | — |
 | **`plan_next`** | C++ 플래너 · `planner: plan_next`면 BUILD에서 다음 퍽·복귀 | Python과 40개 상태 같은 행동 |
 | **`hand_relative`** | 손 카메라 → 퍽 − 손 · 칸 − 퍽 · 면 방향 · 진단 | CI 통과 |
 

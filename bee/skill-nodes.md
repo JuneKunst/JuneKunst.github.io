@@ -11,7 +11,7 @@
 |---|---|---|
 | skill 실행 | coordinator 한 노드가 전부 (1645줄) | **skill 노드 9개** — skill마다 액션 서버 `/skills/<skill>` |
 | coordinator | 계획 + 팔·주행 동작 + 장부 + 시작·스캔 자세 | 계획 검증 · 단계 순서 · 물체 → 좌표 · 적재함 장부 · 모드 취소만 (686줄) |
-| 학습 정책 | `rl_arm_correction`이 4개를 미리 들고 이름으로 고름 · 주행은 `rl_nav_correction` 도킹 모드 | **skill 노드가 자기 정책 폴더를 갖고 관리** — 팔은 경로를 컨트롤러에 알려 줌 · 주행은 `skill_approach`가 직접 계산 |
+| 학습 정책 | `rl_arm_correction`이 4개를 미리 들고 이름으로 고름 · 주행은 `rl_nav_correction` 도킹 모드 (11-05 #65로 노드 삭제) | **skill 노드가 자기 정책 폴더를 갖고 관리** — 팔은 경로를 컨트롤러에 알려 줌 · 주행은 `skill_approach`가 직접 계산 |
 | 정책 파일 | `model/arm_correction/*.policy` · `nav_correction/*.policy` | `model/skills/<skill>/` = `.policy` + `.onnx` + `meta.yaml` |
 
 **왜 이렇게 나눴나**
@@ -53,7 +53,7 @@ flowchart TB
     SU["skill_unload 🧠"]:::model
     SS["skill_stand<br/>stand · stand_pick"]
   end
-  SA -->|"/cmd_vel_nav"| NC["rl_nav_correction<br/>속도 제한"] --> TM["twist_mux → 바퀴"]
+  SA -->|"/cmd_vel_nav"| TM["twist_mux → smoother → 충돌 감시 → 바퀴"]
   NAV2 --> NC
   ARM -->|"MoveIt · 궤적 · 그리퍼"| JTC["arm_controller (JTC)"]
   ARM -->|"/skill_context<br/>skill · 단계 · 정책 파일 경로"| RC["rl_arm_correction (100 Hz)<br/>목표 + 처짐 적분 + 정책 Δ"]:::model

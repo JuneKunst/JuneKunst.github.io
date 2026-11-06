@@ -360,7 +360,7 @@ flowchart LR
 | `load_slot` | MoveIt: → carry 자세 | 칸 위 → 칸 바닥 → 놓기 → 올리기 (slot_table) | `rl_arm_correction` | `/hand_relative` slot으로 해결 · 손 안 퍽 오차는 0으로 |
 | `unload_slot` | MoveIt: → carry 자세 | 칸 위 → 쥐기 → 칸 위 (slot_table) | `rl_arm_correction` | `/hand_relative` puck으로 해결 |
 | `pregrasp` · `camera_look_down` | MoveIt 경로 | 도착 뒤 끝 자세 유지 (처짐 보정) | `rl_arm_correction` | 없음 |
-| `dock_box` · `park_home` · `drive_straight` · `drive_arc` | Nav2 | 정렬 위치 → 도킹·정지·짧은 이동 (P 제어) | `rl_nav_correction` 도킹 모드 | 없음 |
+| `dock_box` · `park_home` · `drive_straight` · `drive_arc` | Nav2 | 정렬 위치 → 도킹·정지·짧은 이동 (P 제어) | `skill_approach` (11-04~) | 없음 |
 | `move_pose` · `camera_clear_view` · `drive_turn` | MoveIt · — | 없음 (시뮬 기준선 100 %) | — | — |
 | `plan_next` | — | 다음 skill 고르기 | `mission_manager` (PR #49 병합 뒤, 마지막) | 없음 |
 
