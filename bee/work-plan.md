@@ -63,5 +63,5 @@
 | ⚠️ Isaac 메모리 누수 — 분당 0.7~1.1 GB · 약 25분이면 30 GB 바닥 (12:44 OOM) | ✅ **원인 찾음**: Isaac 6.1이 ROS Lyrical을 '실험'으로 붙여 **camera_info 발행 노드(ROS2CameraInfoHelper)**가 샘 (렌더 방식·브리지 아님 — 하나씩 끄며 9번 측정). 고침: 그 노드 끄기 (camera_adapter가 이미 camera_info를 따로 냄) → **PR #76** (#75 구조 기준 · 고친 뒤 새 구조 측정은 남음) |
 | ⚠️ 같은 ROS 도메인(0)에 다른 기기 노드(`/xstingbase` 등)가 있음 — 트윈은 도메인 31로 | 메모 |
 | 트윈 **자동 채점** — 정답(`problem.json`) + Isaac 실제 위치(`truth.json`) vs 로봇 기록 → 원점수 100 · 통합 25 | 🔧 `score_run.py` 자체 확인 통과 · 미션 실행으로 확인 남음 |
-| 문서 정리 — `learning/skills.yaml` `runs_in` · bee 페이지 속도 경로(`/cmd_vel_corrected` → `/cmd_vel_nav`) · 빈 `model/nav_tuner/` | ✅ skills.yaml (PR #73 → #75 뒤 다시) · `nav_tuner`는 동료가 #71로 삭제 · bee 페이지 경로는 아래에서 |
+| 문서 정리 — `learning/skills.yaml` `runs_in` · bee 페이지 속도 경로(`/cmd_vel_corrected` → `/cmd_vel_nav`) · 빈 `model/nav_tuner/` | ✅ skills.yaml · stand_test launch(지워진 노드 띄우던 것) · hand_relative 설명 · download.sh → **PR #78** (#73 대신) · `nav_tuner`는 동료가 #71로 삭제 · bee 페이지 경로는 아래에서 |
 | 새 stow(11-05)로 팔 정책 재평가 (1024판) | ✅ pregrasp 100 % · load_slot 99.1 % · unload_slot 97.6 % — 떨어짐 없음 ([성능표](robot-spec.html)) |
