@@ -80,5 +80,6 @@ flowchart LR
 | `plan/rl_segment` | 시뮬과 같은 구간 시간표 + B 노드용 JSON | `ArmIO::contact_step` · `traj_step` · `stand_plan` `trapezoid_duration` · `move_s` |
 | `plan/stand_geometry` | 세우기 손끝 경로 · 받침 높이 맞추기 | `skills/stand_plan` `waypoints` · `plan_ik` (대각선 끌기 포함) · `stand_box_top_m` · `standing_grasp_z` |
 | `model/arm_correction/*.onnx` 10개 · `ml/policies/*` | B가 쓰려던 정책 사본 | `model/skills/<skill>/` |
+| `isaac/scripts/calib/gravity_comp.py` | B의 `~/delta` 입력을 빌려 중력 앞먹임을 넣던 실험 스크립트 | `rl_arm_correction` `gravity_enabled` (기본 켬) |
 
 모두 #59 이전 구조(coordinator가 팔을 직접 움직이던 때)용이라 빌드 · 실행 경로가 없었고, 지워도 잃는 기능이 없습니다.

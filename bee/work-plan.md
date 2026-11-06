@@ -30,9 +30,9 @@
 | 2 | 연결 안 된 `rl_policy_node.py` · `plan/arm_ik` · `rl_segment` · `stand_geometry` · 정책 사본 | 정리 | PR #77 |
 | 3 | nvblox 지도 감쇠 켜짐 — 지나온 곳이 지도에서 사라짐 | **동작 (실기도)** | 브랜치 `fix/nvblox-no-decay` 다시 올리기 |
 | 4 | Isaac 손목 카메라 깊이 문이 stow에서 열림 → 매핑 중 로봇 몸이 지도에 찍힘 · `coordinator` scan_pose 덮어쓰기(없는 파라미터) | **동작 (시뮬)** | 트윈 브랜치에 고침 — 새 폴더로 옮겨 다시 |
-| 5 | mission_manager 물체 기억 없음 — 집기 직전 "not tracked" | **동작** | 브랜치 `feature/mission-memory` 다시 올리기 |
+| 5 | mission_manager 물체 기억 없음 — 집기 직전 "not tracked" | **동작** | **PR #79** (develop 최신 위로) |
 | 6 | 자세 허용 오차 `scan_pose_tolerance` 0.16 · `initial_pose_tolerance` 0.08 — `twist_state` 켬이 기본이라 넓을 필요 없음 | 설정 | 0.05로 되돌리기 (#75 작성자 확인) |
-| 7 | `isaac/scripts/calib/gravity_comp.py`가 컨트롤러가 안 받는 `/rl_arm_correction/delta`로 보냄 → 동작 안 함 | 도구 | 담당자 확인 |
+| 7 | `isaac/scripts/calib/gravity_comp.py`가 컨트롤러가 안 받는 `/rl_arm_correction/delta`로 보냄 → 동작 안 함 (같은 일은 `gravity_enabled`) | 도구 | **PR #77에 삭제 추가** · `calib.md` 앞먹임 시험을 새 방법으로 |
 | 8 | `RlNavController` 후진 허용(`v_min_ratio: -0.2`) · 뒤 센서 없음 | 안전 | 주행 정책 들어올 때 확인 |
 | 9 | `.gitignore` `*.pt` · `*.onnx` 전체 무시 (57~58행) — 다시 학습한 skill 정책이 커밋에서 빠짐 | 설정 | 학습 출력 폴더만 빼도록 좁히기 |
 | 10 | `model/skills/pregrasp/meta.yaml` `layout: -` — 일반 YAML로 못 읽음 (skill 노드는 줄 단위라 동작 문제 없음) | 정리 | `layout: none` |
