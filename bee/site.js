@@ -18,6 +18,7 @@ const MENU = [
   ]},
   { group: '구조', items: [
     { href: 'mission-solve.html', title: '문제 풀이 흐름 (planner · mission_solver)', desc: '미션 단계 · 정답 계산 · 할당 · BUILD 순서(rule · plan_next) · skill 결과 흐름도', updated: '11-09' },
+    { href: 'policy-runtime.html', title: '정책 실행 순서 (코드·객체 단위)', desc: '정책 파일을 어떤 코드가 고르고·불러오고·실행하나 — 팔 · 도킹 · Nav2 · plan_next 순서도', updated: '11-09' },
     { href: 'policy-path.html', title: '팔 정책은 어디서 도나 — 두 방식 비교', desc: '컨트롤러 안 C++ vs 파이썬 노드 · 비교표 · 결정(A) · 약점과 막는 법', updated: '11-06' },
     { href: 'skill-nodes.html', title: 'skill 노드 구성', desc: 'skill마다 노드 하나 · 액션 /skills/<skill> · 정책은 skill이 관리', updated: '11-04' },
     { href: 'flow.html', title: '노드 흐름 (인터랙티브)', desc: '전체 노드 연결 — 연결을 누르면 메시지·역할 설명', updated: '11-02' },
