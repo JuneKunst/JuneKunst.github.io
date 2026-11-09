@@ -124,8 +124,8 @@ flowchart TB
   gx_PN -->|"① navigate → ② approach(dock_box) → ③ unload → ④ place"| gx_CO["coordinator<br/>단계 순서 · 적재함 장부"]
   gx_CO -->|"🎬 /skills/navigate"| gx_SN["skill_navigate"] --> gx_NAV["Nav2<br/>① L1 앞까지"]
   gx_CO -->|"🎬 /skills/approach"| gx_SA["skill_approach<br/>🧠 dock_box (model/skills/dock_box)<br/>돌기-직진-돌기 + Δv·Δw"]:::model
-  gx_CO -->|"🎬 /skills/unload"| gx_SU["skill_unload<br/>🧠 unload_slot"]:::model
-  gx_CO -->|"🎬 /skills/place"| gx_SP["skill_place<br/>🧠 place_cell"]:::model
+  gx_CO -->|"🎬 /skills/unload"| gx_SU["skill_unload<br/>📄 unload_slot 경로만 지정"]:::pick
+  gx_CO -->|"🎬 /skills/place"| gx_SP["skill_place<br/>📄 place_cell 경로만 지정"]:::pick
   subgraph gx_BASE_PATH["주행 (①②)"]
     gx_NAV --> gx_NC["twist_mux<br/>(/cmd_vel_nav)"]
     gx_SA -->|"/cmd_vel_nav"| gx_NC
@@ -134,19 +134,20 @@ flowchart TB
   subgraph gx_ARM_PATH["팔 (③④)"]
     gx_MV["MoveIt<br/>빈 공간: stow → carry → 칸 위"] --> gx_JTC["arm_controller (JTC)"]
     gx_IK["IK 궤적<br/>닿는 구간"] --> gx_JTC
-    gx_JTC --> gx_RC["rl_arm_correction (100Hz)<br/>skill 노드가 알려 준 정책 파일로<br/>목표 + 처짐 적분 + Δ (±0.05 rad)"]:::model
+    gx_JTC --> gx_RC["rl_arm_correction (100Hz)<br/>🧠 여기서 추론 (50Hz) → Δ<br/>목표 + 처짐 적분 + Δ (±0.05 rad)"]:::model
     gx_RC --> gx_DX["OpenCR → 팔 모터 XM430"]
   end
   gx_SU --> gx_MV
   gx_SU --> gx_IK
   gx_SP --> gx_MV
   gx_SP --> gx_IK
-  gx_SU -->|"/skill_context + 정책 경로"| gx_RC
-  gx_SP -->|"/skill_context + 정책 경로"| gx_RC
+  gx_SU -->|"/skill_context<br/>정책 경로 · 단계 (추론값 아님)"| gx_RC
+  gx_SP -->|"/skill_context<br/>정책 경로 · 단계 (추론값 아님)"| gx_RC
   gx_CAM["perception (≤4Hz)<br/>🧠 YOLO"]:::model --> gx_HR["hand_relative"] -->|"/hand_relative"| gx_RC
   classDef model fill:#2a1f4d,stroke:#a78bfa,color:#e8eef8
+  classDef pick fill:#1c2635,stroke:#a78bfa,color:#e8eef8,stroke-dasharray:5 3
 ```
-<b style="color:#a78bfa">🧠 보라 = 학습된 모델이 도는 곳</b>
+<b style="color:#a78bfa">🧠 보라 = 학습된 모델이 실제로 추론하는 곳</b> · 📄 점선 = 정책 파일을 **고르고 경로만 알려 줌** (추론 안 함 — 팔 skill은 Δ를 미리 계산하지 않음, 11-09 수정)
 
 | 순서 | 단계 | 맡는 skill 노드 | 🧠 학습된 모델 (어디서 · 무엇을) | 끝 판정 |
 |---|---|---|---|---|
@@ -166,7 +167,7 @@ flowchart TB
 | YOLO | perception | 카메라당 ≤ 4 Hz | — |
 
 - 학습된 정책은 늘 기준 동작(Nav2 · MoveIt · IK 궤적 · P 제어) 위에 몇 mm·몇 cm/s만 고칩니다. 정책을 끄면(`meta.yaml` `use: false`) 기준 동작과 똑같습니다.
-- 정책 계산은 ONNX 런타임 없이 C++ (`ml/mlp_policy.hpp`) · 파일 `.policy` (검산값 포함) + 원본 `.onnx`
+- 정책 계산: PR #97부터 기본 ONNX Runtime(`.onnx`) · 정책마다 `meta.yaml` `runtime: policy`로 기존 C++(`.policy`)로 되돌림 — [ONNX 실행 구조](onnx-runtime.html)
 
 ---
 
