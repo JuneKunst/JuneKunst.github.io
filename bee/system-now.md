@@ -1,6 +1,6 @@
 # 지금 구조 — 전체 흐름 · 노드 · 플러그인 (11-09 develop)
 
-> develop `a6e5072` (11-09, #76~#92 병합 뒤) 코드 기준. launch 파일 · `controllers.yaml` · `nav2_params.yaml` · `skills.launch.py`에서 뽑았습니다.
+> develop `3a6d668` (11-09, #76~#95 병합 뒤) 코드 기준 · 열린 PR #97(ONNX) 표시. launch 파일 · `controllers.yaml` · `nav2_params.yaml` · `skills.launch.py`에서 뽑았습니다.
 > 문제 풀이 흐름도: [문제 풀이 흐름 (planner · mission_solver)](mission-solve.html) · 이전 그림: [전체 지도](system-map.html) (11-04) · [skill 노드 구성](skill-nodes.html) · [노드 흐름 (11-02, 옛 구조)](flow.html)
 
 ---
@@ -62,7 +62,7 @@ flowchart TB
   end
   subgraph R2C["ros2_control_node (controller_manager)"]
     JTC{{"arm_controller<br/>JTC"}}:::plugin
-    RAC{{"rl_arm_correction<br/>처짐 적분 · 앞먹임 · 정책 Δ"}}:::plugin
+    RAC{{"rl_arm_correction<br/>처짐 적분 · 앞먹임 · 🧠 정책 추론 → Δ"}}:::plugin
     GC{{"gripper_controller"}}:::plugin
     DD{{"diff_drive_controller"}}:::plugin
     JSB{{"joint_state · imu broadcaster"}}:::plugin
@@ -86,7 +86,7 @@ flowchart TB
   ASK --> MG
   ASK -->|"닿는 구간 궤적"| JTC
   MG --> JTC
-  ASK -->|"/skill_context (정책 경로)"| RAC
+  ASK -->|"/skill_context (정책 경로 · 단계, 추론값 아님)"| RAC
   HR -->|"/hand_relative"| RAC
   JTC --> RAC --> HW
   ASK --> GC --> HW
@@ -122,7 +122,7 @@ flowchart TB
 | | `vlm_task_planner` · `user_input` | 노드 | 말로 하는 작업 → 계획 | plan |
 | | `explorer` | 노드 | 지도 만들 때 자동 탐사 (프론티어 → Nav2) | plan |
 | | `state_manager` | 노드 | 운영 모드 · 지도 모드 (매핑 ↔ 위치추정) · launch 재시작 | manager |
-| skill | `skill_pose` · `skill_inspect` · `skill_pick` · `skill_place` · `skill_load` · `skill_unload` · `skill_stand` | **컴포넌트** (`arm_skills` 컨테이너) | 팔 skill — 액션 `/skills/<skill>`. 빈 공간 = MoveIt · 닿는 구간 = 시뮬과 같은 IK 궤적 → JTC · 정책 경로를 `/skill_context`로 | skills |
+| skill | `skill_pose` · `skill_inspect` · `skill_pick` · `skill_place` · `skill_load` · `skill_unload` · `skill_stand` | **컴포넌트** (`arm_skills` 컨테이너) | 팔 skill — 액션 `/skills/<skill>`. 빈 공간 = MoveIt · 닿는 구간 = 시뮬과 같은 IK 궤적 → JTC · 정책 경로를 `/skill_context`로 (**추론은 안 함** — `rl_arm_correction`이 함) | skills |
 | | `skill_navigate` · `skill_approach` | **컴포넌트** (`base_skills` 컨테이너) | 주행 skill — navigate = Nav2 · approach = 마지막 몇 cm (돌기-직진-돌기 + 도킹 정책 4개 직접 계산) | skills |
 | ML | `grasp_scorer` | 노드 | 파지 후보 점수 (`/score_grasps`) — 퍽 방향 · 옆 퍽 | ml (송정혁) |
 | 안전 · 수동 | `arm_safety_monitor` · `manual_control` | 노드 | 팔 안전 감시 · 수동 조작 | control (김현하) |
@@ -147,7 +147,7 @@ flowchart TB
 | 붙는 곳 (호스트 노드) | 플러그인 | 종류 | 하는 일 | 우리가 만든 것 |
 |---|---|---|---|---|
 | `controller_manager` | **`BeebotSystemHardware`** | ros2_control 하드웨어 | OpenCR 시리얼(S·C 줄) ↔ 관절 상태·명령. **11-06 `twist_state`: joint2·3 상태 = 엔코더 + 처짐 d → TF가 실제 팔** | ✅ control |
-| | **`rl_arm_correction`** (`ml/RlArmCorrection`) | chainable 컨트롤러 (JTC 뒤) | 명령 = JTC 궤적 + 처짐 적분 + **중력 앞먹임(11-06 기본 켬)** + 정책 Δ(닿는 구간만, skill 노드가 정책 경로를 알려 줌) · 발열 방지 · `~/debug` | ✅ ml |
+| | **`rl_arm_correction`** (`ml/RlArmCorrection`) | chainable 컨트롤러 (JTC 뒤) | 명령 = JTC 궤적 + 처짐 적분 + **중력 앞먹임(11-06 기본 켬)** + 정책 Δ(닿는 구간만 · **여기서 50 Hz 추론** · skill 노드가 정책 경로를 알려 줌 · PR #97: `.onnx` 기본, `.policy` 되돌리기) · 발열 방지 · `~/debug` | ✅ ml |
 | | `arm_controller` | JointTrajectoryController | 팔 궤적 따라가기 → rl_arm_correction 입력 | — |
 | | `gripper_controller` | ParallelGripperActionController | 그리퍼 · 쥐는 힘(전류) | — |
 | | `diff_drive_controller` | DiffDriveController | /cmd_vel → 바퀴 · 바퀴 odom | — |
@@ -200,6 +200,8 @@ skill_approach (도킹 정책 4개, ≤0.12 m/s) ──────────�
 | 11-06 #78 | `stand_test` launch가 지워진 `rl_nav_correction`을 띄우던 것 · 옛 설명 | launch |
 | 11-06 #79 | mission_manager가 퍽을 tag로 기억 — 집기 직전에 트랙 다시 찾기 | 노드 `mission_manager` |
 | 11-07~08 #80 · #81 · #84 · #89 | inspect 상자 한 번 보기 · 인지(중복 퍽 합치기 · 태그 판독 재시도 · 차체 필터 · 퍽 중심 보정) · 적재함 칸 자세표 · 카메라 기울기 · joint1 영점 실측 | 노드 안 동작 (새 노드 없음) |
+| 11-09 #95 | 퍽 자세(서 있음·누움)를 윗면 높이로 판단 — 인터페이스 변화 없음 | 노드 안 동작 |
+| 11-09 PR #97 (열림) | 학습 정책 4곳 ONNX Runtime 기본 · 정책마다 `.policy`로 되돌림 ([ONNX 실행 구조](onnx-runtime.html)) | `ml::Policy` · `ml_onnx` 공개 라이브러리 |
 | 11-08 #82~#92 | 테스트베드 `fake_cuvslam` · `fake_nvblox` · CLI 정리 · ONNX GPU 빌드 선택 · 전역 코스트맵 `ObstacleLayer` 뺌 · `map:=none` 기본 · `RlNavController` 안쪽 controller 선택 | faker 노드 추가 · 플러그인 설정 |
 
 ---

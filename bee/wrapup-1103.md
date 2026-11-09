@@ -67,7 +67,7 @@
 | 3 | 플래너는 **계산기(정답 규칙) + 학습 모델(다음 skill 고르기)** 둘 다 준비, 학습 플래너 로봇 연결은 **마지막** | 목표 칸은 규칙이 정답, 순서·실패 대처는 학습 |
 | 4 | **배포 방식**: 빈 공간 이동은 MoveIt·Nav2 그대로, **퍽에 닿는 짧은 구간과 상자 앞 도킹만 시뮬과 같은 기준 동작 + 학습 보정** (11-02 "팔은 전부 MoveIt"에 닿는 구간만 예외) | 잔차 정책은 학습 때 쓴 기준 동작 위에서만 맞음 · Plan-Seq-Learn · ManipGen과 같은 구조 |
 | 5 | 로봇에 없던 정책 입력(손 카메라 상대값)은 **인식에서 만들어 줌** (정책 그대로) | 다시 학습하지 않으려고 |
-| 6 | 정책 계산은 **ONNX 런타임 없이 C++로 직접** (`.policy` 파일) | 정책이 작은 MLP · Jetson에 설치할 것 없음 · 실시간 루프 안전 |
+| 6 | 정책 계산은 **ONNX 런타임 없이 C++로 직접** (`.policy` 파일) — **11-09 바뀜: PR #97 기본 ONNX Runtime, 정책마다 `.policy`로 되돌림 ([ONNX 실행 구조](onnx-runtime.html))** | 정책이 작은 MLP · Jetson에 설치할 것 없음 · 실시간 루프 안전 |
 | 7 | **처짐 적분은 팀원(송정혁) 방식**: 시간 기준 · reference 멈춤일 때 · 4.2/s · `~/reset_sag` · skill과 상관없이 늘 — 그 위에 학습 보정 | 늘 처짐을 고쳐 주고 coordinator가 이미 reset_sag를 부름 |
 | 8 | skill 이름에 퍽 상태를 드러냄: `pick_standing_puck`(서 있는 퍽 집기, 예전 `pick_upright`) · `stand_lying_puck`(누운 퍽 세우기, 예전 `stand_up`) · `regrasp_after_stand` · `stand_puck_in_cell` · `--task pick_standing` / `stand_lying` (예전 이름도 됨) | `upright`·`right`·`stand`가 헷갈림 |
 | 10 | 합격 기준 못 넘은 `load_slot`(놓침 1.0 %) · `pregrasp`(95.4 %)는 **재학습** — 놓침 벌점 5→20 · 못 가는 목표 빼고 멈춤 시간 늘림 | 기준: 성공 ≥ 97 % · 되돌릴 수 없는 실패 ≤ 0.5 % |

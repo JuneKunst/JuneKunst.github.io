@@ -12,7 +12,7 @@
 | skill 실행 | coordinator 한 노드가 전부 (1645줄) | **skill 노드 9개** — skill마다 액션 서버 `/skills/<skill>` |
 | coordinator | 계획 + 팔·주행 동작 + 장부 + 시작·스캔 자세 | 계획 검증 · 단계 순서 · 물체 → 좌표 · 적재함 장부 · 모드 취소만 (686줄) |
 | 학습 정책 | `rl_arm_correction`이 4개를 미리 들고 이름으로 고름 · 주행은 `rl_nav_correction` 도킹 모드 (11-05 #65로 노드 삭제) | **skill 노드가 자기 정책 폴더를 갖고 관리** — 팔은 경로를 컨트롤러에 알려 줌 · 주행은 `skill_approach`가 직접 계산 |
-| 정책 파일 | `model/arm_correction/*.policy` · `nav_correction/*.policy` | `model/skills/<skill>/` = `.policy` + `.onnx` + `meta.yaml` |
+| 정책 파일 | `model/arm_correction/*.policy` · `nav_correction/*.policy` | `models/skills/<skill>/` = `.onnx`(기본, PR #97) + `.policy`(되돌리기용) + `meta.yaml` |
 
 **왜 이렇게 나눴나**
 - skill 하나 = 노드 하나 = 정책 폴더 하나 → 고치기·바꾸기·되돌리기·시험을 skill 단위로
@@ -47,21 +47,22 @@ flowchart TB
   subgraph ARM["arm_skills 컨테이너"]
     SP["skill_pose<br/>+ 시작·스캔 자세"]
     SI["skill_inspect"]
-    SK["skill_pick 🧠"]:::model
-    SL["skill_place 🧠"]:::model
-    SLD["skill_load 🧠"]:::model
-    SU["skill_unload 🧠"]:::model
+    SK["skill_pick<br/>📄 pick_standing_puck"]:::pick
+    SL["skill_place<br/>📄 place_cell"]:::pick
+    SLD["skill_load<br/>📄 load_slot"]:::pick
+    SU["skill_unload<br/>📄 unload_slot"]:::pick
     SS["skill_stand<br/>stand · stand_pick"]
   end
   SA -->|"/cmd_vel_nav"| TM["twist_mux → smoother → 충돌 감시 → 바퀴"]
   NAV2 --> NC
   ARM -->|"MoveIt · 궤적 · 그리퍼"| JTC["arm_controller (JTC)"]
-  ARM -->|"/skill_context<br/>skill · 단계 · 정책 파일 경로"| RC["rl_arm_correction (100 Hz)<br/>목표 + 처짐 적분 + 정책 Δ"]:::model
+  ARM -->|"/skill_context<br/>skill · 단계 · 정책 파일 경로 (추론값 아님)"| RC["rl_arm_correction (100 Hz)<br/>🧠 여기서 추론 (50 Hz) → Δ<br/>목표 + 처짐 적분 + 정책 Δ"]:::model
   ARM -->|"/hand_relative/target"| HR["hand_relative"] -->|"/hand_relative"| RC
   JTC --> RC --> HW["팔 모터"]
   classDef model fill:#2a1f4d,stroke:#a78bfa,color:#e8eef8
+  classDef pick fill:#1c2635,stroke:#a78bfa,color:#e8eef8,stroke-dasharray:5 3
 ```
-<b style="color:#a78bfa">🧠 보라 = 학습 정책이 쓰이는 곳</b>
+<b style="color:#a78bfa">🧠 보라 = 학습 정책을 실제로 추론하는 곳</b> · 📄 점선 = 정책 파일을 고르고 경로만 알려 줌 (추론 안 함, 11-09 수정)
 
 ---
 
@@ -88,10 +89,10 @@ flowchart TB
 ## 4. 정책 폴더 — skill이 갖고 관리
 
 ```
-lv2_module6/ros2_ws/model/skills/<skill>/
-  <skill>.policy   로봇이 읽는 MLP (C++ 직접 계산 · 파일 안 'test' 줄로 검산)
-  <skill>.onnx     Isaac Lab 학습 원본
-  meta.yaml        kind · layout · use · sim_baseline · sim_policy · 출처 · (주행) tol_m · tol_deg · hold_s · limit_s
+lv2_module6/models/skills/<skill>/        (11-08 ros2_ws/model → models로 옮김)
+  <skill>.onnx     로봇이 읽는 정책 (기본, PR #97) — 가중치 포함 · 메타데이터 검산값
+  <skill>.policy   같은 정책의 텍스트 MLP — meta runtime: policy일 때만 (실측 비교 · 되돌리기)
+  meta.yaml        kind · layout · use · runtime(onnx|policy) · sim_baseline · sim_policy · 출처 · (주행) tol_m · tol_deg · hold_s · limit_s
 ```
 
 | 폴더 | 노드 | 시뮬 (기준선 → 학습) | use |
@@ -107,7 +108,7 @@ lv2_module6/ros2_ws/model/skills/<skill>/
 | `regrasp_after_stand` (송정혁) | skill_stand | 74.6 → 78.2 % | ❌ 로봇 입력 모양(stand 49) 없음 · 합격 기준 못 넘음 |
 | `pregrasp` | (skill_pick) | 99.5 % = 99.6 % | ❌ 기준선(MoveIt)으로 충분 |
 
-**정책 바꾸기**: 새 `.pt` → `export_policy.py` → 그 폴더의 `.policy` · `.onnx` 교체 + `meta.yaml` 성공률 → 빌드. 끄기는 `use: false` (기준 동작만). 테스트 `test_skills`가 폴더마다 meta · 입력 크기를 검사.
+**정책 바꾸기**: 새 `.pt` → `isaac/policies/export_onnx.py`(`.onnx`) · `ml/scripts/export_policy.py`(`.policy`) → 그 폴더 교체 + `meta.yaml` 성공률 → 빌드. 끄기는 `use: false` (기준 동작만) · 실행 방식은 `runtime: onnx|policy` ([ONNX 실행 구조](onnx-runtime.html)). 테스트 `test_skills`가 폴더마다 meta · 입력 크기, `test_onnx_policy`가 `.onnx` 검산 · `.policy`와 같은 출력을 검사.
 
 ---
 

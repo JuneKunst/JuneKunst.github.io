@@ -1,6 +1,6 @@
 # BEE 전체 지도 — 학습부터 로봇까지
 
-> **11-04 구조 변경 (PR #59, `feature/skill-nodes`)** — skill마다 노드 하나: coordinator는 계획 검증·순서·적재함 장부만, 팔·주행 동작은 **skill 노드 9개** (`/skills/<skill>` 액션 — navigate · approach · pose · inspect · pick · place · load · unload · stand). 학습 정책은 **skill 노드가 갖고 관리** (`model/skills/<skill>/` = `.policy` · `.onnx` · `meta.yaml`). 팔 정책 계산은 그대로 `rl_arm_correction` 100 Hz 루프 안 (skill 노드가 정책 경로를 알려 줌) · 주행 정책은 `skill_approach`가 직접 계산. 아래 그림의 "coordinator가 하는 팔·주행 동작"은 이제 skill 노드가 합니다. 스펙·성능표: [robot-spec](robot-spec.html)
+> **11-04 구조 변경 (PR #59, `feature/skill-nodes`)** — skill마다 노드 하나: coordinator는 계획 검증·순서·적재함 장부만, 팔·주행 동작은 **skill 노드 9개** (`/skills/<skill>` 액션 — navigate · approach · pose · inspect · pick · place · load · unload · stand). 학습 정책은 **skill 노드가 갖고 관리** (`models/skills/<skill>/` = `.onnx` · `.policy` · `meta.yaml`). 팔 정책 **추론은 `rl_arm_correction` 100 Hz 루프 안에서만** (skill 노드는 정책 경로만 알려 줌 — Δ를 미리 계산하지 않음) · 주행 정책은 `skill_approach`가 직접 추론. 11-09 PR #97: 기본 ONNX Runtime · 정책마다 `.policy`로 되돌림 ([ONNX 실행 구조](onnx-runtime.html)). 아래 그림의 "coordinator가 하는 팔·주행 동작"은 이제 skill 노드가 합니다. 스펙·성능표: [robot-spec](robot-spec.html)
 
 > **2026-11-04 기준**. 색: <b style="color:#3fbf7f">초록 = 완료</b> · <b style="color:#67b7e8">파랑 = 코드 완료, 실기 시험 전</b> · <b style="color:#e2a83a">노랑 = 진행 중 · 일부</b> · <b style="color:#e06666">빨강 = 아직 없음</b> · <b style="color:#8aa0b8">회색 = 학습 안 함</b>
 > 자세한 내용: [학습용 skill 구성](skill-learning.html) · [skill별 학습 조건](skill-training.html) · [스킬·플랜 한 장](skill-plan.html)
@@ -42,7 +42,7 @@ flowchart LR
 | 덩어리 | 지금 | 막힌 곳 |
 |---|---|---|
 | ① 시뮬 학습 | 학습 정책 10개 평가 끝 (1024판): `dock_box` 98.6 · `drive_straight` 100 · `park_home` 96.5 · `drive_arc` 100 · `load_slot` 99.0 · `unload_slot` 98.1 · `place_cell` 99.0 · `pick_standing_puck` 100 · `regrasp_after_stand` 78.2 · `pregrasp` 기준선 99.5 % — [성능표](robot-spec.html) | 세우기+다시 쥐기 78 % (재학습 필요) · 플래너는 임시 확률로 학습 → 실제 성공률로 재학습 |
-| ② 결과물 | 정책 폴더 `model/skills/<skill>/` (`.policy` · `.onnx` · `meta.yaml`) — **8개 사용** · `regrasp_after_stand` · `pregrasp` 보류 · 플래너 `plan_next` | — |
+| ② 결과물 | 정책 폴더 `models/skills/<skill>/` (`.onnx` · `.policy` · `meta.yaml`) — **8개 사용** · `regrasp_after_stand` · `pregrasp` 보류 · 플래너 `plan_next` | — |
 | ③ 시뮬 미션 | Isaac Lab 실행기로 무작위 문제 끝까지 (#1 20점, #7 10점) · Isaac Sim 디지털 트윈(전체 ROS · SLAM)은 10-30 기동 확인 | 점수를 깎는 건 skill 실패 · 디지털 트윈엔 출제 스크립트 · skill 노드 반영 필요 |
 | ④ 로봇 | **skill 노드 구조** (PR #59): skill마다 노드 · 정책은 skill이 관리 · 테스트 66개 · 노드 9개 기동 | **실기 · 전체 bringup 시험 전** · PR 병합 · #57은 isaac-setup과 자산 충돌 정리 필요 |
 
@@ -119,7 +119,7 @@ flowchart LR
 ```mermaid
 flowchart TB
   subgraph gx_MM["mission_manager (skill 하나 끝날 때마다)"]
-    gx_PN["🧠 plan_next.policy<br/>다음 skill 고르기"]:::model
+    gx_PN["🧠 plan_next<br/>다음 skill 고르기"]:::model
   end
   gx_PN -->|"① navigate → ② approach(dock_box) → ③ unload → ④ place"| gx_CO["coordinator<br/>단계 순서 · 적재함 장부"]
   gx_CO -->|"🎬 /skills/navigate"| gx_SN["skill_navigate"] --> gx_NAV["Nav2<br/>① L1 앞까지"]
@@ -268,7 +268,7 @@ flowchart TB
 |---|---|---|
 | **skill 노드 9개** (`skills`) | skill마다 액션 서버 · 공통 틀(goal 하나 · 취소 · 서버 대기 · 진단) · 팔 공통(MoveIt · 그리퍼 · 닿는 구간 · 잡기 판정) | 기동 · 정책 읽기 · approach 보정 |
 | **coordinator** | 계획 검증 · 단계 순서 · 물체 → 좌표 · 다가가기 · 적재함 장부 · 모드·비상정지 취소 | skill 액션 → 장부 테스트 |
-| **정책 폴더** `model/skills/<skill>/` | `.policy` · `.onnx` · `meta.yaml` (use · 시뮬 성공률 · 출처 · 판정값) | 폴더 검사 테스트 · C++ = TorchScript 검산 |
+| **정책 폴더** `models/skills/<skill>/` | `.onnx`(기본) · `.policy` · `meta.yaml` (use · runtime · 시뮬 성공률 · 출처 · 판정값) | 폴더 검사 테스트 · 불러올 때 검산 · `.onnx` = `.policy` 출력 시험 |
 | **`/skill_context`** | 팔 skill 노드 → rl_arm_correction: skill · 단계 · **정책 경로 · 입력 모양** | 빌드 |
 | **`rl_arm_correction`** | 받은 경로의 정책을 루프 밖에서 읽어 두고 100 Hz 루프에서 계산 · 처짐 적분(팀원) · 발열 방지 · `~/debug` | 74개 테스트 (11-03) |
 | ~~`rl_nav_correction`~~ | 11-05 #65로 삭제 — Nav2 컨트롤러가 `RlNavController`(동료 RL), 도킹 정책은 skill_approach | — |

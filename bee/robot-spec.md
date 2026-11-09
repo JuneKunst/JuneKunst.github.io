@@ -2,7 +2,7 @@
 
 > 2026-11-04 기준 · 값은 저장소 파일 그대로 (브랜치 `feature/skill-all`) · 각 줄 끝 `파일:줄`은 근거
 > 🔧 = **실기에서 조정이 필요한 값** (코드 주석에 TODO · 실측 필요 · 추정 · 다시 맞출 값) — 맨 아래 [6장](#6-조정이-필요한-값-실기)에 따로 모음
-> **구조 (11-04, PR #59)**: skill마다 노드 하나 (`/skills/<skill>` 액션) · 정책은 skill 노드가 갖고 관리 (`model/skills/<skill>/` = `.policy` · `.onnx` · `meta.yaml`) · coordinator는 순서·장부만
+> **구조 (11-04, PR #59)**: skill마다 노드 하나 (`/skills/<skill>` 액션) · 정책은 skill 노드가 갖고 관리 (`models/skills/<skill>/` = `.onnx` · `.policy` · `meta.yaml`) — 팔 정책 추론은 `rl_arm_correction` 안에서만 (skill은 경로만 알려 줌) · 11-09 PR #97 기본 ONNX ([ONNX 실행 구조](onnx-runtime.html)) · coordinator는 순서·장부만
 > 관련: [실기 디버깅](debug-guide.html) · [skill별 학습 조건](skill-training.html) · [11-03 정리](wrapup-1103.html)
 
 ---
@@ -228,5 +228,5 @@ RL/TL = reliable + transient_local (늦게 붙어도 마지막 값) · 숫자만
 | `ros2_ws/src/perception/config/perception.yaml` | YOLO · 추적 · hand_relative · 신호등 · body_filter |
 | `ros2_ws/src/control/config/control.yaml` | 접촉 감시 · 수동 조작 |
 | `ros2_ws/src/ml/config/ml.yaml` | grasp_scorer · rl_nav_controller (규격 기록 — 실제 값은 `nav2_params.yaml` FollowPath) |
-| `ros2_ws/model/` | 학습 정책 파일 (`.policy`) · YOLO |
+| `models/` (11-08 `ros2_ws/model/`에서 옮김) | 학습 정책 파일 (`.onnx` 기본 · `.policy`) · YOLO |
 | `isaac/lab/bee_common.py` | 시뮬 지연 · 팀 관절 한계 |

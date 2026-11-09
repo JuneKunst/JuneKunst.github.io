@@ -5,10 +5,10 @@
 const MENU = [
   { group: '현황', items: [
     { href: 'work-plan.html', title: '할 일 · 진행', desc: '실제 문제를 잘 풀기 위한 할 일 — 점수 구조 · P0~P2 · 진행 상태', updated: '11-06' },
-    { href: 'wrapup-1103.html', title: '정리 · 결정 기록', desc: '정한 것 · 만든 것 · 학습 결과 · 노드 · 남은 일', updated: '11-06' },
+    { href: 'wrapup-1103.html', title: '정리 · 결정 기록', desc: '정한 것 · 만든 것 · 학습 결과 · 노드 · 남은 일', updated: '11-09' },
     { href: 'system-now.html', title: '지금 구조 — 흐름 · 노드 · 플러그인', desc: 'develop(11-09) 전체 흐름 · 노드와 플러그인 구별 · 명령 경로 · 테스트베드 대역 · 바뀐 것', updated: '11-09' },
-    { href: 'system-map.html', title: '전체 지도', desc: '학습부터 로봇까지 한 장 — 완료·진행·없음 색 표시', updated: '11-04' },
-    { href: 'robot-spec.html', title: '로봇 스펙 · 성능표', desc: 'skill 성능 · 하드웨어 · 주기·지연 · QoS · 실기에서 조정할 값', updated: '11-04' },
+    { href: 'system-map.html', title: '전체 지도', desc: '학습부터 로봇까지 한 장 — 완료·진행·없음 색 표시', updated: '11-09' },
+    { href: 'robot-spec.html', title: '로봇 스펙 · 성능표', desc: 'skill 성능 · 하드웨어 · 주기·지연 · QoS · 실기에서 조정할 값', updated: '11-09' },
   ]},
   { group: 'skill · 학습', items: [
     { href: 'skill-plan.html', title: '스킬 · 플랜 한 장', desc: '처음 보는 사람용 설명 — skill과 플래너가 무엇인지', updated: '11-03' },
@@ -20,8 +20,8 @@ const MENU = [
     { href: 'mission-solve.html', title: '문제 풀이 흐름 (planner · mission_solver)', desc: '미션 단계 · 정답 계산 · 할당 · BUILD 순서(rule · plan_next) · skill 결과 흐름도', updated: '11-09' },
     { href: 'onnx-runtime.html', title: 'ONNX 실행 구조 (PR #97)', desc: '학습 정책 4곳을 ONNX Runtime으로 — 객체 · 고르기 · 불러오기 · 100 Hz 루프 실행 · 정책별 .policy 되돌리기', updated: '11-09' },
     { href: 'policy-runtime.html', title: '정책 실행 순서 (코드·객체 단위)', desc: '정책 파일을 어떤 코드가 고르고·불러오고·실행하나 — 팔 · 도킹 · Nav2 · plan_next 순서도', updated: '11-09' },
-    { href: 'policy-path.html', title: '팔 정책은 어디서 도나 — 두 방식 비교', desc: '컨트롤러 안 C++ vs 파이썬 노드 · 비교표 · 결정(A) · 약점과 막는 법', updated: '11-06' },
-    { href: 'skill-nodes.html', title: 'skill 노드 구성', desc: 'skill마다 노드 하나 · 액션 /skills/<skill> · 정책은 skill이 관리', updated: '11-04' },
+    { href: 'policy-path.html', title: '팔 정책은 어디서 도나 — 두 방식 비교', desc: '컨트롤러 안 C++ vs 파이썬 노드 · 비교표 · 결정(A) · 약점과 막는 법', updated: '11-09' },
+    { href: 'skill-nodes.html', title: 'skill 노드 구성', desc: 'skill마다 노드 하나 · 액션 /skills/<skill> · 정책은 skill이 관리', updated: '11-09' },
     { href: 'flow.html', title: '노드 흐름 (인터랙티브)', desc: '전체 노드 연결 — 연결을 누르면 메시지·역할 설명', updated: '11-02' },
     { href: 'messages.html', title: '메시지 사전', desc: '연결마다 목적 · 나눈 이유 · 메시지 예시', updated: '11-02' },
     { href: 'mission-vs-skill.html', title: '그림: 누가 판단하고 누가 실행하나', desc: '다이어그램 원본', updated: '11-02', raw: true },
@@ -33,7 +33,7 @@ const MENU = [
     { href: '2026-10-28.html', title: '그림: 10-28 전체 노드 (옛 판)', desc: '보관용', updated: '10-28', raw: true },
   ]},
   { group: '실기', items: [
-    { href: 'debug-guide.html', title: '실기 디버깅', desc: '기록(rosbag · 블랙박스) · 보기(PlotJuggler · Lichtblick) · 증상별 고칠 곳', updated: '11-03' },
+    { href: 'debug-guide.html', title: '실기 디버깅', desc: '기록(rosbag · 블랙박스) · 보기(PlotJuggler · Lichtblick) · 증상별 고칠 곳', updated: '11-09' },
   ]},
 ];
 

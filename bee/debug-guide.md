@@ -120,6 +120,6 @@ Lichtblick은 `.mcap` 파일을 끌어다 놓으면 됨. 화면 구성(레이아
    - 처짐·마찰·지연이 시뮬보다 큼 → 학습 환경 **무작위 범위**를 실측 쪽으로 넓힘 (`--cfg`)
    - 손 카메라 값 오차·늦음 → 관측 잡음·지연을 환경에 넣음
    - 기준 동작이 다름 (MoveIt vs IK) → 배포 조건 (`skills.yaml` `deploy`)
-4. 고친 설정으로 `train_queue.sh <skill>` → 1024판 평가 → 기준선보다 좋으면 `.policy` 교체
+4. 고친 설정으로 `train_queue.sh <skill>` → 1024판 평가 → 기준선보다 좋으면 `.onnx`(`export_onnx.py`) · `.policy` 교체
 
 > 2번(실기 구간을 Isaac에서 다시 돌리는 스크립트)은 아직 없음 — 첫 실기 bag이 생기면 그 모양에 맞춰 만듦.
