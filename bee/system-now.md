@@ -1,7 +1,7 @@
-# 지금 구조 — 전체 흐름 · 노드 · 플러그인 (11-06 develop)
+# 지금 구조 — 전체 흐름 · 노드 · 플러그인 (11-09 develop)
 
-> develop `2400ba1` (#75 병합 뒤) 코드 기준. launch 파일 · `controllers.yaml` · `nav2_params.yaml` · `skills.launch.py`에서 뽑았습니다.
-> 이전 그림: [전체 지도](system-map.html) (11-04) · [skill 노드 구성](skill-nodes.html) · [노드 흐름 (11-02, 옛 구조)](flow.html)
+> develop `a6e5072` (11-09, #76~#92 병합 뒤) 코드 기준. launch 파일 · `controllers.yaml` · `nav2_params.yaml` · `skills.launch.py`에서 뽑았습니다.
+> 문제 풀이 흐름도: [문제 풀이 흐름 (planner · mission_solver)](mission-solve.html) · 이전 그림: [전체 지도](system-map.html) (11-04) · [skill 노드 구성](skill-nodes.html) · [노드 흐름 (11-02, 옛 구조)](flow.html)
 
 ---
 
@@ -136,6 +136,9 @@ flowchart TB
 | | `ros2_control_node` (`controller_manager`) | 노드 | 아래 플러그인들을 100 Hz로 돌림 | ros2_control |
 | | `robot_state_publisher` | 노드 | URDF + /joint_states → TF | — |
 | 기타 | `realsense2_camera_node` ×2 · `aggregator_node`(진단) · `map_saver` | 노드 | 카메라 · 진단 모음 · 지도 저장 | — |
+| 테스트베드 대역 (`faker`, GPU·실기 없을 때) | `fake_opencr` · `fake_camera` ×2 · **`fake_cuvslam`** · **`fake_nvblox`** · `fake_grasp_scorer` · `monitor_manager` · `input_manager` · `service_action_monitor` · `service_action_bag_input` | 노드 | 하드웨어 · 카메라 · SLAM 대신 (11-08 #92: `fake_cuvslam` = 진짜 위치로 map→odom · `fake_nvblox` = 점구름 → `/map`, 예전 `map_server` 대신) | faker (visualkhh) |
+
+**실행 기본값 (11-08 #92):** `bringup` `map:=none`(지도 없음이 기본 — 매핑은 `map:=slam`, 위치추정은 `map:=saved`) · `operation:=MANUAL`(state_manager 시작 모드) · 테스트베드는 `fake_slam:=true`면 cuVSLAM·nvblox 대신 위 대역
 
 ---
 
@@ -150,12 +153,12 @@ flowchart TB
 | | `diff_drive_controller` | DiffDriveController | /cmd_vel → 바퀴 · 바퀴 odom | — |
 | | `joint_state_broadcaster` · `imu_sensor_broadcaster` | broadcaster | /joint_states · /imu | — |
 | `controller_server` (Nav2) | **`ml::RlNavController`** | Nav2 controller | 경로 따라가기 속도를 RL 정책이 직접 냄 (입력 51 = 경로점 · 가상 스캔 · 속도). **정책 학습 중 → 지금은 안쪽 DWB로 바이패스** | ✅ ml (visualkhh) |
-| | `dwb_core::DWBLocalPlanner` | Nav2 controller (RlNavController 안쪽) | 정책이 없을 때 대신 | — |
+| | `dwb_core::DWBLocalPlanner` (기본 · `inner_plugin`으로 `mppi` · `rpp` · `rotation_shim` 고를 수 있음, #92) | Nav2 controller (RlNavController 안쪽) | 정책이 없을 때 대신 — **주행 정책은 학습 중이라 지금은 이쪽이 돎** | — |
 | | `SimpleGoalChecker` · `SimpleProgressChecker` | Nav2 | 도착 · 진행 판정 | — |
 | `planner_server` | `NavfnPlanner` (A*) | Nav2 planner | 전역 경로 (`use_astar: true`) | — |
 | `behavior_server` | `Spin` · `BackUp` · `Wait` | Nav2 behavior | 복구 동작 | — |
 | `bt_navigator` | `NavigateToPoseNavigator` | Nav2 | navigate_to_pose 행동 트리 | — |
-| costmap (planner · controller 안) | `StaticLayer` · `ObstacleLayer` · `VoxelLayer` · `InflationLayer` | Nav2 costmap | 장애물 지도 | — |
+| costmap | 전역(planner 안): `StaticLayer` + `InflationLayer` (#92부터 `ObstacleLayer` 뺌 — 전역은 `/map`만) · 지역(controller 안): `VoxelLayer` + `InflationLayer` | Nav2 costmap | 전역 = 지도 기준 경로 · 지역 = 카메라 점구름으로 가까운 장애물 | — |
 | `move_group` | `pick_ik` | MoveIt IK | 5축 팔 IK (위치 우선) | — |
 
 ---
@@ -184,7 +187,7 @@ skill_approach (도킹 정책 4개, ≤0.12 m/s) ──────────�
 
 ---
 
-## 5. 11-04 이후 바뀐 것
+## 5. 11-04 이후 바뀐 것 (11-09까지)
 
 | 언제 · PR | 바뀐 것 | 노드 / 플러그인 |
 |---|---|---|
@@ -192,10 +195,18 @@ skill_approach (도킹 정책 4개, ≤0.12 m/s) ──────────�
 | 11-05 #65 | `rl_nav_correction` · `rl_nav_tuner` **삭제** · Nav2 컨트롤러를 `RlNavController`로 · twist_mux 입력 `/cmd_vel_nav` | 노드 2개 삭제 · 플러그인 추가 |
 | 11-05 직접 커밋 | stow 자세 `[0, −1.9024, 1.344, 0.9023, 0]` · 매핑 중 자동 스캔 자세 끔 | — |
 | 11-06 #75 | `twist_state` (상태 = 실제 각) · 중력 앞먹임 기본 켬 · skill 세우기·집기 실기 수정 · Isaac 폴더 재구성 (`isaac/scripts/standalone` · `isaac/usda` · `isaac/rl/bee_isaac`) | 플러그인 `BeebotSystemHardware` · `rl_arm_correction` |
+| 11-06 #76 | Isaac camera_info 발행 노드 끔 (메모리 계속 늘어나 25분 뒤 OOM) | Isaac 쪽 |
+| 11-06 #77 | 연결 안 된 정책 경로 삭제 (`rl_policy_node` · `plan/arm_ik` · `rl_segment` · `stand_geometry` · 정책 사본 · `gravity_comp`) · ml CMake 중복 정리 | 6절 |
+| 11-06 #78 | `stand_test` launch가 지워진 `rl_nav_correction`을 띄우던 것 · 옛 설명 | launch |
+| 11-06 #79 | mission_manager가 퍽을 tag로 기억 — 집기 직전에 트랙 다시 찾기 | 노드 `mission_manager` |
+| 11-07~08 #80 · #81 · #84 · #89 | inspect 상자 한 번 보기 · 인지(중복 퍽 합치기 · 태그 판독 재시도 · 차체 필터 · 퍽 중심 보정) · 적재함 칸 자세표 · 카메라 기울기 · joint1 영점 실측 | 노드 안 동작 (새 노드 없음) |
+| 11-08 #82~#92 | 테스트베드 `fake_cuvslam` · `fake_nvblox` · CLI 정리 · ONNX GPU 빌드 선택 · 전역 코스트맵 `ObstacleLayer` 뺌 · `map:=none` 기본 · `RlNavController` 안쪽 controller 선택 | faker 노드 추가 · 플러그인 설정 |
 
 ---
 
-## 6. 들어왔지만 연결 안 된 것 (#75) — 같은 일은 이미 다른 경로로 돈다 · PR #77로 삭제
+## 6. 들어왔지만 연결 안 된 것 (#75) — ✅ PR #77로 삭제됨 (11-06 병합)
+
+> 아래 표는 기록용 — develop에는 더 이상 없음. 같은 일은 표 오른쪽 경로가 함.
 
 동료가 11-04 세우기 실기 시험(`292ec509`)에서 만든 것으로, coordinator가 팔을 직접 움직이던 **#59 이전 구조**용 코드입니다.
 develop에 들어왔지만 빌드·실행 경로가 없고, **같은 일은 지금 구조에서 이미 다른 코드가 하고 있습니다** — 지워도 잃는 기능 없음.

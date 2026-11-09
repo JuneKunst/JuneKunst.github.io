@@ -6,7 +6,7 @@ const MENU = [
   { group: '현황', items: [
     { href: 'work-plan.html', title: '할 일 · 진행', desc: '실제 문제를 잘 풀기 위한 할 일 — 점수 구조 · P0~P2 · 진행 상태', updated: '11-06' },
     { href: 'wrapup-1103.html', title: '정리 · 결정 기록', desc: '정한 것 · 만든 것 · 학습 결과 · 노드 · 남은 일', updated: '11-06' },
-    { href: 'system-now.html', title: '지금 구조 — 흐름 · 노드 · 플러그인', desc: 'develop(#75 뒤) 전체 흐름 · 노드와 플러그인 구별 · 명령 경로 · 연결 안 된 코드 · 팔 정책 경로 결정', updated: '11-06' },
+    { href: 'system-now.html', title: '지금 구조 — 흐름 · 노드 · 플러그인', desc: 'develop(11-09) 전체 흐름 · 노드와 플러그인 구별 · 명령 경로 · 테스트베드 대역 · 바뀐 것', updated: '11-09' },
     { href: 'system-map.html', title: '전체 지도', desc: '학습부터 로봇까지 한 장 — 완료·진행·없음 색 표시', updated: '11-04' },
     { href: 'robot-spec.html', title: '로봇 스펙 · 성능표', desc: 'skill 성능 · 하드웨어 · 주기·지연 · QoS · 실기에서 조정할 값', updated: '11-04' },
   ]},
@@ -17,6 +17,7 @@ const MENU = [
     { href: 'skills.html', title: '학습 지도 (구조 → 미션 → 동작)', desc: '단계를 따라가며 보는 인터랙티브 지도', updated: '11-02' },
   ]},
   { group: '구조', items: [
+    { href: 'mission-solve.html', title: '문제 풀이 흐름 (planner · mission_solver)', desc: '미션 단계 · 정답 계산 · 할당 · BUILD 순서(rule · plan_next) · skill 결과 흐름도', updated: '11-09' },
     { href: 'policy-path.html', title: '팔 정책은 어디서 도나 — 두 방식 비교', desc: '컨트롤러 안 C++ vs 파이썬 노드 · 비교표 · 결정(A) · 약점과 막는 법', updated: '11-06' },
     { href: 'skill-nodes.html', title: 'skill 노드 구성', desc: 'skill마다 노드 하나 · 액션 /skills/<skill> · 정책은 skill이 관리', updated: '11-04' },
     { href: 'flow.html', title: '노드 흐름 (인터랙티브)', desc: '전체 노드 연결 — 연결을 누르면 메시지·역할 설명', updated: '11-02' },
