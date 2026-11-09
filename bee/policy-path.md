@@ -19,7 +19,7 @@ flowchart LR
     JTC{{"arm_controller (JTC)"}}:::plugin --> RAC{{"rl_arm_correction<br/>정책 계산 (50 Hz) · Δ 상한"}}:::plugin --> HW{{"BeebotSystemHardware"}}:::plugin
   end
   HRL["hand_relative"]:::node -->|"/hand_relative"| RAC
-  F[("model/skills/&lt;skill&gt;/&lt;skill&gt;.policy")]:::file -.-> RAC
+  F[("models/skills/&lt;skill&gt;/&lt;skill&gt;.policy<br/>(PR #97: 기본 .onnx)")]:::file -.-> RAC
   classDef node fill:#1d3a5c,stroke:#67b7e8,color:#e8eef8
   classDef plugin fill:#2b2340,stroke:#b48cf0,color:#e8eef8,stroke-dasharray:5 3
   classDef file fill:#3d3112,stroke:#e2a83a,color:#e8eef8
@@ -64,9 +64,9 @@ flowchart LR
 
 | 약점 | 막는 방법 | 상태 |
 |---|---|---|
-| `.pt` → `.policy` 변환이 틀리면 조용히 다르게 돎 | 같은 입력에 `.pt`와 `.policy`가 같은 출력인지 시험 (`plan_next`가 이미 이렇게 함) | ⏳ |
-| 관측을 C++로 다시 만듦 (예: #75 `twist_state`로 관측 해석이 바뀜) | skill 폴더 `meta.yaml`에 관측 구성 · 크기 · CI에서 확인 | ⏳ |
-| 실험은 B가 빠름 | "학습 → `.policy` 변환 → 같은 출력 시험"을 명령 하나로 | ⏳ |
+| `.pt` → `.policy` 변환이 틀리면 조용히 다르게 돎 | 같은 입력에 `.pt`와 `.policy`가 같은 출력인지 시험 (`plan_next`가 이미 이렇게 함) | 🔧 PR #97(열림): `.onnx`에 `.pt` 출력 검산 값을 넣어 불러올 때 확인 · `.policy`↔`.onnx` 같은 출력 시험 |
+| 관측을 C++로 다시 만듦 (예: #75 `twist_state`로 관측 해석이 바뀜) | skill 폴더 `meta.yaml`에 관측 구성 · 크기 · CI에서 확인 | ⏳ 크기만 — `test_skills`가 `layout`별 입력 크기 확인 (구성은 아직) |
+| 실험은 B가 빠름 | "학습 → `.policy` 변환 → 같은 출력 시험"을 명령 하나로 | 🔧 PR #97(열림): `export_onnx.py` 하나로 `.pt` → `.onnx` + 검산 값 |
 | 큰 모델이 오면 100 Hz 루프가 늦어짐 | 그때 다시 검토 (지금은 1 ms 미만) | — |
 | 실기에서 정책 보정을 켜고 끝까지 돌린 적 없음 | 실기 확인 | ⏳ 실기 |
 
@@ -80,7 +80,7 @@ flowchart LR
 | `plan/arm_ik` | 손이 아래를 보는 IK (수치해) | `skills/stand_plan` `ik_down` · `ik_down_sym` (해석해) → `ArmIO::ik_ee` · `ik_ee_yaw` |
 | `plan/rl_segment` | 시뮬과 같은 구간 시간표 + B 노드용 JSON | `ArmIO::contact_step` · `traj_step` · `stand_plan` `trapezoid_duration` · `move_s` |
 | `plan/stand_geometry` | 세우기 손끝 경로 · 받침 높이 맞추기 | `skills/stand_plan` `waypoints` · `plan_ik` (대각선 끌기 포함) · `stand_box_top_m` · `standing_grasp_z` |
-| `model/arm_correction/*.onnx` 10개 · `ml/policies/*` | B가 쓰려던 정책 사본 | `model/skills/<skill>/` |
+| `model/arm_correction/*.onnx` 10개 · `ml/policies/*` | B가 쓰려던 정책 사본 | `models/skills/<skill>/` (11-08 `ros2_ws/model/`에서 옮김) |
 | `isaac/scripts/calib/gravity_comp.py` | B의 `~/delta` 입력을 빌려 중력 앞먹임을 넣던 실험 스크립트 | `rl_arm_correction` `gravity_enabled` (기본 켬) |
 
 모두 #59 이전 구조(coordinator가 팔을 직접 움직이던 때)용이라 빌드 · 실행 경로가 없었고, 지워도 잃는 기능이 없습니다.

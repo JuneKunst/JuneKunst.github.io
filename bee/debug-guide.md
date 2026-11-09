@@ -1,7 +1,7 @@
 # 실기 디버깅 가이드 — 기록 · 보기 · 고치기
 
 > 2026-11-03 준비. 실기 실험에서 **문제를 빨리 찾고 → 보정·학습 설정을 고치는** 흐름입니다.
-> 코드: `feature/skill-all` (PR #57) — `rl_arm_correction` `~/debug` 토픽 · `lv2_module6/tool/bag/`
+> 코드 (11-09 develop `3a6d668` 확인): `rl_arm_correction` `~/debug` 토픽 · `lv2_module6/tools/bag/` (11-08 `tool/` → `tools/`)
 
 ---
 
@@ -20,8 +20,8 @@ flowchart LR
 
 | 도구 | 하는 일 | 설치 |
 |---|---|---|
-| `tool/bag/record.sh` | 기록 — 블랙박스(최근 N초만 메모리) · 전부 · 손으로 저장 | 저장소에 있음 (`rosbag2-storage-mcap` 필요) |
-| `tool/bag/snap_on_fail.py` | 실패를 보면 블랙박스를 파일로 | 저장소에 있음 |
+| `tools/bag/record.sh` | 기록 — 블랙박스(최근 N초만 메모리) · 전부 · 손으로 저장 | 저장소에 있음 (`rosbag2-storage-mcap` 필요) |
+| `tools/bag/snap_on_fail.py` | 실패를 보면 블랙박스를 파일로 | 저장소에 있음 |
 | `rl_arm_correction/debug` | 팔 보정이 매 순간 무엇을 했는지 (20 Hz) | 저장소에 있음 (`ml/ArmCorrectionDebug`) |
 | **Lichtblick** 1.30 | Foxglove 오픈소스 판 — 3D · 카메라 · 그래프 · 시간축 | ✅ Mac `/Applications/Lichtblick.app` · ✅ pa27 `~/apps/lichtblick-1.30.0-linux-x64/lichtblick` |
 | **PlotJuggler** 3.17 | 많은 신호를 빠르게 겹쳐 보기 (MCAP 바로 열기) | pa27 · 로봇: 아래 apt 명령 (sudo 필요) |
@@ -44,7 +44,7 @@ sudo apt install ros-lyrical-plotjuggler ros-lyrical-rosbag-timing-inspector
 
 로봇에서 (bringup과 같은 `ROS_DOMAIN_ID`):
 ```bash
-cd lv2_module6/tool/bag
+cd lv2_module6/tools/bag
 ./record.sh blackbox 60 &        # 최근 60 s만 메모리 (최대 400 MB) — 실험 내내 켜 둠, 디스크 안 참
 python3 snap_on_fail.py &        # 실패 → 3 s 더 담고 저장 (10 s 안에 또 오면 한 번)
 ./record.sh snap                 # "방금 이상했다" — 손으로 저장
@@ -52,7 +52,8 @@ python3 snap_on_fail.py &        # 실패 → 3 s 더 담고 저장 (10 s 안에
 ```
 - 저장 위치: `~/bee_bags/blackbox_<시각>/` (저장할 때마다 `.mcap` 하나) · `~/bee_bags/snapshots.tsv` = `시각 · 이유`
 - 자동 저장 이유: `/task/status` FAILED (`grasp_failed_all` · `nav_failed` …) · `/arm_safety_event` (과전류 접촉) · `/state/emergency`
-- 담는 토픽: 관절·TF·주행 명령·odom · 팔/그리퍼 컨트롤러 · `rl_arm_correction/debug` · `FollowPath` 디버그(`RlNavController`) · `skill_context` · `hand_relative*` · 모터 상태 · 미션·coordinator·task · skill 노드 진행(`/skills/*` 피드백·결과는 숨은 토픽 — `--include-hidden-topics`로 담김) · 검출 결과 · 진단 · rosout · Nav2 경로 · **압축 영상만** (원본 영상·점구름은 뺌 — 필요하면 `full`에 `--topics`로)
+- 담는 토픽: 관절·TF·주행 명령·odom · 팔/그리퍼 컨트롤러 · `rl_arm_correction/debug` · `skill_context` · `hand_relative*` · `arm_safety_event` · 모터 상태 · 미션·coordinator·task · 검출 결과 · 진단(`diagnostics_agg` — skill 노드 상태 포함) · rosout · Nav2 경로 · **압축 영상만** (원본 영상·점구름은 뺌 — 필요하면 `full`에 `--topics`로)
+- 11-09 확인: `record.sh` 토픽 목록(`TOPICS`)에 `FollowPath` 디버그(`/controller_server/FollowPath/debug`)와 `/skills/*` 액션 토픽은 **없음** — 필요하면 `TOPICS`에 추가
 - 노트북·pa27로 가져오기: `rsync -av robot:~/bee_bags/ ~/bee_bags/`
 
 pa27에서 시험함 (11-03): 가짜 `/joint_states` 50 Hz + `/state/emergency` → `snapshots.tsv`에 `emergency` 한 줄, 새 `.mcap` 생김.
@@ -65,6 +66,7 @@ pa27에서 시험함 (11-03): 가짜 `/joint_states` 50 Hz + `/state/emergency` 
 ```bash
 ros2 launch foxglove_bridge foxglove_bridge_launch.xml port:=8765     # 로봇에서
 ```
+- 띄우기 전에 워크스페이스 `install/setup.bash`를 source — 안 하면 `ml/ArmCorrectionDebug` 같은 우리 메시지를 못 풂 (foxglove_bridge는 저장소 launch에 없음 · 따로 띄움)
 Lichtblick → *Open connection* → Foxglove WebSocket → `ws://<로봇 IP>:8765`
 - 3D 패널: TF · 지도 · 경로 · `/mission/markers` · 검출 · 로봇 모델
 - 이미지 패널: 손 카메라 압축 영상 + 검출

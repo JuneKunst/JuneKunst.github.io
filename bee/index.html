@@ -25,11 +25,11 @@ a{color:#67d7e8}
 <body><main>
 <h1>BEE — 주사위 기억 미션 로봇</h1>
 <p class="lead">학습(Isaac Lab) → skill 노드 → 실제 로봇까지, 진행 상황과 설계를 모은 곳입니다. 코드: <a href="https://github.com/visualkhh/Lv2_bee_Assignment">visualkhh/Lv2_bee_Assignment</a></p>
-<div class="now"><b>지금 (11-04)</b>
+<div class="now"><b>지금 (11-09)</b>
 <ul>
-<li>skill마다 노드 하나로 구조 변경 — 정책은 skill 노드가 관리 (PR #59) · <a href="skill-nodes.html">skill 노드 구성</a> · <a href="system-map.html">전체 지도</a></li>
-<li>시뮬 성능: 학습 정책 9개 중 7개가 합격 기준(97 %) 넘음 · park_home 96.5 %는 기준선(81 %)보다 좋아 사용 · 세우기+다시 쥐기 78 %는 보류 · <a href="robot-spec.html">성능표</a></li>
-<li>다음: 플래너 재학습 (실제 성공률로) · 실기 bringup · <a href="debug-guide.html">실기 디버깅 준비</a></li>
+<li>develop <code>3a6d668</code> — 11-06 뒤 병합: #76 · #77 · #78 · #79(퍽을 tag로 기억) · #80 · #81 · #82 · #84 · #87 · #89 · #90 · #92 · #95 · <a href="mission-solve.html">문제 풀이 흐름</a> · <a href="work-plan.html">할 일 · 진행</a></li>
+<li>PR #97 열림 — 학습 정책 전부 ONNX Runtime이 기본, 정책마다 <code>.policy</code>로 되돌림 (CI 통과 · 실측 전) · <a href="onnx-runtime.html">ONNX 실행 구조</a></li>
+<li>PR #96 열림 — #83(load 뒤 바로 pick · 정책 입력 확장)이 <code>feat/inspect-box-look</code>에만 병합돼 develop으로 다시 올림 · <a href="debug-guide.html">실기 디버깅</a></li>
 </ul></div>
 <div id="site-hub"></div>
 </main></body></html>

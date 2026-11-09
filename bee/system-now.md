@@ -52,7 +52,7 @@ flowchart TB
       direction TB
       PL["planner_server"]:::node
       subgraph CS["controller_server"]
-        RLN{{"ml::RlNavController<br/>(정책 학습 중 → 지금은 inner DWB)"}}:::plugin
+        RLN{{"ml::RlNavController<br/>ONNX 정책 · 없으면 DWB"}}:::plugin
       end
       BT["bt_navigator · behavior_server"]:::node
     end
@@ -152,8 +152,8 @@ flowchart TB
 | | `gripper_controller` | ParallelGripperActionController | 그리퍼 · 쥐는 힘(전류) | — |
 | | `diff_drive_controller` | DiffDriveController | /cmd_vel → 바퀴 · 바퀴 odom | — |
 | | `joint_state_broadcaster` · `imu_sensor_broadcaster` | broadcaster | /joint_states · /imu | — |
-| `controller_server` (Nav2) | **`ml::RlNavController`** | Nav2 controller | 경로 따라가기 속도를 RL 정책이 직접 냄 (입력 51 = 경로점 · 가상 스캔 · 속도). **정책 학습 중 → 지금은 안쪽 DWB로 바이패스** | ✅ ml (visualkhh) |
-| | `dwb_core::DWBLocalPlanner` (기본 · `inner_plugin`으로 `mppi` · `rpp` · `rotation_shim` 고를 수 있음, #92) | Nav2 controller (RlNavController 안쪽) | 정책이 없을 때 대신 — **주행 정책은 학습 중이라 지금은 이쪽이 돎** | — |
+| `controller_server` (Nav2) | **`ml::RlNavController`** | Nav2 controller | 경로 따라가기 속도를 RL 정책이 직접 냄 — `models/rl_nav_controller/policy.onnx` (입력 375 = 경로점 10 · 가상 스캔 360 · 속도·직전 행동 5 → 출력 2, 11-06 `a525125`) · `enable: true` 기본 · **지금 파일은 중간본 — 최종 주행 정책은 팀원이 학습 중** · 모델이 없거나 점구름이 0.5 s보다 오래되면 안쪽 controller로 바이패스 · `~/FollowPath/toggle`로 켜고 끔 | ✅ ml (visualkhh) |
+| | `dwb_core::DWBLocalPlanner` (기본 · `fallback_controller`로 `mppi` · `rpp` · `rotation_shim` 고를 수 있음, #92) | Nav2 controller (RlNavController 안쪽) | 정책을 끄거나 모델·점구름이 없을 때 대신 (설정은 `FollowPath.inner.*`) | — |
 | | `SimpleGoalChecker` · `SimpleProgressChecker` | Nav2 | 도착 · 진행 판정 | — |
 | `planner_server` | `NavfnPlanner` (A*) | Nav2 planner | 전역 경로 (`use_astar: true`) | — |
 | `behavior_server` | `Spin` · `BackUp` · `Wait` | Nav2 behavior | 복구 동작 | — |
@@ -174,7 +174,7 @@ skill 노드 ─┬─ 빈 공간: move_group(pick_ik) ─┐
 
 **바퀴**
 ```
-Nav2: planner(NavFn A*) → controller_server[RlNavController → 지금은 DWB] ┐
+Nav2: planner(NavFn A*) → controller_server[RlNavController ONNX · 없으면 DWB] ┐
 skill_approach (도킹 정책 4개, ≤0.12 m/s) ──────────────────────────────┴→ /cmd_vel_nav
 → twist_mux(자동·수동 · 비상정지) → velocity_smoother → collision_monitor → /cmd_vel → diff_drive_controller → BeebotSystemHardware
 ```
@@ -228,6 +228,7 @@ develop에 들어왔지만 빌드·실행 경로가 없고, **같은 일은 지�
 ## 7. 팔 정책은 어디서 도나 — 결정 (11-06)
 
 > 두 방식 그림 · 자세한 비교: **[팔 정책은 어디서 도나 — 두 방식 비교](policy-path.html)** · 정리 PR #77
+> → 11-09: 도는 곳(컨트롤러 안)은 그대로 · 계산은 PR #97(열림)부터 ONNX Runtime(`.onnx`) 기본 — 아래 "C++ MLP · `.pt` → `.policy` 변환"은 `meta.yaml` `runtime: policy`로 되돌린 경우만. [ONNX 실행 구조](onnx-runtime.html)
 
 **배포 경로는 하나: skill 노드 → `/skill_context` → `rl_arm_correction`(컨트롤러 플러그인, C++)**
 

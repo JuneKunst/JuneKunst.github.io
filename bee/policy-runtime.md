@@ -1,6 +1,6 @@
 # 정책은 어떤 코드가 어떤 순서로 실행하나 (11-09 develop)
 
-> develop `a6e5072` 코드 기준. 파일 경로는 `lv2_module6/ros2_ws/src/` 기준, `파일:줄`은 그 시점 줄 번호.
+> develop `a6e5072` 코드 기준 (지금 develop `3a6d668`도 이 페이지 범위 코드는 같음 — #95는 인지만). 파일 경로는 `lv2_module6/ros2_ws/src/` 기준, `파일:줄`은 그 시점 줄 번호.
 > 관련: [팔 정책은 어디서 도나 — 두 방식 비교](policy-path.html) · [지금 구조 — 노드 · 플러그인](system-now.html) · [문제 풀이 흐름](mission-solve.html)
 > **11-09: 모든 정책을 ONNX로 실행하도록 바꾸는 PR #97** — 아래는 바꾸기 전(지금 develop) 구조. 바뀐 구조: **[ONNX 실행 구조](onnx-runtime.html)**
 

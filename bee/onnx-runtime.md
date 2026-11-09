@@ -2,7 +2,7 @@
 
 > PR [#97](https://github.com/visualkhh/Lv2_bee_Assignment/pull/97) (브랜치 `feat/onnx-all-policies` → develop) 기준. 파일 경로는 `lv2_module6/ros2_ws/src/` 기준.
 > 바꾸기 전 구조: [정책 실행 순서](policy-runtime.html) · 관련: [팔 정책은 어디서 도나](policy-path.html) · [지금 구조 — 노드 · 플러그인](system-now.html)
-> **상태:** PR 생성, CI 확인 중 · 로봇·시뮬 실측 전. **실측에서 ONNX가 나쁜 정책은 기존 `.policy`로 되돌림** (아래 5절)
+> **상태 (11-09):** PR 열림 · CI `testbed (aarch64-noble)` 통과 · 로봇·시뮬 실측 전. **실측에서 ONNX가 나쁜 정책은 기존 `.policy`로 되돌림** (아래 5절)
 
 ---
 
@@ -138,7 +138,7 @@ runtime: onnx         # onnx (기본, ONNX Runtime) | policy (같은 정책의 .
 ```
 
 - **두 파일이 같은 정책인지 시험** (`Policy.OnnxAndPolicyFilesAgree`): `.policy` · `.onnx` 쌍 10개가 같은 입력에 같은 출력 → 실측 차이는 **계산기 차이만**
-- 확인: 로그 `place: 정책 …/place_cell.onnx (place 모양 · onnx)`
+- 확인: 로그 `place_cell: 정책 …/place_cell.onnx (place 모양 · onnx)`
 - 실측으로 어느 쪽을 쓸지 정해지면 안 쓰는 쪽 파일을 그때 지움
 
 ---
@@ -180,7 +180,7 @@ flowchart LR
 
 | 일 | 상태 |
 |---|---|
-| CI `test-all` (빌드 · 시험) | ⏳ 확인 중 — 로컬 ROS 빌드는 못 함 |
+| CI `test-all` (빌드 · 시험) | ✅ 11-09 통과 (`testbed (aarch64-noble)`) |
 | 시뮬·실기 실측 (ONNX vs `.policy`, 정책별) | ⏳ — 나쁘면 5절로 되돌림 |
 | Jetson(arm64)에 ONNX Runtime 설치 가능한지 | ⏳ — 없으면 ONNX 정책은 꺼짐(기준 동작) · `runtime: policy`로 돌리면 ONNX 없이 동작 |
-| #83 (develop에 아직 없음) 새 입력 모양 pick_box 67 · unload_slot 58 | 들어오면 같은 규칙 — `export_onnx.py`로 내보내고 `meta.yaml` |
+| 새 입력 모양 pick_box 67 · unload_slot 58 — #83은 `feat/inspect-box-look`에만 병합, develop으로는 **#96(열림)** | 들어오면 같은 규칙 — `export_onnx.py`로 내보내고 `meta.yaml` |

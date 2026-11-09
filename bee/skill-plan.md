@@ -1,6 +1,8 @@
 # beebot 스킬·플랜 한 장
 
 > 주사위 기억 미션 · PR #48 skill · PR #49 미션 흐름 · 2026-11-03 기준
+>
+> 11-09 갱신: 11-04(#59)부터 skill 실행은 **skill 노드**(액션 `/skills/<skill>`, `skills` 패키지)가 합니다. coordinator는 계획 검증 · 단계 순서 · 물체 → 좌표 · 적재함 장부만 맡습니다. 학습 정책은 skill 노드가 `models/skills/<skill>/`에서 고르고, 팔 보정 Δ는 `rl_arm_correction`, 도킹 보정은 `skill_approach`가 계산합니다 → [skill 노드](skill-nodes.html) · [ONNX 실행 구조](onnx-runtime.html) · [지금 구조](system-now.html). 아래 1·5·6장의 "coordinator가 MoveIt으로 …"는 11-03 기록입니다.
 
 **미션은 순서를 정하고, coordinator는 skill 하나를 움직임으로 바꿉니다.**
 
@@ -194,14 +196,14 @@ flowchart TB
 
 경유점은 다시 잡기 2개를 포함해 27개입니다. 손은 내내 아래를 향하고, 손가락이 닫히는 축은 퍽 축과 직각입니다.
 
-### 경유점 두 방식 (`stand_waypoints`)
+### 경유점 두 방식 (`stand_waypoints` — 11-09: `skill_stand` 파라미터, `skills/config/skills.yaml`)
 
 | | `ik` (기본) | `table` |
 |---|---|---|
 | 방법 | 퍽마다 손끝 경유점을 계산하고, 5축 해석 IK로 관절값을 구함 | 팀원 표(모양 × 방향 5° × 옆 위치 3곳)에서 가까운 칸을 고르고 선형 보정 `q = q_nom + P·Δp` |
 | 손끝 오차 | 0 (팀원 수치 IK와 관절값 차이 0.0025 rad 이내) | 격자점 0.2mm, 격자 사이 평균 2.1mm, 최대 6.5mm |
 | 장점 | 어떤 위치·방향에도 대응 | 학습 때와 같은 궤적 |
-| 파일 | `plan/src/stand_plan.cpp` | `plan/config/stand_table.yaml` (`plan/scripts/stand_table_export.py`로 생성) |
+| 파일 | `skills/src/stand_plan.cpp` (11-03엔 `plan/src/`) | `skills/params/stand_table.yaml` (`skills/scripts/stand_table_export.py`로 생성 · 11-03엔 `plan/`) |
 
 MoveIt IK(pick_ik)는 위치만 맞추고 손 방향은 보장하지 않습니다. 그래서 세우기에는 해석 IK를 씁니다. 실행은 두 방식 모두 ExecuteTrajectory입니다.
 
@@ -210,7 +212,7 @@ MoveIt IK(pick_ik)는 위치만 맞추고 손 방향은 보장하지 않습니�
 ## 9. 예상 질문
 
 **강화학습 정책이 팔을 움직이나요?**
-아닙니다. 경로는 coordinator가 만들고, 정책은 `rl_arm_correction`에서 관절마다 작은 보정 Δ만 더합니다. 지금 develop은 Δ = 0입니다. 보정을 넣는 방식은 팀원이 정합니다.
+아닙니다. 경로는 coordinator(11-04부터 skill 노드)가 만들고, 정책은 `rl_arm_correction`에서 관절마다 작은 보정 Δ만 더합니다. 11-03 당시 develop은 Δ = 0이었습니다. → 11-09: 정책이 있는 skill(`meta.yaml` `use: true`)의 닿는 구간에서 `rl_arm_correction`이 50 Hz로 Δ를 계산합니다(`ml/src/rl_arm_correction.cpp`). 어느 정책을 쓸지는 skill 노드가 `/skill_context`로 알려 줍니다.
 
 **왜 coordinator가 순서를 정하지 않나요?**
 순서는 미션마다 다르고, 앞 결과에 따라 바뀝니다. coordinator가 skill 하나만 책임지면 VLM과 ai-service도 같은 skill을 그대로 쓸 수 있습니다.

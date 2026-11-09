@@ -2,6 +2,7 @@
 
 > 2026-11-04 · PR [#59](https://github.com/visualkhh/Lv2_bee_Assignment/pull/59) (`feature/skill-nodes` → `feature/skill-all`) · pa27 빌드·테스트 66개 통과 · 실기·전체 bringup 전
 > 코드: `lv2_module6/ros2_ws/src/skills/` (새 패키지) · `plan/action/Skill.action` · `plan/src/coordinator.cpp` · 정책 `lv2_module6/ros2_ws/model/skills/`
+> → 11-09: #59 develop 병합 · 노드 9개 · 컨테이너 2개 그대로 (develop `3a6d668` + PR #97 확인) · 정책 폴더는 11-08부터 `lv2_module6/models/skills/`
 
 ---
 
@@ -68,7 +69,7 @@ flowchart TB
 
 ## 3. skill 노드 9개
 
-| 액션 | 노드 | 하는 일 | goal에 쓰는 칸 | 정책 (`model/skills/`) | 실패 이유 |
+| 액션 | 노드 | 하는 일 | goal에 쓰는 칸 | 정책 (`models/skills/`) | 실패 이유 |
 |---|---|---|---|---|---|
 | `/skills/navigate` | `skill_navigate` | Nav2로 먼 이동 | `pose` | — | `nav_failed` · `nav_unavailable` |
 | `/skills/approach` | `skill_approach` | 마지막 몇 cm 정밀 주행 (시뮬 기준 제어 + 보정) | `pose` (x, y, yaw) · `target` = 정책 이름 | `dock_box`(기본) · `park_home` · `drive_arc` · `drive_straight` | `approach_blocked` · `approach_no_tf` |
@@ -138,6 +139,8 @@ sequenceDiagram
 
 ## 6. 확인한 것 · 남은 것
 
+> 11-04 기록 — #59는 그 뒤 develop에 병합됨.
+
 | | 상태 |
 |---|---|
 | 빌드 · 테스트 (pa27, ROS Lyrical) | ✅ ml · plan · skills 66개 — coordinator → skill 액션 → 장부 (새) · 정책 폴더 검사 · 잡기 판정 · 세우기 경유점 |
@@ -152,12 +155,12 @@ sequenceDiagram
 
 ## 7. skill 37개는 로봇에서 어디서 도나
 
-skill 37개는 **학습·평가 단위**(`learning/skills.yaml`), skill 노드 9개는 **계획 한 단계를 실행하는 단위**(`SubGoal` 동사)입니다. 그래서 1:1이 아닙니다 — 한 노드 안에 skill 여럿이 들어가거나(정책 여러 개 · 동작의 한 구간), 기존 노드가 맡습니다. onnx와는 상관없습니다 (로봇은 같은 가중치를 `.policy`로 C++에서 계산, `.onnx`는 원본 보관).
+skill 37개는 **학습·평가 단위**(`learning/skills.yaml`), skill 노드 9개는 **계획 한 단계를 실행하는 단위**(`SubGoal` 동사)입니다. 그래서 1:1이 아닙니다 — 한 노드 안에 skill 여럿이 들어가거나(정책 여러 개 · 동작의 한 구간), 기존 노드가 맡습니다. 실행 방식과는 상관없습니다 — PR #97(열림)부터 로봇은 `.onnx`를 ONNX Runtime으로 계산 (기본), `meta.yaml` `runtime: policy`면 같은 가중치의 `.policy`를 C++로 ([ONNX 실행 구조](onnx-runtime.html)).
 
 | 어디서 | skill | 개수 |
 |---|---|---|
 | **skill 노드 (학습 정책)** | `skill_approach`: dock_box · park_home · drive_arc · drive_straight · `skill_pick`: pick_standing_puck · `skill_place`: place_cell · `skill_load`: load_slot · `skill_unload`: unload_slot · `skill_stand`: stand_lying_puck · regrasp_after_stand (보류) | 10 |
-| **skill 노드 (동작의 한 구간 · 기준 동작으로 충분)** | `skill_pick` 앞 구간: pregrasp · `skill_pose`: move_pose · camera_clear_view (scan) · `skill_inspect`: camera_look_down · `skill_approach`: drive_turn (기준 제어의 돌기) · `skill_navigate`: navigate (Nav2) | 6 |
+| **skill 노드 (동작의 한 구간 · 기준 동작으로 충분)** | `skill_pick` 앞 구간: pregrasp · `skill_pose`: move_pose · camera_clear_view (scan) · `skill_inspect`: camera_look_down · `skill_approach`: drive_turn (기준 제어의 돌기) · `skill_navigate`: navigate (Nav2 — 경로 따라가기는 Nav2 안 `RlNavController` 정책, 37개 밖) | 6 |
 | **팔 공통 · 보정 컨트롤러** | compensate_sag (`rl_arm_correction` 처짐 적분) · grip_force (팔 공통 `grip_current_a`) | 2 |
 | **인지 노드** | detect_puck · classify_color · classify_shape_pose (YOLO, perception) · read_puck_tag · detect_location_box (AprilTag, perception) · read_signal_barcode (signal_decoder · perception) · judge_cell (mission_manager 재확인) | 7 |
 | **상태·비상** | monitor_battery · monitor_current · monitor_motor (하드웨어 진단 · arm_safety_monitor) · detect_tip_impact · estop (state_manager · twist_mux) · basket_ledger (coordinator 장부) | 6 |

@@ -1,6 +1,6 @@
 # 문제 풀이 흐름 — mission_manager · mission_solver · planner (11-09 develop)
 
-> develop `a6e5072` 코드 기준 (`plan/src/mission_manager.cpp` · `plan/src/mission_solver.cpp` · `plan/config/plan.yaml`).
+> develop `3a6d668` 코드 기준 (`plan/src/mission_manager.cpp` · `plan/src/mission_solver.cpp` · `plan/config/plan.yaml`) — `a6e5072`과 plan 코드 같음 (#95는 인지만). plan_next 파일 이름만 PR #97(열림) 기준.
 > 관련: [지금 구조 — 노드 · 플러그인](system-now.html) · [skill 노드 구성](skill-nodes.html) · [할 일 · 진행](work-plan.html) · 발제: `documents/mission/README.md`
 
 ---
@@ -114,8 +114,8 @@ flowchart TD
 flowchart TD
   B0["박스 b (1 → 6 차례로)"] --> G1["go_near: navigate (변 바깥 0.25 m) → approach dock_box (변에서 8.5 cm)"]
   G1 -->|실패| NX["기록 · 다음 박스"]
-  G1 --> I1["inspect 퍽 두 자리 (박스 중심 x ± 40 mm)"]
-  I1 --> R1["자리마다 match_radius 4 cm 안 · tag 읽은 퍽 → tag · 색 · 모양 · 누움 기억 (#79)"]
+  G1 --> I1["inspect 상자 한 번 (박스 중심 · look 자세, #80)<br/>실패해도 본 것만으로 계속"]
+  I1 --> R1["퍽 두 자리 (박스 중심 x ± 40 mm)마다 match_radius 4 cm 안 · tag 읽은 퍽 → tag · 색 · 모양 · 누움 기억 (#79)"]
   R1 --> L0{"적재함에 빈 칸?"}
   L0 -->|없음| NX
   L0 -->|있음| GR["grab(tag): 집기 직전에 트랙 다시 찾기<br/>누웠으면 stand → stand_pick · 아니면 pick"]
@@ -174,9 +174,11 @@ flowchart TD
 flowchart LR
   V0["장소 L1 · L2 · L3"] --> V1["장소 앞 → inspect (사진)"] --> V2["judge_location<br/>중심 15 cm 안 · 새로 본 퍽만<br/>칸별 10 mm 판정"]
   V2 --> V3["global_check<br/>12개 tag 중복 · 누락"] --> V4["verify.json (재검증 8점)"]
-  V4 --> R1["pose stow → navigate 출발 구역 가운데 → approach park_home"] --> R2{"footprint_in_zone<br/>차체 네 모서리가 구역 안?"}
+  V4 --> R1["pose stow → navigate 출발 구역 가운데"] --> R2{"footprint_in_zone<br/>차체 네 모서리가 구역 안?"}
   R2 -->|예| R3["3초 정지 → DONE"]
-  R2 -->|아니오| R4["보정 이동"] --> R2
+  R2 -->|아니오| R4["한 번 보정: approach park_home"] --> R5{"구역 안?"}
+  R5 -->|"예"| R3
+  R5 -->|"아니오"| R6["그대로 3초 정지<br/>footprint_out_of_zone 기록"]
 ```
 
 ---
@@ -187,7 +189,7 @@ flowchart LR
 |---|---|---|---|
 | `navigate` | Nav2 먼 이동 | 목표 근처 | `nav_failed` |
 | `approach` | 마지막 몇 cm (돌기-직진-돌기 + 도킹 정책) | 도킹 자리 (1 cm · 1.5°) | `approach_blocked` · `approach_no_tf` · `approach_bad_policy` |
-| `pose` | 이름 붙은 팔 자세 (stow · scan · carry) | 그 자세 | `pose_unknown` |
+| `pose` | 이름 붙은 팔 자세 (stow · carry_left · carry_right · look · scan) | 그 자세 | `pose_unknown` |
 | `inspect` | 점 위에서 내려다보기 | 인지 트랙에 tag · 색 · 모양 | `inspect_failed` · `inspect_partial` · `inspect_no_look_pose` |
 | `pick` | 파지 후보 → 내려가 쥐기 → 들기 (닿는 구간 정책 보정) | 퍽이 손에 | `no_grasp` · `pick_no_target` · `grasp_empty` · `arm_contact` |
 | `stand` · `stand_pick` | 누운 퍽 세우기 → 그 자리에서 쥐기 | 선 퍽이 손에 | `stand_no_tf` · `stand_pick_no_stand` (미션: `stand_still_lying`) |

@@ -18,10 +18,10 @@
 ### 정한 것
 | # | 결정 | 이유 |
 |---|---|---|
-| 16 | **물체 기억은 mission_manager** — 퍽은 tag와 조사한 자리로 기억, 트랙 id는 집기 직전에 다시 찾음 (PR #72) | 인지는 "본 것만" (11-04 결정) · coordinator·skill은 실행부 |
+| 16 | **물체 기억은 mission_manager** — 퍽은 tag와 조사한 자리로 기억, 트랙 id는 집기 직전에 다시 찾음 (PR #72) → 11-09: #79로 develop 병합 (11-07) | 인지는 "본 것만" (11-04 결정) · coordinator·skill은 실행부 |
 | 17 | 중력 보정은 **하드웨어 인터페이스에서 명령 · 상태 양쪽**이 맞음 (제안 — 송정혁과 협의) | 명령만 고치면 TF · 자세 확인 · 정책 입력이 어긋남 |
 | 18 | 보정은 **오차가 생기는 층에 하나씩** — 한곳에 모으지 않음 (보는 곳 = 디버그 토픽은 모음) | 주기·책임이 다름 · 끄고 켜서 원인 나누기 |
-| 19 | **팔 정책 배포 경로는 하나** — skill 노드 → `/skill_context` → `rl_arm_correction`(컨트롤러 플러그인 안 C++). #75로 함께 들어온 파이썬 정책 노드(`rl_policy_node.py`) · `plan/arm_ik` · `rl_segment` · `stand_geometry` · 정책 사본은 #59 이전 구조용이라 연결 안 됨 — 같은 일은 skills 쪽이 이미 함 → 정리 대상 | 시뮬과 같은 타이밍(제어 주기 안 계산) · 실패하면 Δ = 0 · Jetson에 PyTorch 불필요. 약점(변환 · C++ 관측)은 같은 출력 시험 · `meta.yaml` 관측 확인으로 막음 — [두 방식 비교](policy-path.html) · 정리 PR #77 |
+| 19 | **팔 정책 배포 경로는 하나** — skill 노드 → `/skill_context` → `rl_arm_correction`(컨트롤러 플러그인 안 C++). #75로 함께 들어온 파이썬 정책 노드(`rl_policy_node.py`) · `plan/arm_ik` · `rl_segment` · `stand_geometry` · 정책 사본은 #59 이전 구조용이라 연결 안 됨 — 같은 일은 skills 쪽이 이미 함 → 정리 대상 | 시뮬과 같은 타이밍(제어 주기 안 계산) · 실패하면 Δ = 0 · Jetson에 PyTorch 불필요. 약점(변환 · C++ 관측)은 같은 출력 시험 · `meta.yaml` 관측 확인으로 막음 — [두 방식 비교](policy-path.html) · 정리 PR #77 → 11-09: 11-06 병합 |
 | 20 | 중력 처짐은 **상태 = 하드웨어(`twist_state`) · 명령 = 컨트롤러 앞먹임**으로 나눔 (#75, 둘 다 기본 켬) | TF · MoveIt · 손 카메라 위치가 실제 팔과 맞음 → 카메라 hand-eye 보정은 이 뒤 |
 
 ### 지금 주행 명령 경로
@@ -37,7 +37,7 @@
 | # | 결정 | 이유 |
 |---|---|---|
 | 11 | **skill마다 노드 하나** — coordinator가 하던 팔·주행 동작을 skill 노드 9개로 (`/skills/<skill>` 액션). coordinator는 계획 검증·순서·적재함 장부·모드 취소만 | skill 단위로 고치고·바꾸고·시험하기 · coordinator가 너무 큼 (1645줄) |
-| 12 | **학습 정책은 skill 노드가 갖고 관리** — `model/skills/<skill>/` (`.policy` · `.onnx` · `meta.yaml`). 팔 정책 **계산은 그대로 제어 루프 안** (skill 노드가 정책 경로를 알려 줌) · 주행 정책은 `skill_approach`가 직접 | 노드에서 팔 정책을 계산하면 지연·흔들림으로 시뮬과 달라짐 · 주행은 원래 20 Hz 노드라 그대로 |
+| 12 | **학습 정책은 skill 노드가 갖고 관리** — `model/skills/<skill>/` (`.policy` · `.onnx` · `meta.yaml`) → 11-09: 11-08 `lv2_module6/models/skills/`로 옮김. 팔 정책 **계산은 그대로 제어 루프 안** (skill 노드가 정책 경로를 알려 줌) · 주행 정책은 `skill_approach`가 직접 | 노드에서 팔 정책을 계산하면 지연·흔들림으로 시뮬과 달라짐 · 주행은 원래 20 Hz 노드라 그대로 |
 | 13 | 프로세스는 두 컨테이너 (팔 `arm_skills` · 주행 `base_skills`) | Jetson 부담 · 팔은 한 번에 하나 |
 | 14 | 동료 정책 `park_home` · `drive_arc` 사용, `regrasp_after_stand`(78.2 %)는 보류 (`use: false`) | 합격 기준 · 로봇 입력 모양 없음 |
 | 15 | Nav2 전역 경로 A* (PR #58) · L2 장소 박스 205 (운영 확인) · 처짐 적분 발열 방지 (stow에선 풂 · 막히면 풂) | |
@@ -68,7 +68,7 @@
 | 4 | **배포 방식**: 빈 공간 이동은 MoveIt·Nav2 그대로, **퍽에 닿는 짧은 구간과 상자 앞 도킹만 시뮬과 같은 기준 동작 + 학습 보정** (11-02 "팔은 전부 MoveIt"에 닿는 구간만 예외) | 잔차 정책은 학습 때 쓴 기준 동작 위에서만 맞음 · Plan-Seq-Learn · ManipGen과 같은 구조 |
 | 5 | 로봇에 없던 정책 입력(손 카메라 상대값)은 **인식에서 만들어 줌** (정책 그대로) | 다시 학습하지 않으려고 |
 | 6 | 정책 계산은 **ONNX 런타임 없이 C++로 직접** (`.policy` 파일) — **11-09 바뀜: PR #97 기본 ONNX Runtime, 정책마다 `.policy`로 되돌림 ([ONNX 실행 구조](onnx-runtime.html))** | 정책이 작은 MLP · Jetson에 설치할 것 없음 · 실시간 루프 안전 |
-| 7 | **처짐 적분은 팀원(송정혁) 방식**: 시간 기준 · reference 멈춤일 때 · 4.2/s · `~/reset_sag` · skill과 상관없이 늘 — 그 위에 학습 보정 | 늘 처짐을 고쳐 주고 coordinator가 이미 reset_sag를 부름 |
+| 7 | **처짐 적분은 팀원(송정혁) 방식**: 시간 기준 · reference 멈춤일 때 · 4.2/s · `~/reset_sag` · skill과 상관없이 늘 — 그 위에 학습 보정 | 늘 처짐을 고쳐 주고 coordinator가 이미 reset_sag를 부름 → 11-09: 지금은 팔 skill 노드(`ArmIO::reset_sag` — pick · place · load · unload · stand 시작)가 부름 |
 | 8 | skill 이름에 퍽 상태를 드러냄: `pick_standing_puck`(서 있는 퍽 집기, 예전 `pick_upright`) · `stand_lying_puck`(누운 퍽 세우기, 예전 `stand_up`) · `regrasp_after_stand` · `stand_puck_in_cell` · `--task pick_standing` / `stand_lying` (예전 이름도 됨) | `upright`·`right`·`stand`가 헷갈림 |
 | 10 | 합격 기준 못 넘은 `load_slot`(놓침 1.0 %) · `pregrasp`(95.4 %)는 **재학습** — 놓침 벌점 5→20 · 못 가는 목표 빼고 멈춤 시간 늘림 | 기준: 성공 ≥ 97 % · 되돌릴 수 없는 실패 ≤ 0.5 % |
 | 9 | PR은 **따로 (A안)** + 한꺼번에 합쳐 보는 **통합 PR**도 | 리뷰는 나눠서, 시험은 합쳐서 |
@@ -122,6 +122,7 @@
 | 🆕 파일 | `ros2_ws/model/arm_correction/*.policy` · `nav_correction/*.policy` · `plan/plan_next.policy` | 학습 결과물 |
 
 학습 모델은 새 노드를 만들지 않고 **기존 노드 3곳 안에서** 돕니다: `rl_arm_correction` · `rl_nav_correction` · `mission_manager`.
+→ 11-09: 도킹 정책은 `skill_approach`(11-04) · `rl_nav_correction`은 #65로 삭제 · Nav2 주행은 `RlNavController` · 파일은 `lv2_module6/models/` — [정책 실행 순서](policy-runtime.html)
 
 ---
 

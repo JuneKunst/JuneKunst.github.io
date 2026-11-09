@@ -46,6 +46,8 @@ flowchart LR
 | ③ 시뮬 미션 | Isaac Lab 실행기로 무작위 문제 끝까지 (#1 20점, #7 10점) · Isaac Sim 디지털 트윈(전체 ROS · SLAM)은 10-30 기동 확인 | 점수를 깎는 건 skill 실패 · 디지털 트윈엔 출제 스크립트 · skill 노드 반영 필요 |
 | ④ 로봇 | **skill 노드 구조** (PR #59): skill마다 노드 · 정책은 skill이 관리 · 테스트 66개 · 노드 9개 기동 | **실기 · 전체 bringup 시험 전** · PR 병합 · #57은 isaac-setup과 자산 충돌 정리 필요 |
 
+> → 11-09: #59 develop 병합 · 디지털 트윈 #62는 develop에 없음 · 지금 구조는 [지금 구조](system-now.html)
+
 ---
 
 ## 2. 미션은 어떻게 풀리나 — 계산기 · 플래너 · task · skill
@@ -70,13 +72,15 @@ flowchart TB
 | 플래너 | ✅ `plan_next` 학습 · 미션 실행기에서 사용 | 🔵 C++ `plan_next` + mission_manager `planner` 파라미터 (기본 `rule`) — PR #55 · Python과 40개 상태 모두 같은 행동 |
 | task 흐름 | ✅ 미션 실행기 | 🟡 `mission_manager` — PR #49 열림 |
 
+> → 11-09: #49 · #55 병합 — `mission_solver` · `mission_manager` · `plan_next` 모두 develop에 있음 (`planner` 기본 `rule`)
+
 ---
 
 ## 3. 로봇에서 한 skill이 움직이는 길 (11-04 skill 노드 구조)
 
-> **11-06 최신 구조(노드 · 플러그인 구별, #65 · #75 반영): [지금 구조](system-now.html)** — 아래는 11-04 기준
+> **지금 구조 (11-09 develop + PR #97, 노드 · 플러그인 구별): [지금 구조](system-now.html)** — 아래는 11-04 기준
 
-> 자세히: [skill 노드 구성](skill-nodes.html) — skill마다 노드 하나 (`/skills/<skill>` 액션) · 정책은 skill 노드가 갖고 관리 (`model/skills/<skill>/`)
+> 자세히: [skill 노드 구성](skill-nodes.html) — skill마다 노드 하나 (`/skills/<skill>` 액션) · 정책은 skill 노드가 갖고 관리 (`models/skills/<skill>/`)
 
 ```mermaid
 flowchart LR
@@ -108,7 +112,7 @@ flowchart LR
 | 닿는 구간 = 시뮬과 같은 IK 궤적 | 🔵 skill 노드 (pick · place · load · unload) | 실기 · 세우기는 기준 동작만 |
 | `rl_arm_correction` (**플러그인** — 정책 계산 · 처짐 적분 · 앞먹임 · 발열 방지) | ✅ develop · 11-06 중력 앞먹임 기본 켬 · 상태는 하드웨어 플러그인이 실제 각으로(`twist_state`) | 실기 |
 | 주행 정책 (dock_box · park_home · drive_arc · drive_straight) | 🔵 `skill_approach`가 직접 계산 | 실기 |
-| mission_manager · mission_solver | ✅ develop (#49) | 물체 기억 (tag) — #75 뒤 다시 올림 |
+| mission_manager · mission_solver | ✅ develop (#49) · 물체 기억(tag) #79 (11-06) | 실기 |
 
 ---
 
@@ -152,7 +156,7 @@ flowchart TB
 | 순서 | 단계 | 맡는 skill 노드 | 🧠 학습된 모델 (어디서 · 무엇을) | 끝 판정 |
 |---|---|---|---|---|
 | 0 | (고르기) | mission_manager | **`plan_next`** — mission_manager 안 (`planner: plan_next`일 때) | — |
-| ① | `navigate` | `skill_navigate` → Nav2 | 없음 | L1 앞 도착 |
+| ① | `navigate` | `skill_navigate` → Nav2 | **`rl_nav_controller`** — Nav2 `controller_server` 안 `RlNavController` 플러그인 (ONNX, 없으면 DWB) | L1 앞 도착 |
 | ② | `approach` (dock_box) | `skill_approach` | **`dock_box`** — skill_approach가 직접 (20 Hz). 기준 속도 명령에 Δv·Δw | 1 cm · 1.5° 안 0.5 s 정지 (정책 meta) |
 | ③ | `unload` 칸 5 | `skill_unload` (칸·모양은 coordinator 장부) | **`unload_slot`** — rl_arm_correction (skill_unload가 경로를 알려 줌). 닿는 구간만 | 퍽이 손 안 (전류 + 손가락 위치) |
 | ④ | `place` 칸 4 | `skill_place` | **`place_cell`** — 같은 방식 | `judge_cell` (규칙): 칸 중심 10 mm 안 |
@@ -163,6 +167,7 @@ flowchart TB
 |---|---|---|---|
 | `plan_next` | mission_manager | skill 하나 끝날 때 | 규칙 순서 |
 | 주행 정책 4개 | **skill_approach** (노드) | 20 Hz | 기준 제어만 |
+| `rl_nav_controller` (Nav2 경로 따라가기) | Nav2 `controller_server` 안 `RlNavController` 플러그인 | 20 Hz | 안쪽 DWB |
 | 팔 정책 4개 | rl_arm_correction (컨트롤러) — **정책 파일은 skill 노드가 관리·지정** | 100 Hz 루프, 정책 50 Hz | 기준 궤적만 |
 | YOLO | perception | 카메라당 ≤ 4 Hz | — |
 
@@ -277,6 +282,8 @@ flowchart TB
 
 전체: pa27 ROS Lyrical — ml · plan · skills 테스트 66개 통과. 실제 로봇·전체 bringup에서는 아직 안 돌려 봄.
 
+> → 11-09: 위 "PR 병합 #49 · #54 · #58 · #59"는 끝남 (#54 hand_relative는 #49에 들어감) · 지금 구조는 [지금 구조](system-now.html)
+
 ---
 
 ## 4. skill 37개 지도 — 영역별 상태 (19:50)
@@ -320,6 +327,8 @@ flowchart TB
 
 <details>
 <summary>▶ skill 37개 전체 표 (상태·결과물)</summary>
+
+> → 11-09: 아래 정책 파일 경로는 옛 이름 — 지금은 `models/skills/<skill>/` (`.onnx` 기본 · `.policy` · `meta.yaml`) · `plan_next`는 `models/plan/` · `arm_correction/` · `nav_correction/`은 없음. 성능: [robot-spec](robot-spec.html)
 
 | 영역 | skill | 방식 | 시뮬 환경 | 기준선 → 학습 뒤 | 로봇 정책 파일 |
 |---|---|---|---|---|---|
@@ -377,6 +386,8 @@ flowchart LR
 
 ## 6. 남은 일 — 순서대로 (11-04)
 
+> → 11-09: "PR 병합"은 끝남 (#62 디지털 트윈만 develop에 없음)
+
 ```mermaid
 flowchart LR
   g6_P["PR 병합<br/>#59 → skill-all · #49 · #54 · #58"]:::wip --> g6_F["실기 · 전체 bringup 시험<br/>보정 끈 채로 → skill 하나씩 켜기"]:::no
@@ -400,6 +411,8 @@ flowchart LR
 ---
 
 ## 7. 브랜치 · PR · 파일 위치 (11-04)
+
+> → 11-09: #59 병합 (develop) · #62는 develop에 없음
 
 | PR | 브랜치 → base | 상태 | 들어 있는 것 |
 |---|---|---|---|

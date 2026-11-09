@@ -1,6 +1,7 @@
 # beebot 학습용 skill 구성과 학습 플랜
 
 > 주사위 기억 미션 · 2026-11-03 정리. 아직 결정 중인 문서입니다. **확인 필요** 표시가 붙은 것은 정해지지 않았습니다.
+> 11-09 갱신: skill 목록은 develop `lv2_module6/learning/skills.yaml`(37개), 플래너 코드는 `learning/plan/`에 있습니다. 로봇에 올린 정책과 그 성공률은 [skill별 학습 조건 7장](skill-training.html)을 보세요.
 > 표 아래의 ▶ 줄을 누르면 skill마다 자세한 내용(하는 일 · 시작 조건 · 성공 판정 · 보상 함수 · 이유)이 펼쳐집니다.
 
 ---
@@ -86,7 +87,7 @@ task는 미션 규칙의 수행 순서와 채점 항목에서 나눴습니다. *
 
 **학습 방식**
 - **RL**: 강화학습. 기존 방식(기준선) 위에 학습한 보정을 더합니다. 학습이 잘 안 돼도 기존 방식만큼은 동작합니다.
-- **YOLO (학습됨)**: 팀 YOLO 모델(`bee_yolo11n_v3`)에 이미 들어 있음. 틀리는 게 보이면 데이터를 더 모아 다시 학습합니다.
+- **YOLO (학습됨)**: 팀 YOLO 모델(`bee_yolo11n_v3`)에 이미 들어 있음 (→ 11-09: perception 기본은 `bee_yolo11n_v4.pt` = v3 + 로봇 카메라 실물 531장, `perception/config/perception.yaml`). 틀리는 게 보이면 데이터를 더 모아 다시 학습합니다.
 - **규칙**: AprilTag·바코드 디코드, 거리 계산, 문턱값처럼 규칙으로 정확히 풀리는 것. 실기에서 틀리면 그때 학습합니다.
 - **측정 모델**: 실기 측정 데이터로 관계를 학습합니다.
 - **학습 없음**: 기록이나 버튼.
@@ -398,12 +399,14 @@ flowchart LR
 
 그 전까지는 지금 mission_manager로 미션을 돌립니다.
 
+→ 11-09: mission_manager는 `planner: plan_next`로 BUILD 순서를 학습된 플래너에 맡길 수 있습니다. 기본은 `rule`, 정책은 `models/plan/plan_next.onnx` (`plan/config/plan.yaml`).
+
 </details>
 
 <details>
 <summary>▶ 순서 정하기 — 계산기 방식과 학습 방식 둘 다 준비</summary>
 
-"어느 박스부터, 몇 개 싣고, 어느 장소부터"는 두 가지 방법으로 고를 수 있게 해 두었습니다. 같은 가상 미션에서 바꿔 끼워 비교합니다. 코드: `lv2_module6/learning/plan/` (브랜치 `feature/skill-learning`).
+"어느 박스부터, 몇 개 싣고, 어느 장소부터"는 두 가지 방법으로 고를 수 있게 해 두었습니다. 같은 가상 미션에서 바꿔 끼워 비교합니다. 코드: `lv2_module6/learning/plan/` (브랜치 `feature/skill-learning` → 11-09: develop에 있음).
 
 | | 계산기 (`solver.py`) | 학습 모델 (`plan_next`) |
 |---|---|---|
@@ -520,7 +523,7 @@ flowchart LR
 |---|---|
 | Isaac Lab 3.0 (manager-based) · rsl_rl | 지금 씀 |
 | W&B | 지금 씀 — 4대 결과를 한 화면에서 |
-| ONNX Runtime | 지금 씀 — Jetson에서 모델 실행 |
+| ONNX Runtime | 지금 씀 — Jetson에서 모델 실행 (→ 11-09: develop에선 Nav2 `RlNavController`만 ONNX Runtime, 나머지 정책은 `.policy` · PR #97에서 전부 `.onnx` 기본 → [ONNX 실행 구조](onnx-runtime.html)) |
 | Ray · Isaac Lab Mimic · Isaac ROS Deploy · BehaviorTree.CPP | 나중 |
 | Eureka 원본 | 안 씀 (Isaac Gym 전용) — "LLM이 보상 초안 → 사람 검토" 방식만 참고 |
 | Awesome-LLM-Robotics 도구 목록 | 해당 없음 (LLM·VLA 연구용) — 논문 목록만 참고 |

@@ -2,7 +2,9 @@
 
 움직이는 skill마다 **Isaac Lab 학습 환경 하나**를 두고, 같은 방식으로 학습합니다. 이 페이지는 skill마다 **무엇에서 시작해서, 무엇을 배우고, 어떻게 점수를 받는지**를 정리합니다.
 
-- 코드: 브랜치 `feature/skill-envs` · `lv2_module6/isaac/lab/` (팀원 `feature/isaac-lab` 위에 추가)
+> 11-09 갱신: 학습 코드는 develop `lv2_module6/isaac/rl/bee_isaac/tasks/*_env.py` · 실행 `isaac/scripts/train.py` · `train_queue.sh`입니다. 로봇 정책은 `lv2_module6/models/skills/<skill>/` (`<skill>.onnx` 기본 · PR #97, `meta.yaml`) → 7장 끝 · [ONNX 실행 구조](onnx-runtime.html). 아래 결과·기록은 11-03 기준입니다.
+
+- 코드: 브랜치 `feature/skill-envs` · `lv2_module6/isaac/lab/` (팀원 `feature/isaac-lab` 위에 추가 · 11-09: 위 경로로 옮겨짐)
 - skill 목록·나눈 이유: [학습용 skill 구성](skill-learning.html)
 - 기준선 결과는 2026-11-03 pa27(RTX 5060 8 GB)에서 잔차 0으로 128~256판씩 돌린 값입니다.
 - **재학습 끝 (11-03 20:43, pa27)**: `load_slot` 99.0 % · 놓침 0.49 % ✅ (정책 파일 바꿈) · `pregrasp` 기준선 99.5 % = 학습 99.6 % → **기준선으로 충분** → 7장
@@ -35,8 +37,8 @@
 | **실제 로봇과 맞춘 것** | 관절마다 실측 명령 지연(45~62 ms) · 처짐 보정 적분(실제 `rl_arm_correction`과 같은 식) · 팀 관절 한계 × 0.3 속도 |
 | **비대칭 학습** | 정책은 **실제 로봇이 볼 수 있는 값**만(카메라 측정에 잡음·편향), 비평가는 **시뮬 참값**까지 봄 |
 | **보상 틀** | 걸음마다: 목표 추종 + · 급한 동작 − · 보정 크기 − / 끝: 성공 +10 · 최종 오차 + / 떨굼·넘어짐·충돌 −5 |
-| **결과물** | `policies/<skill>.pt` (TorchScript) · `.onnx` (실제 로봇 C++ `rl_arm_correction`이 읽음) |
-| **명령** | `train_place.py --task <task> [--cfg k=v] --mode zero / train / eval` |
+| **결과물** | `isaac/policies/<skill>.pt` (TorchScript) · `.onnx` (train.py 참고용 사본 — 무게가 옆 `.onnx.data`에 있어 로봇에 안 씀) → 로봇 파일은 `isaac/policies/export_onnx.py`로 만든 `models/skills/<skill>/<skill>.onnx` (무게 포함 · 불러올 때 검산), 되돌리기용 `.policy`는 `ml/scripts/export_policy.py` |
+| **명령** | `isaac/scripts/train.py --task <task> [--cfg k=v] --mode zero / train / eval` (11-03엔 `train_place.py`) |
 | **주의** | 8 GB GPU에는 학습 하나만 (둘이면 GPU 메모리 부족). 창으로 볼 땐 `--viz newton` (가벼움) |
 
 ```mermaid
@@ -181,7 +183,7 @@ flowchart LR
 
 - **`pregrasp` 실패 원인**: ① 먼 줄 목표(18·20·22·25번)는 위치는 0.2~1.2 mm로 맞는데 **팔을 길게 뻗어 판정 시간 안에 흔들림이 안 멈춤** → 학습으로 줄일 대상. ② 목표 5번(손목 −2.35 rad)만 18 mm 어긋남 → 확인 필요.
 - `move_pose`·`camera_clear_view`·`camera_look_down`은 시뮬에서 기준선이 이미 100 %라 **학습으로 얻을 게 없습니다.** 실제 처짐을 잰 뒤 시뮬 처짐을 맞추고 다시 봅니다.
-- ❓ **확인 필요**: coordinator `plan.yaml`의 `inspect_height_m = 0.15`는 시작 박스(70 mm) 위 퍽에서 손끝을 아래로 향한 채로는 **팔이 닿지 않습니다** (IK 계산: 박스 가운데 ≤ 0.10 m, 박스 전체 0.08 m).
+- ❓ **확인 필요**: coordinator `plan.yaml`의 `inspect_height_m = 0.15`는 시작 박스(70 mm) 위 퍽에서 손끝을 아래로 향한 채로는 **팔이 닿지 않습니다** (IK 계산: 박스 가운데 ≤ 0.10 m, 박스 전체 0.08 m). → 11-09: 이 값은 이제 `skill_inspect` 노드 파라미터 `inspect_height_m` (기본 0.15, `skills/src/inspect_skill.cpp`) — 닿는지는 다시 확인 안 함.
 
 ---
 
@@ -245,6 +247,8 @@ flowchart LR
 | `pregrasp` | `policies/pregrasp.pt` (1차는 `pregrasp_v1.pt`) | 89.3 % → 고친 뒤 **99.5 %** | 1차 95.4 % → 재학습 99.6 % | ✅ **기준선으로 충분** — 정책 안 씀 (MoveIt만) |
 | `park_home` · `drive_arc` · `regrasp_after_stand` | 동료 | — | — | — |
 
+> → 11-09 로봇 정책 폴더 `models/skills/<skill>/meta.yaml` (pa27 1024판): `pick_standing_puck` 99.1 → 100 % · `drive_arc` 91.8 → 100 % · `park_home` 81.1 → 96.5 % · `regrasp_after_stand` 74.6 → 78.2 % (`use: false` — stand 입력 49가 로봇 `arm_obs`에 없음, 합격 기준 못 넘음) · `pregrasp` `use: false` (정책 파일 없음) · `stand_lying_puck`은 로봇 정책 폴더 없음 (`skill_stand`는 `regrasp_after_stand` 폴더만 읽음)
+
 ### 재학습 (11-03 19:36 시작, pa27 `bee-retrain`) — 무엇을 왜 고쳤나
 
 | skill | 1차 결과 | 원인 (측정) | 고친 것 (`feature/skill-envs` 700a86f) | 고친 뒤 기준선 |
@@ -252,10 +256,10 @@ flowchart LR
 | `load_slot` | 성공 98.3 %, **놓침 10/1024 = 1.0 %** (기준선 4/1024) | 정책이 가운데 맞추기(+10)를 얻으려고 놓침(−5)을 감수함 — 놓친 퍽은 미션에서 되돌릴 수 없음 | `LoadEnvCfg.w_fail` **5 → 20** | 94.8 % (보상만 바뀜) |
 | `pregrasp` | **95.4 %** (기준 97 %) | 기준선 2049판 실패 210판: **목표 5번 65판** (가까운 줄 · 가운데 · +45°, 17.8 mm 못 감 — 손이 못 가는 자세라 보정으로 못 고침) · **먼 줄 목표 20·22·25번 144판** (오차 0.2 mm로 맞았는데 판정 때 아직 흔들림) | 목표 5번 **뺌** (`skip_above`) · 멈춤 시간 `settle_s` **0.6 → 1.2 s** | **99.5 %** (1024판) |
 
-- 끝나면 1차와 같은 1024판 평가 → 기준 넘으면 `.policy`로 바꿔 로봇에 넣고, 못 넘으면 1차(`_v1`) 그대로 둠
+- 끝나면 1차와 같은 1024판 평가 → 기준 넘으면 `.policy`로 바꿔 로봇에 넣고, 못 넘으면 1차(`_v1`) 그대로 둠 (→ 11-09: 로봇 기본은 `.onnx`, PR #97)
 - `pregrasp`는 기준선만으로도 이제 97 %를 넘음 → 학습이 기준선보다 나을 때만 정책 사용
 
-- 로봇 배포: 위 ✅ 정책은 `.policy`로 바꿔 PR #55 `ros2_ws/model/`에 넣었습니다 (`place_cell`·`pick_standing_puck`는 팀원 정책). 전체 지도: [system-map](system-map.html)
+- 로봇 배포: 위 ✅ 정책은 `.policy`로 바꿔 PR #55 `ros2_ws/model/`에 넣었습니다 (`place_cell`·`pick_standing_puck`는 팀원 정책). 전체 지도: [system-map](system-map.html) → 11-08 `lv2_module6/models/skills/<skill>/`로 옮김 · 11-09 PR #97부터 기본은 `<skill>.onnx`, `.policy`는 `meta.yaml` `runtime: policy`일 때만
 
 - 오늘 앞서 나온 `pregrasp_residual.pt`(300회 시험)·`load_viz.pt`(화면 시연)는 **환경이 학습까지 도는지 확인한 시험 결과**라 쓰지 않습니다 (기준선보다 나아지지 않았고, `load`는 그 뒤 환경을 고침).
 - 기준선이 이미 100 %라 학습이 필요 없는 것 (시뮬 기준): `move_pose` · `camera_clear_view` · `camera_look_down` · `drive_turn`
@@ -265,7 +269,7 @@ flowchart LR
 
 ## 8. Isaac에서 미션 전체 풀기 (진행 중)
 
-무작위로 출제된 문제를 **계산기 → 학습된 플래너 → skill** 순서로 Isaac 미션 장면(`scene_lab.usda`: 미로 벽, 시작 박스 6, 퍽 12, 장소 상자 3)에서 끝까지 풉니다. 코드: `isaac/lab/mission_run.py` · `mission_rules.py`.
+무작위로 출제된 문제를 **계산기 → 학습된 플래너 → skill** 순서로 Isaac 미션 장면(`scene_lab.usda`: 미로 벽, 시작 박스 6, 퍽 12, 장소 상자 3)에서 끝까지 풉니다. 코드: `isaac/lab/mission_run.py` · `mission_rules.py`. (→ 11-09: develop에는 `isaac/rl/bee_isaac/mission_rules.py`만 있고 `mission_run.py`는 없음)
 
 ```mermaid
 flowchart LR
@@ -334,7 +338,7 @@ flowchart LR
 
 ## 9. 실제 로봇에 올리는 조건 (2026-11-03 결정)
 
-> **11-04 바뀜**: 아래의 "coordinator 닿는 구간 · approach · rl_nav_correction 도킹 모드"는 이제 **skill 노드**가 합니다 (`skill_pick` · `skill_place` · `skill_load` · `skill_unload` · `skill_approach`). 정책 파일은 `model/skills/<skill>/` — [skill 노드 구성](skill-nodes.html)
+> **11-04 바뀜**: 아래의 "coordinator 닿는 구간 · approach · rl_nav_correction 도킹 모드"는 이제 **skill 노드**가 합니다 (`skill_pick` · `skill_place` · `skill_load` · `skill_unload` · `skill_approach`). 정책 파일은 `models/skills/<skill>/` (11-08 `ros2_ws/model/`에서 옮김) · `rl_nav_correction` 노드는 11-05 #65로 지움 (Nav2 경로 따라가기는 `RlNavController` 플러그인) — [skill 노드 구성](skill-nodes.html)
 
 ### 왜 정해야 했나
 잔차 정책은 **"기준 동작 + 작은 보정"**이라, 보정은 **학습할 때 쓴 기준 동작 위에서만 맞습니다.** 시뮬은 팀원 환경대로 오프라인 IK + 관절 보간으로 학습했는데, 로봇은 11-02에 "팔 동작은 전부 MoveIt"으로 정해져 있었습니다. 이대로면 학습한 보정이 로봇에서 맞지 않습니다. 학습 계획에 **배포 조건**(기준 동작이 로봇과 같은지, 입력을 로봇에서 얻을 수 있는지, 어느 노드에서 돌리는지)이 빠져 있어서 생긴 일이라, `skills.yaml`에 `deploy` 항목을 추가하고 테스트로 강제합니다.
@@ -363,6 +367,8 @@ flowchart LR
 | `dock_box` · `park_home` · `drive_straight` · `drive_arc` | Nav2 | 정렬 위치 → 도킹·정지·짧은 이동 (P 제어) | `skill_approach` (11-04~) | 없음 |
 | `move_pose` · `camera_clear_view` · `drive_turn` | MoveIt · — | 없음 (시뮬 기준선 100 %) | — | — |
 | `plan_next` | — | 다음 skill 고르기 | `mission_manager` (PR #49 병합 뒤, 마지막) | 없음 |
+
+→ 11-09 로봇: `pregrasp` `use: false` · `camera_look_down` 정책 폴더 없음 · `regrasp_after_stand` `use: false` · `plan_next`는 mission_manager `planner: plan_next`일 때 (기본 `rule`) — 7장 끝 참고
 
 ### 정책 입력 대조 결과 → 손 카메라 상대값 노드 만듦 (11-03)
 - **로봇에서 바로 얻는 값**: 관절 위치·속도, 목표 관절(coordinator가 앎), skill 단계, 처짐 보정값, 로봇 위치(cuVSLAM + 상자 태그), 차체 속도(odom).
@@ -405,11 +411,13 @@ flowchart LR
 | PR #49 (mission_manager, mission_solver) 병합 | 사용자 | 열림 |
 | `plan_next`를 mission_manager에 | 나 | 마지막 단계 |
 
+→ 11-09: 정책 추론은 구현됨 — 팔 Δ는 `rl_arm_correction` (100 Hz 루프, 정책 50 Hz, `/skill_context` · `/hand_relative` 입력), 도킹은 `skill_approach`가 직접 계산. 닿는 구간·도킹은 skill 노드가 함 → [ONNX 실행 구조](onnx-runtime.html) · [지금 구조](system-now.html)
+
 ---
 
 ## 10. 보상 함수 자세히 — skill마다 항 · 식 · 가중치 · 켜지는 단계
 
-> 값은 코드 그대로입니다 (브랜치 `feature/skill-envs` · `isaac/lab/*_env.py` 의 `*EnvCfg` · `_get_rewards`). 가중치 이름(`w_*`)은 학습 때 `--cfg w_track=0.2,…`로 바꿀 수 있습니다. 지금 값은 **1차** — 결과를 보며 조정합니다.
+> 값은 코드 그대로입니다 (11-03 브랜치 `feature/skill-envs` · `isaac/lab/*_env.py` → 11-09 develop `isaac/rl/bee_isaac/tasks/` 의 `*EnvCfg` · `_get_rewards`). 가중치 이름(`w_*`)은 학습 때 `--cfg w_track=0.2,…`로 바꿀 수 있습니다. 지금 값은 **1차** — 결과를 보며 조정합니다.
 
 ### 10-0. 공통 — 읽는 법
 

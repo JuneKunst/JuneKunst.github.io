@@ -2,19 +2,20 @@
 //   페이지마다: <script src="site.js" defer></script>
 //   md 문서 페이지: <body data-md="robot-spec.md"> → 그 md를 읽어 그림(mermaid)·표까지 그림
 //   첫 화면(index.html): <div id="site-hub"></div> → MENU 묶음별 카드
+const OLD_NOTE = '⚠️ 11-02 옛 구조 (skill 노드로 나누기 전 · coordinator가 팔·주행을 직접) — 지금 구조는 <a href="system-now.html">지금 구조</a> · <a href="skill-nodes.html">skill 노드</a> · <a href="onnx-runtime.html">ONNX 실행 구조</a>';
 const MENU = [
   { group: '현황', items: [
-    { href: 'work-plan.html', title: '할 일 · 진행', desc: '실제 문제를 잘 풀기 위한 할 일 — 점수 구조 · P0~P2 · 진행 상태', updated: '11-06' },
+    { href: 'work-plan.html', title: '할 일 · 진행', desc: '실제 문제를 잘 풀기 위한 할 일 — 점수 구조 · P0~P2 · 진행 상태 (11-09 PR 상태)', updated: '11-09' },
     { href: 'wrapup-1103.html', title: '정리 · 결정 기록', desc: '정한 것 · 만든 것 · 학습 결과 · 노드 · 남은 일', updated: '11-09' },
     { href: 'system-now.html', title: '지금 구조 — 흐름 · 노드 · 플러그인', desc: 'develop(11-09) 전체 흐름 · 노드와 플러그인 구별 · 명령 경로 · 테스트베드 대역 · 바뀐 것', updated: '11-09' },
     { href: 'system-map.html', title: '전체 지도', desc: '학습부터 로봇까지 한 장 — 완료·진행·없음 색 표시', updated: '11-09' },
     { href: 'robot-spec.html', title: '로봇 스펙 · 성능표', desc: 'skill 성능 · 하드웨어 · 주기·지연 · QoS · 실기에서 조정할 값', updated: '11-09' },
   ]},
   { group: 'skill · 학습', items: [
-    { href: 'skill-plan.html', title: '스킬 · 플랜 한 장', desc: '처음 보는 사람용 설명 — skill과 플래너가 무엇인지', updated: '11-03' },
-    { href: 'skill-learning.html', title: '학습용 skill 구성', desc: 'skill 37개 · 영역별 표 · 학습 방식 · 나눈 기준', updated: '11-03' },
-    { href: 'skill-training.html', title: 'skill별 학습 조건', desc: '환경 · 보상 함수 · 성공 판정 · 기준선 · 재학습 기록', updated: '11-03' },
-    { href: 'skills.html', title: '학습 지도 (구조 → 미션 → 동작)', desc: '단계를 따라가며 보는 인터랙티브 지도', updated: '11-02' },
+    { href: 'skill-plan.html', title: '스킬 · 플랜 한 장', desc: '처음 보는 사람용 설명 — skill과 플래너가 무엇인지', updated: '11-09' },
+    { href: 'skill-learning.html', title: '학습용 skill 구성', desc: 'skill 37개 · 영역별 표 · 학습 방식 · 나눈 기준', updated: '11-09' },
+    { href: 'skill-training.html', title: 'skill별 학습 조건', desc: '환경 · 보상 함수 · 성공 판정 · 기준선 · 재학습 기록', updated: '11-09' },
+    { href: 'skills.html', old: true, title: '학습 지도 (구조 → 미션 → 동작)', desc: '단계를 따라가며 보는 인터랙티브 지도', updated: '11-02' },
   ]},
   { group: '구조', items: [
     { href: 'mission-solve.html', title: '문제 풀이 흐름 (planner · mission_solver)', desc: '미션 단계 · 정답 계산 · 할당 · BUILD 순서(rule · plan_next) · skill 결과 흐름도', updated: '11-09' },
@@ -22,15 +23,15 @@ const MENU = [
     { href: 'policy-runtime.html', title: '정책 실행 순서 (코드·객체 단위)', desc: '정책 파일을 어떤 코드가 고르고·불러오고·실행하나 — 팔 · 도킹 · Nav2 · plan_next 순서도', updated: '11-09' },
     { href: 'policy-path.html', title: '팔 정책은 어디서 도나 — 두 방식 비교', desc: '컨트롤러 안 C++ vs 파이썬 노드 · 비교표 · 결정(A) · 약점과 막는 법', updated: '11-09' },
     { href: 'skill-nodes.html', title: 'skill 노드 구성', desc: 'skill마다 노드 하나 · 액션 /skills/<skill> · 정책은 skill이 관리', updated: '11-09' },
-    { href: 'flow.html', title: '노드 흐름 (인터랙티브)', desc: '전체 노드 연결 — 연결을 누르면 메시지·역할 설명', updated: '11-02' },
-    { href: 'messages.html', title: '메시지 사전', desc: '연결마다 목적 · 나눈 이유 · 메시지 예시', updated: '11-02' },
-    { href: 'mission-vs-skill.html', title: '그림: 누가 판단하고 누가 실행하나', desc: '다이어그램 원본', updated: '11-02', raw: true },
-    { href: 'mission-flow.html', title: '그림: 주사위 미션 흐름', desc: '다이어그램 원본', updated: '11-02', raw: true },
-    { href: 'mission-manager-inside.html', title: '그림: mission_manager 안', desc: '다이어그램 원본', updated: '11-02', raw: true },
-    { href: 'skill-structure.html', title: '그림: skill 구조', desc: '다이어그램 원본 (11-04 skill 노드로 나누기 전)', updated: '11-02', raw: true },
-    { href: 'stand-flow.html', title: '그림: 세우기 stand · stand_pick', desc: '다이어그램 원본', updated: '11-02', raw: true },
-    { href: 'diagram.html', title: '그림: 전체 노드 원본', desc: '노드 흐름의 다이어그램만', updated: '11-02', raw: true },
-    { href: '2026-10-28.html', title: '그림: 10-28 전체 노드 (옛 판)', desc: '보관용', updated: '10-28', raw: true },
+    { href: 'flow.html', old: true, title: '노드 흐름 (인터랙티브)', desc: '전체 노드 연결 — 연결을 누르면 메시지·역할 설명', updated: '11-02' },
+    { href: 'messages.html', old: true, title: '메시지 사전', desc: '연결마다 목적 · 나눈 이유 · 메시지 예시', updated: '11-02' },
+    { href: 'mission-vs-skill.html', old: true, title: '그림: 누가 판단하고 누가 실행하나', desc: '다이어그램 원본', updated: '11-02', raw: true },
+    { href: 'mission-flow.html', old: true, title: '그림: 주사위 미션 흐름', desc: '다이어그램 원본', updated: '11-02', raw: true },
+    { href: 'mission-manager-inside.html', old: true, title: '그림: mission_manager 안', desc: '다이어그램 원본', updated: '11-02', raw: true },
+    { href: 'skill-structure.html', old: true, title: '그림: skill 구조', desc: '다이어그램 원본 (11-04 skill 노드로 나누기 전)', updated: '11-02', raw: true },
+    { href: 'stand-flow.html', old: true, title: '그림: 세우기 stand · stand_pick', desc: '다이어그램 원본', updated: '11-02', raw: true },
+    { href: 'diagram.html', old: true, title: '그림: 전체 노드 원본', desc: '노드 흐름의 다이어그램만', updated: '11-02', raw: true },
+    { href: '2026-10-28.html', old: true, title: '그림: 10-28 전체 노드 (옛 판)', desc: '보관용', updated: '10-28', raw: true },
   ]},
   { group: '실기', items: [
     { href: 'debug-guide.html', title: '실기 디버깅', desc: '기록(rosbag · 블랙박스) · 보기(PlotJuggler · Lichtblick) · 증상별 고칠 곳', updated: '11-09' },
@@ -80,7 +81,10 @@ const MENU = [
   .bee-doc details{background:#111b2b;border:1px solid #26354d;border-radius:8px;margin:8px 0;padding:0 12px}
   .bee-doc summary{cursor:pointer;padding:10px 0;color:#67d7e8;font-weight:500}
   .bee-doc details[open]{padding-bottom:10px}
-  .bee-doc a{color:#67d7e8}`;
+  .bee-doc a{color:#67d7e8}
+  .bee-old{background:#3d3112;color:#f3dfb0;border-bottom:1px solid #e2a83a;padding:8px max(12px,env(safe-area-inset-left));font:13px/1.5 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif}
+  .bee-old a{color:#ffd27a}
+  .card .old{color:#e2a83a}`;
   const style = document.createElement('style');
   style.textContent = css;
   document.head.appendChild(style);
@@ -117,6 +121,9 @@ const MENU = [
   document.addEventListener('click', e => { if (!bar.contains(e.target)) bar.querySelectorAll('details').forEach(o => (o.open = false)); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') bar.querySelectorAll('details').forEach(o => (o.open = false)); });
   document.body.prepend(bar);
+  // 옛 판 표시 (MENU old: true) — 지금 구조 페이지로 안내
+  const cur = MENU.flatMap(g => g.items).find(i => i.href === here);
+  if (cur && cur.old) bar.insertAdjacentHTML('afterend', `<div class="bee-old">${OLD_NOTE}</div>`);
 
   // ---------- 첫 화면 목록
   const hub = document.getElementById('site-hub');
@@ -127,7 +134,7 @@ const MENU = [
     const grid = document.createElement('div');
     grid.className = 'cards';
     for (const i of g.items) grid.insertAdjacentHTML('beforeend',
-      `<a class="card${i.raw ? ' raw' : ''}" href="${i.href}"${i.raw ? ' target="_blank" rel="noopener"' : ''}><b>${i.title}</b><span>${i.desc}</span><em>${i.updated}</em></a>`);
+      `<a class="card${i.raw ? ' raw' : ''}" href="${i.href}"${i.raw ? ' target="_blank" rel="noopener"' : ''}><b>${i.title}</b><span>${i.desc}</span><em>${i.updated}${i.old ? ' · <span class="old">옛 구조</span>' : ''}</em></a>`);
     sec.appendChild(grid);
     hub.appendChild(sec);
   }
