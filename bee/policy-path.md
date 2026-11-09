@@ -19,7 +19,7 @@ flowchart LR
     JTC{{"arm_controller (JTC)"}}:::plugin --> RAC{{"rl_arm_correction<br/>정책 계산 (50 Hz) · Δ 상한"}}:::plugin --> HW{{"BeebotSystemHardware"}}:::plugin
   end
   HRL["hand_relative"]:::node -->|"/hand_relative"| RAC
-  F[("models/skills/&lt;skill&gt;/&lt;skill&gt;.policy<br/>(PR #97: 기본 .onnx)")]:::file -.-> RAC
+  F[("models/skills/&lt;skill&gt;/&lt;skill&gt;.onnx<br/>(PR #97 기본 · runtime: policy면 .policy)")]:::file -.-> RAC
   classDef node fill:#1d3a5c,stroke:#67b7e8,color:#e8eef8
   classDef plugin fill:#2b2340,stroke:#b48cf0,color:#e8eef8,stroke-dasharray:5 3
   classDef file fill:#3d3112,stroke:#e2a83a,color:#e8eef8

@@ -1,8 +1,9 @@
-# 정책은 어떤 코드가 어떤 순서로 실행하나 (11-09 develop)
+# 정책은 어떤 코드가 어떤 순서로 실행하나 (11-09 · PR #97 적용 기준)
 
-> develop `a6e5072` 코드 기준 (지금 develop `3a6d668`도 이 페이지 범위 코드는 같음 — #95는 인지만). 파일 경로는 `lv2_module6/ros2_ws/src/` 기준, `파일:줄`은 그 시점 줄 번호.
+> **PR [#97](https://github.com/visualkhh/Lv2_bee_Assignment/pull/97) 적용 기준** (브랜치 `feat/onnx-all-policies` `5381439` = develop `3a6d668` + #97 · CI 통과 · develop 병합 전). 파일 경로는 `lv2_module6/ros2_ws/src/` 기준, `파일:줄`은 그 브랜치 줄 번호.
+> #97 전(develop) 구조는 계산기만 `MlpPolicy` + `.policy`이고 고르기·실행 위치는 같음 — 이 페이지 이전 판은 pages 저장소 git 기록(`afbd75f`).
 > 관련: [팔 정책은 어디서 도나 — 두 방식 비교](policy-path.html) · [지금 구조 — 노드 · 플러그인](system-now.html) · [문제 풀이 흐름](mission-solve.html)
-> **11-09: 모든 정책을 ONNX로 실행하도록 바꾸는 PR #97** — 아래는 바꾸기 전(지금 develop) 구조. 바뀐 구조: **[ONNX 실행 구조](onnx-runtime.html)**
+> 계산기(`ml::Policy` · `OnnxPolicy`) 안쪽과 정책별 되돌리기: **[ONNX 실행 구조](onnx-runtime.html)**
 
 ---
 
@@ -16,12 +17,12 @@
 
 | 정책 | 파일 | ① 고르기 (주인) | ② 불러오기 | ③ 실행 | 계산기 |
 |---|---|---|---|---|---|
-| 팔 4개 — pick_standing_puck · place_cell · load_slot · unload_slot | `models/skills/<skill>/<skill>.policy` | 각 팔 skill 노드 | `rl_arm_correction` (컨트롤러 플러그인) | `rl_arm_correction` 100 Hz 루프 안, 50 Hz마다 | `MlpPolicy` (C++) |
-| 도킹 4개 — dock_box · park_home · drive_straight · drive_arc | `models/skills/<skill>/<skill>.policy` | `skill_approach` | `skill_approach` | `skill_approach` 20 Hz | `MlpPolicy` |
-| Nav2 주행 | `models/rl_nav_controller/policy.onnx` | `RlNavController` (Nav2 플러그인) | 〃 | 〃 (경로 따라갈 때) | `OnnxPolicy` (ONNX Runtime) |
-| 순서 (plan_next) | `models/plan/plan_next.policy` | `mission_manager` | 〃 | 〃 (BUILD 퍽 하나 끝날 때) | `MlpPolicy` |
+| 팔 4개 — pick_standing_puck · place_cell · load_slot · unload_slot | `models/skills/<skill>/<skill>.onnx` | 각 팔 skill 노드 (**추론 안 함**) | `rl_arm_correction` (컨트롤러 플러그인) | `rl_arm_correction` 100 Hz 루프 안, 50 Hz마다 | `ml::Policy` → `OnnxPolicy` (CPU) |
+| 도킹 4개 — dock_box · park_home · drive_straight · drive_arc | `models/skills/<skill>/<skill>.onnx` | `skill_approach` | `skill_approach` | `skill_approach` 20 Hz | `ml::Policy` → `OnnxPolicy` |
+| Nav2 주행 | `models/rl_nav_controller/policy.onnx` (+ `.onnx.data`) | `RlNavController` (Nav2 플러그인) | 〃 | 〃 (경로 따라갈 때) | `OnnxPolicy` (CUDA 먼저 시도) |
+| 순서 (plan_next) | `models/plan/plan_next.onnx` | `mission_manager` | 〃 | 〃 (BUILD 퍽 하나 끝날 때) | `ml::Policy` → `OnnxPolicy` |
 
-> skill 폴더의 `<skill>.onnx`는 **아무도 읽지 않는 보관용** — 그리고 가중치 파일(`.onnx.data`)이 레포에 없어 열리지도 않음 (11-09 확인).
+> **되돌리기:** skill 정책은 `meta.yaml` `runtime: policy`면 같은 폴더의 `<skill>.policy`를 `MlpPolicy`로 · plan_next는 `plan.yaml` `plan_model`에 `.policy` 경로. `ml::Policy`가 **파일 확장자**로 계산기를 고름 — 아래 순서도에서 `Policy`가 `OnnxPolicy` 또는 `MlpPolicy`로 갈라짐.
 
 ---
 
@@ -39,7 +40,7 @@ classDiagram
   }
   class SkillModel {
     +name, dir, kind, layout
-    +policy : string  (.policy 절대 경로)
+    +policy : string  (.onnx 또는 .policy 절대 경로)
     +use : bool
     +meta : map
   }
@@ -64,12 +65,18 @@ classDiagram
   }
   class Skill {
     layout : ArmLayout (Place 39 · Pick 41)
-    policy : MlpPolicy
+    policy : Policy
+  }
+  class Policy {
+    +load(path, why) bool
+    +act_into(x, y)
+    inputs · outputs · runtime
+  }
+  class OnnxPolicy {
+    ONNX Runtime 세션 · 미리 묶은 텐서
   }
   class MlpPolicy {
-    +load(path) bool
-    +act_into(x, y)
-    obs_dim · act_dim
+    텍스트 MLP (되돌릴 때)
   }
   SkillNode <|-- PickSkill
   PickSkill --> SkillModel : 시작 때 load_model("pick_standing_puck")
@@ -77,7 +84,9 @@ classDiagram
   ArmIO ..> SkillContext : 닿는 구간 시작 때 발행
   SkillContext ..> RlArmCorrection : 구독
   RlArmCorrection --> Skill : cache_ (경로별 한 번)
-  Skill --> MlpPolicy
+  Skill --> Policy
+  Policy --> OnnxPolicy : .onnx (기본)
+  Policy --> MlpPolicy : .policy
 ```
 
 ---
@@ -95,7 +104,7 @@ sequenceDiagram
   B->>B: models/skills/<skill>/ → install/skills/share/skills/model/<skill>/
   PS->>SN: load_model("pick_standing_puck")  (pick_skill.cpp:22)
   SN->>MH: load_skill_model(model_dir, name)
-  MH->>MH: meta.yaml 읽기 · <skill>.policy 있나 (model.hpp:59)
+  MH->>MH: meta.yaml 읽기 · runtime(기본 onnx) → <skill>.onnx 있나 (model.hpp:59)
   MH-->>SN: SkillModel{use = meta use && 파일 있음, policy = 절대 경로, layout = pick}
   SN-->>PS: policy_ (로그 "정책 pick_standing_puck: … 시뮬 100 %")
   Note over RC: controller_manager가 플러그인 로드 → on_configure
@@ -117,7 +126,7 @@ sequenceDiagram
   participant PS as PickSkill
   participant AIO as ArmIO
   participant RC as RlArmCorrection
-  participant MP as MlpPolicy
+  participant MP as Policy → OnnxPolicy
   CO->>PS: /skills/pick (퍽 id)
   PS->>PS: 파지 후보 · MoveIt 퍽 위 5 cm
   PS->>AIO: contact_step(policy_)
@@ -125,7 +134,7 @@ sequenceDiagram
   RC->>RC: policy_for(메시지)
   alt 처음 받은 경로
     RC->>MP: load(경로)
-    MP-->>RC: 검산 통과 → cache_ 저장
+    MP-->>RC: 세션 · 버퍼 만들고 메타데이터로 검산 → cache_ 저장
   end
   RC->>RC: ctx_box_에 넣음 (실시간 루프로)
 ```
@@ -135,9 +144,9 @@ sequenceDiagram
 | 1 | `coordinator` → 🎬 `/skills/pick` | 목표 퍽 id · 모양 · tag |
 | 2 | `pick_skill.cpp` | `/score_grasps` 파지 후보 → MoveIt으로 퍽 위 5 cm (pregrasp — 정책 없음) |
 | 3 | `pick_skill.cpp:87` → `ArmIO::contact_step` | 닿는 구간 시작 |
-| 4 | `arm_io.cpp:317-329` | `/skill_context` = {run_id+1 · skill · **policy = .policy 절대 경로** · layout = pick · phase · holding · residual_live · q_above · q_down}. 정책을 안 쓰면 policy = "" (:322) |
-| 5 | `rl_arm_correction.cpp:88` → `:156 policy_for` | 구독 콜백 (실시간 루프 밖) |
-| 6~7 | `:165` → `mlp_policy.hpp:19 MlpPolicy::load` | 처음 받은 경로만 읽음 · 파일 안 `test` 값으로 검산 · 입력 41 · 출력 5 확인 → `cache_[경로]` |
+| 4 | `arm_io.cpp:316-329` | `/skill_context` = {run_id+1 · skill · **policy = .onnx 절대 경로** (runtime: policy면 .policy) · layout = pick · phase · holding · residual_live · q_above · q_down}. 정책을 안 쓰면 policy = "" (:322) — **추론값은 없음** |
+| 5 | `rl_arm_correction.cpp:87` → `:156 policy_for` | 구독 콜백 (실시간 루프 밖) |
+| 6~7 | `:165` → `policy.hpp:16 Policy::load` → `onnx_policy.cpp:123 → :51 OnnxPolicy::load` | 처음 받은 경로만 읽음 · CPU 세션 · 입출력 버퍼·텐서 한 번 잡음 · 메타데이터 `bee_test_x/y`로 검산(:102) · 입력 41 · 출력 5 확인 → `cache_[경로]` |
 | 8 | `ctx_box_.set(Ctx)` | 실시간 루프가 가져갈 상자에 넣음 |
 
 **3-2. 100 Hz 제어 루프: 매 주기**
@@ -148,7 +157,7 @@ sequenceDiagram
   participant JTC as arm_controller
   participant HR as hand_relative
   participant RC as RlArmCorrection
-  participant MP as MlpPolicy
+  participant MP as Policy → OnnxPolicy
   participant HW as BeebotSystemHardware
   loop 100 Hz
     JTC->>RC: reference q_ref
@@ -167,9 +176,9 @@ sequenceDiagram
 |---|---|---|
 | 1 | JTC → `rl_arm_correction/<joint>/position` | 궤적의 이번 주기 관절값 (IK + 보간, 시뮬과 같은 시간표: 내려가기 → 쥐기 → 들기) |
 | 2 | `hand_relative` → `/hand_relative` | 퍽 − 손끝 x·y · 면 방향 · is_box (4 Hz 이하 — 다음 값 올 때까지 유지) |
-| opt | `rl_arm_correction.cpp:242` | 조건: 0.02 s(50 Hz) 지남 · q_above·q_down 있음 · 손 카메라 값 유효하고 1 s 안 |
+| opt | `rl_arm_correction.cpp:243` | 조건: 0.02 s(50 Hz) 지남 · q_above·q_down 있음 · 손 카메라 값 유효하고 1 s 안 |
 | 4 | `arm_obs.hpp` (Pick 41 / Place 39) | q−q_ref (5) · q_down−q_ref (5) · 0.1·qd (5) · q_ref−q_above (5) · 이전 행동 (5) · 단계 one-hot (6) · 진행 [s] (1) · 100·카메라 x·y (2) · [Pick만: 면 방향 · is_box (2)] · 10·처짐 적분 (5) |
-| 5~6 | `:257` → `mlp_policy.hpp:66 act_into` | 행렬 곱 + ELU 4층 → a[5] → −1..1로 자름 → `residual_live`면 Δ = 0.05·a (상한 0.05 rad) |
+| 5~6 | `:259` → `policy.hpp:24` → `onnx_policy.cpp:133 OnnxPolicy::act_into` | 입력을 미리 묶은 버퍼에 복사 → `Session::Run`(:138, 호출마다 입출력 버퍼 새로 안 잡음) → a[5] → −1..1로 자름 → `residual_live`면 Δ = 0.05·a (상한 0.05 rad). 추론 예외면 그 주기 a = 0 (Δ = 0) |
 | 7 | `command_interfaces` → `BeebotSystemHardware::write` → OpenCR | 명령 = q_ref + 처짐 적분 + Δ + 중력 앞먹임 |
 
 끝나면 `PickSkill` → coordinator: {success, reason} (잡기 판정).
@@ -185,9 +194,9 @@ sequenceDiagram
   autonumber
   participant CO as coordinator
   participant AS as ApproachSkill<br/>approach_skill.cpp
-  participant MP as MlpPolicy ×4
+  participant MP as Policy ×4 (OnnxPolicy)
   participant TM as twist_mux → smoother → collision_monitor
-  Note over AS: 시작 때 (:40-44): dock_box · park_home · drive_straight · drive_arc<br/>load_model → MlpPolicy.load (입력 13 · 출력 2 확인) → policies_[이름]
+  Note over AS: 시작 때 (:40-44): dock_box · park_home · drive_straight · drive_arc<br/>load_model → Policy.load (:40, 입력 13 · 출력 2 확인) → policies_[이름]
   CO->>AS: 🎬 /skills/approach {target = 정책 이름(기본 dock_box), pose x,y,yaw}
   AS->>AS: pol_ = &policies_[이름] (:71) · 50 ms 타이머 (:89)
   loop 20 Hz (tick_sim)
@@ -202,7 +211,7 @@ sequenceDiagram
 
 ---
 
-## 5. Nav2 주행 정책 — RlNavController (유일하게 ONNX)
+## 5. Nav2 주행 정책 — RlNavController (원래부터 ONNX)
 
 ```mermaid
 sequenceDiagram
@@ -213,7 +222,7 @@ sequenceDiagram
   participant IN as 안쪽 controller (DWB 기본)
   CS->>RN: configure (플러그인 로드)
   RN->>RN: load_model("rl_nav_controller/policy.onnx") (:108 → :191)
-  RN->>OP: load(경로) (:207) — ONNX Runtime 세션 (CUDA 있으면 CUDA, 아니면 CPU)
+  RN->>OP: load(경로, gpu=true) (:207) — ONNX Runtime 세션 (CUDA EP 있으면 CUDA, 아니면 CPU · 지금 vendor는 CPU)
   OP-->>RN: 입력 375 · 출력 2 (경로점 5×2 + 가상 스캔 360 + 5)
   loop 경로를 따라갈 때마다 (computeVelocityCommands :492)
     alt 정책 없음 · 점구름 0.5 s 넘게 끊김
@@ -236,8 +245,8 @@ sequenceDiagram
   autonumber
   participant MM as MissionManager<br/>mission_manager.cpp
   participant PN as PlanNext<br/>plan_next.hpp
-  participant MP as MlpPolicy
-  MM->>PN: planner == plan_next일 때만 load(models/plan/plan_next.policy) (:118 → :32, 입력 167 확인)
+  participant MP as Policy → OnnxPolicy
+  MM->>PN: planner == plan_next일 때만 load(models/plan/plan_next.onnx) (:118 → :32, 입력 167 · 출력 97 확인)
   Note over MM: SURVEY 끝 → allocate → BUILD
   MM->>MM: build_pn_start (:405) — 퍽 12개 상태 · 목표 장소·칸 · 로봇 자리
   loop 퍽 하나 처리 끝날 때마다 (:466 → build_pn :492)
@@ -250,6 +259,12 @@ sequenceDiagram
 
 ---
 
-## 7. ONNX 전환 → [ONNX 실행 구조](onnx-runtime.html)
+## 7. #97 전과 다른 점
 
-PR #97: 고르는 곳·실행 위치는 이 페이지 그대로, **파일(`.onnx`)과 계산기(`OnnxPolicy`)만** 바뀜. 정책마다 `meta.yaml` `runtime: policy`로 위 구조(`MlpPolicy`)로 되돌릴 수 있음. 자세한 객체·순서도는 [ONNX 실행 구조](onnx-runtime.html).
+| | #97 전 (develop `3a6d668`) | #97 (이 페이지) |
+|---|---|---|
+| 정책 파일 | `<skill>.policy` (skill 폴더 `.onnx`는 가중치가 없어 못 여는 껍데기) | 가중치 포함 `<skill>.onnx` 기본 · `.policy`는 되돌리기용 |
+| 계산기 | `MlpPolicy` (팔 · 도킹 · plan_next) · `OnnxPolicy` (Nav2만) | 모두 `ml::Policy` → 기본 `OnnxPolicy` (Nav2는 그대로 `OnnxPolicy`) |
+| 고르는 곳 · 실행 위치 · 주기 | — | **같음** |
+
+계산기 안쪽 · 시험 · 되돌리는 법: [ONNX 실행 구조](onnx-runtime.html)

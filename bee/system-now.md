@@ -1,6 +1,6 @@
 # 지금 구조 — 전체 흐름 · 노드 · 플러그인 (11-09 develop)
 
-> develop `3a6d668` (11-09, #76~#95 병합 뒤) 코드 기준 · 열린 PR #97(ONNX) 표시. launch 파일 · `controllers.yaml` · `nav2_params.yaml` · `skills.launch.py`에서 뽑았습니다.
+> develop `3a6d668` (11-09, #76~#95 병합 뒤) **+ PR #97(ONNX, CI 통과 · 병합 전) 적용 기준** — 학습 정책은 모두 `ml::Policy` → 기본 ONNX Runtime ([ONNX 실행 구조](onnx-runtime.html)). launch 파일 · `controllers.yaml` · `nav2_params.yaml` · `skills.launch.py`에서 뽑았습니다.
 > 문제 풀이 흐름도: [문제 풀이 흐름 (planner · mission_solver)](mission-solve.html) · 이전 그림: [전체 지도](system-map.html) (11-04) · [skill 노드 구성](skill-nodes.html) · [노드 흐름 (11-02, 옛 구조)](flow.html)
 
 ---
@@ -62,7 +62,7 @@ flowchart TB
   end
   subgraph R2C["ros2_control_node (controller_manager)"]
     JTC{{"arm_controller<br/>JTC"}}:::plugin
-    RAC{{"rl_arm_correction<br/>처짐 적분 · 앞먹임 · 🧠 정책 추론 → Δ"}}:::plugin
+    RAC{{"rl_arm_correction<br/>처짐 적분 · 앞먹임 · 🧠 정책 추론(ONNX) → Δ"}}:::plugin
     GC{{"gripper_controller"}}:::plugin
     DD{{"diff_drive_controller"}}:::plugin
     JSB{{"joint_state · imu broadcaster"}}:::plugin

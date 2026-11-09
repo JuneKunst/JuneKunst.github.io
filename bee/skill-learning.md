@@ -523,7 +523,7 @@ flowchart LR
 |---|---|
 | Isaac Lab 3.0 (manager-based) · rsl_rl | 지금 씀 |
 | W&B | 지금 씀 — 4대 결과를 한 화면에서 |
-| ONNX Runtime | 지금 씀 — Jetson에서 모델 실행 (→ 11-09: develop에선 Nav2 `RlNavController`만 ONNX Runtime, 나머지 정책은 `.policy` · PR #97에서 전부 `.onnx` 기본 → [ONNX 실행 구조](onnx-runtime.html)) |
+| ONNX Runtime | 지금 씀 — 로봇의 학습 정책 전부를 실행 (PR #97: 팔 · 도킹 · plan_next · Nav2, 정책마다 `.policy`로 되돌림 → [ONNX 실행 구조](onnx-runtime.html)) |
 | Ray · Isaac Lab Mimic · Isaac ROS Deploy · BehaviorTree.CPP | 나중 |
 | Eureka 원본 | 안 씀 (Isaac Gym 전용) — "LLM이 보상 초안 → 사람 검토" 방식만 참고 |
 | Awesome-LLM-Robotics 도구 목록 | 해당 없음 (LLM·VLA 연구용) — 논문 목록만 참고 |
