@@ -108,43 +108,71 @@ sequenceDiagram
 
 ## 3. 팔 정책 — 집기 한 번 (닿는 구간)
 
+**3-1. 구간 시작: 정책을 알려 주고 불러 둠**
+
 ```mermaid
 sequenceDiagram
   autonumber
   participant CO as coordinator
-  participant PS as PickSkill<br/>pick_skill.cpp
-  participant AIO as ArmIO<br/>arm_io.cpp
-  participant JTC as arm_controller (JTC)
-  participant RC as RlArmCorrection<br/>(controller_manager 안)
-  participant MP as MlpPolicy<br/>mlp_policy.hpp
-  participant HR as hand_relative 노드
-  participant HW as BeebotSystemHardware → OpenCR
-  CO->>PS: 🎬 /skills/pick {target id, shape, tag}
-  PS->>PS: 파지 후보 (/score_grasps) · MoveIt으로 퍽 위 5 cm (pregrasp — 정책 없음)
-  PS->>AIO: contact_step(policy_, plan(q_above, q_down), close) (pick_skill.cpp:87)
-  AIO->>HR: /hand_relative/target {kind: puck, id}
-  AIO->>RC: /skill_context {run_id+1, skill, policy=경로, layout=pick, phase, q_above, q_down} (arm_io.cpp:317-329)
-  RC->>RC: 구독 콜백 (:88) → policy_for (:156)
-  alt 이 경로를 처음 받음
-    RC->>MP: Skill.policy.load(경로) (:165)
-    MP->>MP: 가중치 읽기 · 파일 안 test 값으로 검산 (:19)
-    MP-->>RC: 성공 → cache_[경로] 저장 (입력 41 · 출력 5 확인)
+  participant PS as PickSkill
+  participant AIO as ArmIO
+  participant RC as RlArmCorrection
+  participant MP as MlpPolicy
+  CO->>PS: /skills/pick (퍽 id)
+  PS->>PS: 파지 후보 · MoveIt 퍽 위 5 cm
+  PS->>AIO: contact_step(policy_)
+  AIO->>RC: /skill_context (정책 경로 · layout · q_above · q_down)
+  RC->>RC: policy_for(메시지)
+  alt 처음 받은 경로
+    RC->>MP: load(경로)
+    MP-->>RC: 검산 통과 → cache_ 저장
   end
-  RC->>RC: ctx_box_.set(Ctx{메시지, Skill}) — 실시간 루프로 넘김
-  AIO->>JTC: 궤적 (IK + 보간: 내려가기 → 쥐기 → 들기, 시뮬과 같은 시간표)
-  loop controller_manager 100 Hz (update)
-    JTC->>RC: reference = 계획 관절 q_ref
-    HR-->>RC: /hand_relative (퍽 − 손끝 x·y, 면 방향, 4 Hz 이하) → hand_box_
-    RC->>RC: ctx_box_ · hand_box_ 가져오기 · since_policy_ += dt
-    opt 0.02 s 지남 && q_above·q_down 있음 && 손 카메라 값 유효(1 s 안) (:242)
-      RC->>RC: arm_obs(Pick) → 입력 41개 (q−q_ref · q_down−q_ref · 0.1·qd · q_ref−q_above · 이전 행동 · 단계 · 진행 · 100·카메라 · 면 방향 · is_box · 10·처짐 적분)
-      RC->>MP: act_into(obs, act) (:257)
-      MP-->>RC: a[5] → clamp −1..1 → Δ = 0.05·a (residual_live일 때)
-    end
-    RC->>HW: command = q_ref + 처짐 적분 + Δ + 중력 앞먹임
-  end
-  PS-->>CO: 결과 {success, reason} (잡기 판정)
+  RC->>RC: ctx_box_에 넣음 (실시간 루프로)
 ```
+
+| 번호 | 코드 | 내용 |
+|---|---|---|
+| 1 | `coordinator` → 🎬 `/skills/pick` | 목표 퍽 id · 모양 · tag |
+| 2 | `pick_skill.cpp` | `/score_grasps` 파지 후보 → MoveIt으로 퍽 위 5 cm (pregrasp — 정책 없음) |
+| 3 | `pick_skill.cpp:87` → `ArmIO::contact_step` | 닿는 구간 시작 |
+| 4 | `arm_io.cpp:317-329` | `/skill_context` = {run_id+1 · skill · **policy = .policy 절대 경로** · layout = pick · phase · holding · residual_live · q_above · q_down}. 정책을 안 쓰면 policy = "" (:322) |
+| 5 | `rl_arm_correction.cpp:88` → `:156 policy_for` | 구독 콜백 (실시간 루프 밖) |
+| 6~7 | `:165` → `mlp_policy.hpp:19 MlpPolicy::load` | 처음 받은 경로만 읽음 · 파일 안 `test` 값으로 검산 · 입력 41 · 출력 5 확인 → `cache_[경로]` |
+| 8 | `ctx_box_.set(Ctx)` | 실시간 루프가 가져갈 상자에 넣음 |
+
+**3-2. 100 Hz 제어 루프: 매 주기**
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant JTC as arm_controller
+  participant HR as hand_relative
+  participant RC as RlArmCorrection
+  participant MP as MlpPolicy
+  participant HW as BeebotSystemHardware
+  loop 100 Hz
+    JTC->>RC: reference q_ref
+    HR-->>RC: /hand_relative → hand_box_
+    RC->>RC: ctx_box_ · hand_box_ 가져옴
+    opt 0.02 s 지남 · 손 카메라 유효
+      RC->>RC: arm_obs → 입력 41개
+      RC->>MP: act_into(입력)
+      MP-->>RC: a[5] → Δ = 0.05·a
+    end
+    RC->>HW: q_ref + 처짐 적분 + Δ + 앞먹임
+  end
+```
+
+| 번호 | 코드 | 내용 |
+|---|---|---|
+| 1 | JTC → `rl_arm_correction/<joint>/position` | 궤적의 이번 주기 관절값 (IK + 보간, 시뮬과 같은 시간표: 내려가기 → 쥐기 → 들기) |
+| 2 | `hand_relative` → `/hand_relative` | 퍽 − 손끝 x·y · 면 방향 · is_box (4 Hz 이하 — 다음 값 올 때까지 유지) |
+| 4 | `rl_arm_correction.cpp:242` | 조건: 0.02 s(50 Hz) 지남 · q_above·q_down 있음 · 손 카메라 값 유효하고 1 s 안 |
+| 5 | `arm_obs.hpp` (Pick 41 / Place 39) | q−q_ref (5) · q_down−q_ref (5) · 0.1·qd (5) · q_ref−q_above (5) · 이전 행동 (5) · 단계 one-hot (6) · 진행 [s] (1) · 100·카메라 x·y (2) · [Pick만: 면 방향 · is_box (2)] · 10·처짐 적분 (5) |
+| 6~7 | `:257` → `mlp_policy.hpp:66 act_into` | 행렬 곱 + ELU 4층 → a[5] → −1..1로 자름 → `residual_live`면 Δ = 0.05·a (상한 0.05 rad) |
+| 8 | `command_interfaces` → `BeebotSystemHardware::write` → OpenCR | 명령 = q_ref + 처짐 적분 + Δ + 중력 앞먹임 |
+
+끝나면 `PickSkill` → coordinator: {success, reason} (잡기 판정).
 
 **정책이 Δ를 바꾸지 않는 경우:** `/skill_context`의 policy가 빈 문자열(meta `use: false` 또는 파일 없음) · 손 카메라 값이 없거나 1초보다 오래됨 · `residual_live: false`(손을 열거나 닫은 뒤 — 마지막 Δ 유지).
 
