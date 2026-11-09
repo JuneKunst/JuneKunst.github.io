@@ -18,6 +18,7 @@ const MENU = [
   ]},
   { group: '구조', items: [
     { href: 'mission-solve.html', title: '문제 풀이 흐름 (planner · mission_solver)', desc: '미션 단계 · 정답 계산 · 할당 · BUILD 순서(rule · plan_next) · skill 결과 흐름도', updated: '11-09' },
+    { href: 'onnx-runtime.html', title: 'ONNX 실행 구조 (PR #97)', desc: '학습 정책 4곳을 ONNX Runtime으로 — 객체 · 고르기 · 불러오기 · 100 Hz 루프 실행 · 정책별 .policy 되돌리기', updated: '11-09' },
     { href: 'policy-runtime.html', title: '정책 실행 순서 (코드·객체 단위)', desc: '정책 파일을 어떤 코드가 고르고·불러오고·실행하나 — 팔 · 도킹 · Nav2 · plan_next 순서도', updated: '11-09' },
     { href: 'policy-path.html', title: '팔 정책은 어디서 도나 — 두 방식 비교', desc: '컨트롤러 안 C++ vs 파이썬 노드 · 비교표 · 결정(A) · 약점과 막는 법', updated: '11-06' },
     { href: 'skill-nodes.html', title: 'skill 노드 구성', desc: 'skill마다 노드 하나 · 액션 /skills/<skill> · 정책은 skill이 관리', updated: '11-04' },

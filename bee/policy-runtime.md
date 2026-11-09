@@ -2,7 +2,7 @@
 
 > develop `a6e5072` 코드 기준. 파일 경로는 `lv2_module6/ros2_ws/src/` 기준, `파일:줄`은 그 시점 줄 번호.
 > 관련: [팔 정책은 어디서 도나 — 두 방식 비교](policy-path.html) · [지금 구조 — 노드 · 플러그인](system-now.html) · [문제 풀이 흐름](mission-solve.html)
-> **⚠️ 11-09: 모든 정책을 ONNX로 실행하도록 바꾸는 작업 진행 중** — 아래는 바꾸기 전(지금 develop) 구조. 바뀌면 이 페이지를 고침.
+> **11-09: 모든 정책을 ONNX로 실행하도록 바꾸는 PR #97** — 아래는 바꾸기 전(지금 develop) 구조. 바뀐 구조: **[ONNX 실행 구조](onnx-runtime.html)**
 
 ---
 
@@ -250,11 +250,6 @@ sequenceDiagram
 
 ---
 
-## 7. ONNX 전환 (11-09 진행 중)
+## 7. ONNX 전환 → [ONNX 실행 구조](onnx-runtime.html)
 
-| 바꾸는 곳 | 지금 | 바꾼 뒤 |
-|---|---|---|
-| 정책 파일 | `<skill>.policy` (텍스트) · `.onnx`는 가중치 없는 껍데기 | **가중치를 품은 단일 `<skill>.onnx`** — 지금 `.policy`의 가중치를 그대로 옮겨 만듦 (출력 같음 확인) |
-| 계산기 | `MlpPolicy` (C++ 직접) | `OnnxPolicy` (ONNX Runtime) — 제어 루프용은 **CPU 고정 · 미리 잡은 버퍼** |
-| 팔 · 도킹 · plan_next | 위 2~6절 경로 그대로 | 경로 그대로, 파일과 계산기만 바뀜 |
-| 필요 설치 | 없음 | 로봇 · PC에 ONNX Runtime (`ros-lyrical-onnxruntime-vendor`) — 없으면 정책 꺼지고 기준 동작 |
+PR #97: 고르는 곳·실행 위치는 이 페이지 그대로, **파일(`.onnx`)과 계산기(`OnnxPolicy`)만** 바뀜. 정책마다 `meta.yaml` `runtime: policy`로 위 구조(`MlpPolicy`)로 되돌릴 수 있음. 자세한 객체·순서도는 [ONNX 실행 구조](onnx-runtime.html).
