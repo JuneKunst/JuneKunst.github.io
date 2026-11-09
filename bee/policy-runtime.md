@@ -167,10 +167,10 @@ sequenceDiagram
 |---|---|---|
 | 1 | JTC → `rl_arm_correction/<joint>/position` | 궤적의 이번 주기 관절값 (IK + 보간, 시뮬과 같은 시간표: 내려가기 → 쥐기 → 들기) |
 | 2 | `hand_relative` → `/hand_relative` | 퍽 − 손끝 x·y · 면 방향 · is_box (4 Hz 이하 — 다음 값 올 때까지 유지) |
-| 4 | `rl_arm_correction.cpp:242` | 조건: 0.02 s(50 Hz) 지남 · q_above·q_down 있음 · 손 카메라 값 유효하고 1 s 안 |
-| 5 | `arm_obs.hpp` (Pick 41 / Place 39) | q−q_ref (5) · q_down−q_ref (5) · 0.1·qd (5) · q_ref−q_above (5) · 이전 행동 (5) · 단계 one-hot (6) · 진행 [s] (1) · 100·카메라 x·y (2) · [Pick만: 면 방향 · is_box (2)] · 10·처짐 적분 (5) |
-| 6~7 | `:257` → `mlp_policy.hpp:66 act_into` | 행렬 곱 + ELU 4층 → a[5] → −1..1로 자름 → `residual_live`면 Δ = 0.05·a (상한 0.05 rad) |
-| 8 | `command_interfaces` → `BeebotSystemHardware::write` → OpenCR | 명령 = q_ref + 처짐 적분 + Δ + 중력 앞먹임 |
+| opt | `rl_arm_correction.cpp:242` | 조건: 0.02 s(50 Hz) 지남 · q_above·q_down 있음 · 손 카메라 값 유효하고 1 s 안 |
+| 4 | `arm_obs.hpp` (Pick 41 / Place 39) | q−q_ref (5) · q_down−q_ref (5) · 0.1·qd (5) · q_ref−q_above (5) · 이전 행동 (5) · 단계 one-hot (6) · 진행 [s] (1) · 100·카메라 x·y (2) · [Pick만: 면 방향 · is_box (2)] · 10·처짐 적분 (5) |
+| 5~6 | `:257` → `mlp_policy.hpp:66 act_into` | 행렬 곱 + ELU 4층 → a[5] → −1..1로 자름 → `residual_live`면 Δ = 0.05·a (상한 0.05 rad) |
+| 7 | `command_interfaces` → `BeebotSystemHardware::write` → OpenCR | 명령 = q_ref + 처짐 적분 + Δ + 중력 앞먹임 |
 
 끝나면 `PickSkill` → coordinator: {success, reason} (잡기 판정).
 
