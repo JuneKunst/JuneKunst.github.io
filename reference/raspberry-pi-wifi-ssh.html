@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="라즈베리 파이의 최초 설정, Wi-Fi 변경, microSD를 통한 복구, IP 확인과 SSH 오류 진단 가이드">
+  <title>라즈베리 파이 Wi-Fi 연결과 SSH 복구</title>
+  <style>
+    body { margin: 0; color: #172638; font: 17px/1.75 system-ui, sans-serif; }
+    main { max-width: 800px; margin: auto; padding: 24px; }
+    h1 { font-size: clamp(1.8rem, 5vw, 2.35rem); line-height: 1.25; }
+    h2 { margin-top: 2em; font-size: 1.35rem; }
+    h3 { font-size: 1.1rem; }
+    a { color: #146b64; }
+    li { margin-block: .35em; }
+    code { overflow-wrap: anywhere; }
+    pre { overflow-x: auto; padding: 14px; border-left: 4px solid #146b64; background: #f1f6f5; }
+    pre code { overflow-wrap: normal; }
+    dt { font-weight: 700; }
+    dd { margin: 0 0 .8em; }
+  </style>
+</head>
+<body>
+<main>
+  <p><a href="../">홈</a></p>
+  <h1>라즈베리 파이 Wi-Fi 연결과 SSH 복구</h1>
+  <p>새로 설치한 파이에 처음 접속하거나 공유기를 바꾼 뒤 접속을 복구할 때 사용하는 가이드입니다. 명령 예시의 <code>my-pi</code>, <code>myuser</code>, <code>192.168.1.42</code>는 자신의 호스트 이름, 파이 계정, IP로 바꿉니다.</p>
+  <nav aria-label="목차">
+    <ol>
+      <li><a href="#choose">연결 경로 선택</a></li>
+      <li><a href="#online">파이에 접속할 수 있을 때 Wi-Fi 변경</a></li>
+      <li><a href="#sd">microSD를 PC에서 편집</a></li>
+      <li><a href="#ssh">부팅 후 IP와 SSH 확인</a></li>
+      <li><a href="#errors">오류별 확인 순서</a></li>
+    </ol>
+  </nav>
+
+  <h2 id="choose">1. 연결 경로 선택</h2>
+  <ul>
+    <li><strong>새로 설치하는 경우</strong>에는 Raspberry Pi OS를 선택하고 Raspberry Pi Imager의 사용자 지정에서 사용자 계정, 호스트 이름, Wi-Fi의 SSID·비밀번호·국가, SSH 사용 여부를 설정합니다. 다른 OS는 해당 이미지의 초기 설정 절차를 확인합니다. 이미지 쓰기는 대상 카드의 데이터를 지웁니다.</li>
+    <li><strong>기존 시스템에 모니터와 키보드를 연결할 수 있다면</strong> 파이에서 로그인해 Wi-Fi를 바꿉니다. 기존 SSH 연결이나 임시 유선 연결을 이용해도 됩니다.</li>
+    <li><strong>유선으로 임시 접속하려면</strong> 파이의 이더넷 포트를 PC와 통신 가능한 공유기의 LAN 포트에 연결합니다. 공유기에서 파이 IP를 확인한 뒤 SSH가 활성화되어 있다면 IP로 접속합니다.</li>
+    <li><strong>접속 수단이 없고 카드를 읽을 수 있다면</strong> Linux PC에 microSD를 꽂고 OS가 실제로 사용하는 설정 파일을 편집합니다.</li>
+    <li><strong>USB 케이블을 사용하는 경우</strong> 모델과 포트가 USB 장치 모드를 지원하고, OS에 USB 이더넷 가젯 기능이 설정돼 있고, 케이블이 데이터를 지원해야 합니다. PC에서 새 네트워크 인터페이스가 생겼는지 확인한 뒤 그 인터페이스를 통해 파이의 IP에 접근합니다.</li>
+  </ul>
+  <p><a href="https://www.raspberrypi.com/documentation/computers/getting-started.html">Raspberry Pi 시작하기</a></p>
+
+  <h2 id="online">2. 파이에 접속할 수 있을 때 Wi-Fi 변경</h2>
+  <p>NetworkManager를 사용하는 파이에서는 아래 명령을 <strong>파이 터미널</strong>에서 실행합니다. 연결 명령이 비밀번호를 물으면 프롬프트에서 입력합니다. Wi-Fi로 SSH 중이라면 설정을 바꾸는 순간 연결이 끊길 수 있으므로 유선 연결이나 로컬 콘솔을 이용합니다.</p>
+  <pre><code>nmcli device status
+nmcli device wifi list
+sudo nmcli --ask device wifi connect 'Home WiFi'
+ip -br address</code></pre>
+  <p>Netplan과 systemd-networkd를 사용하는 Ubuntu Server라면 <code>nmcli</code> 대신 <code>/etc/netplan/</code>의 Wi-Fi 설정을 편집합니다. 로컬 콘솔이나 유선 연결에서 <code>sudo netplan try</code>로 설정을 시험할 수 있습니다.</p>
+
+  <h2 id="sd">3. microSD를 PC에서 편집</h2>
+  <ol>
+    <li>파이를 종료하고 전원을 끈 뒤 카드를 Linux PC의 리더기에 꽂습니다.</li>
+    <li><code>lsblk -o NAME,SIZE,FSTYPE,LABEL,MOUNTPOINTS</code>로 카드와 마운트 경로를 확인합니다. Ubuntu 이미지에서 흔히 보이는 <code>system-boot</code>는 부팅용 파티션이고, <code>writable</code>은 Ubuntu 시스템과 <code>/etc</code>가 있는 루트 파티션입니다. 라벨은 이미지마다 다릅니다.</li>
+    <li>Ubuntu의 루트 파티션에서 <code>etc/netplan</code>의 파일명을 확인합니다. 아래는 <code>/media/alex/writable</code>과 <code>50-cloud-init.yaml</code>인 경우입니다. 부팅 파티션의 <code>network-config</code>는 이미지의 초기 설정에 쓰일 수 있으므로, 이미 설치된 시스템에서는 루트 파티션의 실제 설정과 cloud-init의 관리 여부를 먼저 확인합니다.</li>
+  </ol>
+  <pre><code>ls /media/alex/writable/etc/netplan
+sudo cp -a /media/alex/writable/etc/netplan/50-cloud-init.yaml \
+  /media/alex/writable/etc/netplan/50-cloud-init.yaml.bak
+sudo nano /media/alex/writable/etc/netplan/50-cloud-init.yaml</code></pre>
+  <p>VS Code를 쓰는 경우 마지막 줄 대신 다음 명령을 사용합니다. 저장 후 해당 파일 탭을 닫고 터미널 프롬프트가 돌아오면 원본에 반영됩니다.</p>
+  <pre><code>SUDO_EDITOR='code --wait' sudoedit /media/alex/writable/etc/netplan/50-cloud-init.yaml</code></pre>
+  <h3>Netplan에서 SSID와 비밀번호 수정</h3>
+  <p>기존 파일의 무선 인터페이스 이름과 들여쓰기를 유지하고 해당 SSID 항목만 바꿉니다. 아래는 <code>wlan0</code>과 DHCP를 쓰는 예시입니다.</p>
+  <pre><code>network:
+  version: 2
+  wifis:
+    wlan0:
+      dhcp4: true
+      access-points:
+        'Home WiFi':
+          password: 'example-passphrase'</code></pre>
+  <p>파일이 <code>auth:</code> 블록과 <code>key-management: psk</code>를 사용한다면 그 구조를 유지하고 <code>auth</code> 아래의 <code>password</code>를 바꿉니다. 작은따옴표 안에 실제 작은따옴표를 넣을 때는 <code>'example''pass'</code>처럼 두 번 씁니다.</p>
+  <p>기존 값이 64자리 16진수 PSK라면 SSID 변경 시 실제 Wi-Fi 비밀번호를 입력하거나 새 SSID에 맞는 PSK를 사용합니다. 비밀번호에서 파생한 WPA 키는 SSID에도 의존합니다. 실제 비밀번호와 PSK는 모두 공개 게시물이나 채팅에 올리지 않습니다. <a href="https://netplan.readthedocs.io/en/stable/netplan-yaml/">Netplan YAML 설정</a> · <a href="https://android.googlesource.com/platform/external/wpa_supplicant_8/+/refs/heads/android12-mainline-wifi-release/wpa_supplicant.conf">wpa_supplicant 설정 예시</a></p>
+  <p>Raspberry Pi OS 등 NetworkManager 기반 이미지에서 Netplan 파일이 없다면 기존 연결 프로필을 먼저 찾습니다. 프로필은 보통 루트 파티션의 <code>etc/NetworkManager/system-connections/</code>에 있습니다. 기존 개인용 Wi-Fi 프로필을 수정할 때는 <code>[wifi]</code>의 <code>ssid=</code>와 필요한 경우 <code>[wifi-security]</code>의 <code>psk=</code>를 바꾸고 루트 소유와 <code>0600</code> 권한을 유지합니다. 프로필이 없거나 보안 방식이 다르면 로컬 콘솔 또는 유선 연결에서 OS의 네트워크 설정 도구를 사용합니다.</p>
+  <p>파일 앱에서 카드의 모든 파티션을 안전하게 꺼낸 뒤, 전원이 꺼진 파이에 카드를 꽂고 켭니다.</p>
+
+  <h2 id="ssh">4. 부팅 후 IP와 SSH 확인</h2>
+  <ol>
+    <li>모델에 따라 ACT LED는 저장장치 활동이나 부팅 오류 패턴을 표시합니다. 깜빡이다가 꺼질 수 있습니다. 부팅 완료는 로컬 로그인 프롬프트로, 네트워크 연결은 IP 할당이나 SSH 응답으로 확인합니다.</li>
+    <li>공유기의 연결 기기 또는 DHCP 목록에서 파이의 IP를 찾습니다. 파이의 로컬 콘솔에서는 <code>ip -br address</code>로 Wi-Fi 인터페이스의 IP를 확인할 수 있습니다. 유선과 Wi-Fi가 동시에 연결돼 있으면 각각 다른 IP를 받을 수 있습니다.</li>
+    <li>PC에서 IP로 SSH에 접속합니다. 호스트 이름이 mDNS로 등록되어 있고 PC에서도 이름 해석이 된다면 <code>.local</code> 주소도 사용할 수 있습니다.</li>
+  </ol>
+  <pre><code>ssh -o ConnectTimeout=5 myuser@192.168.1.42
+ssh -o ConnectTimeout=5 myuser@my-pi.local</code></pre>
+  <p><a href="https://www.raspberrypi.com/documentation/computers/remote-access.html">Raspberry Pi 원격 접속 문서</a></p>
+
+  <h2 id="errors">5. 오류별 확인 순서</h2>
+  <dl>
+    <dt><code>Could not resolve hostname</code></dt>
+    <dd>호스트 이름을 IP로 해석하지 못했습니다. 먼저 IP로 접속해 보세요. SSH 별칭을 썼다면 <code>ssh -G my-pi</code>의 <code>hostname</code>을 확인합니다. Linux에서 <code>getent hosts my-pi.local</code>로 해석 여부를 확인할 수 있습니다.</dd>
+    <dt>공유기 목록에 파이가 없음</dt>
+    <dd>파이에서 SSID, 비밀번호, 무선 국가 설정, 지원 주파수와 보안 방식을 확인합니다. 게스트 네트워크나 기관 Wi-Fi의 기기 간 격리도 확인합니다. 로컬 콘솔이 있다면 <code>ip -br address</code>로 IP가 할당됐는지 봅니다.</dd>
+    <dt><code>Connection timed out</code> 또는 <code>No route to host</code></dt>
+    <dd>주소가 맞는지 확인한 뒤 PC에서 파이까지의 경로, 게스트 네트워크 격리, 방화벽을 확인합니다.</dd>
+    <dt><code>Connection refused</code></dt>
+    <dd>해당 IP의 SSH 포트에서 연결을 받는지 확인합니다. 파이 콘솔에서 <code>systemctl status ssh</code>를 확인하고, SSH 서버가 설치돼 있다면 <code>sudo systemctl enable --now ssh</code>로 활성화할 수 있습니다.</dd>
+    <dt><code>Permission denied</code></dt>
+    <dd>SSH 서버까지 연결됐습니다. 파이에서 만든 계정 이름과 서버에 등록한 SSH 키 또는 허용된 인증 방법을 확인합니다.</dd>
+  </dl>
+</main>
+</body>
+</html>
