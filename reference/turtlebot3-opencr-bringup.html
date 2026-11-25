@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TurtleBot3와 OpenCR 실물 기동 가이드</title>
+  <style>
+    body { margin: 0; color: #172638; font: 16px/1.75 system-ui, sans-serif; }
+    main { max-width: 820px; margin: 0 auto; padding: 24px; }
+    h1, h2 { line-height: 1.3; }
+    h2 { margin-top: 2em; }
+    a { color: #146b64; }
+    pre { padding: 14px; border-left: 4px solid #146b64; background: #f1f6f5; overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border-bottom: 1px solid #d5dfdf; padding: 8px; text-align: left; vertical-align: top; }
+  </style>
+</head>
+<body>
+<main>
+  <p><a href="../">홈</a></p>
+  <h1>TurtleBot3와 OpenCR 실물 기동 가이드</h1>
+  <p>라즈베리 파이에 ROS 작업 환경을 준비하고, OpenCR을 통해 바퀴와 매니퓰레이터를 연결한 뒤 센서와 구동계를 확인하는 절차입니다. 아래 패키지 이름과 launch 인수는 <code>waffle-mpx-lyrical</code> 예시입니다. 다른 구성에서는 배포판, 포트, 모터 ID, 센서 패키지를 설치 문서와 실물에 맞춰 바꿉니다.</p>
+  <nav aria-label="목차"><ol>
+    <li><a href="#pi">라즈베리 파이와 ROS 패키지 준비</a></li>
+    <li><a href="#firmware">OpenCR 연결과 펌웨어 선택</a></li>
+    <li><a href="#wizard">DYNAMIXEL 검색과 위치 기록</a></li>
+    <li><a href="#calibration">실측 범위를 ROS에 반영</a></li>
+    <li><a href="#deploy">빌드 배포와 첫 실물 기동</a></li>
+    <li><a href="#check">센서·관절·제어 주기 검증</a></li>
+  </ol></nav>
+
+  <h2 id="pi">1. 라즈베리 파이와 ROS 패키지 준비</h2>
+  <p>PC에서 SSH로 파이에 접속하고, 파이에서 실행할 ROS 배포판과 아키텍처를 확인합니다. 아래 명령은 저장소가 파이에 있고 ROS 2 Lyrical이 설치돼 있는 경우입니다. <a href="raspberry-pi-wifi-ssh.html">Wi-Fi와 SSH 설정 가이드</a></p>
+  <pre><code>uname -m
+df -h /
+cd ~/waffle-mpx-lyrical
+source /opt/ros/lyrical/setup.bash
+colcon list --names-only
+rosdep check --from-paths . --ignore-src --rosdistro lyrical</code></pre>
+  <p>빠진 패키지는 <code>rosdep install --from-paths . --ignore-src --rosdistro lyrical -y</code>로 설치합니다. rosdep 데이터가 없다면 먼저 <code>rosdep init</code>을 관리자 권한으로 한 번 실행하고 <code>rosdep update</code>를 실행합니다. APT 잠금이 걸리면 <code>sudo fuser -v /var/lib/dpkg/lock-frontend</code>와 <code>/var/log/dpkg.log</code>를 확인하고 실행 중인 설치가 끝나기를 기다립니다.</p>
+  <p>파이의 APT에서 Cartographer 본체가 제공되지 않는다면 <code>apt-cache policy ros-lyrical-cartographer ros-lyrical-cartographer-ros ros-lyrical-cartographer-ros-msgs</code>로 후보를 확인합니다. 지도 작성 패키지를 이번 빌드에서 제외할 경우에만 이 프로젝트에서 rosdep에 <code>--skip-keys cartographer_ros</code>, colcon에 <code>--packages-skip turtlebot3_manipulation_cartographer</code>를 각각 추가합니다. 추후 지도 작성은 해당 패키지를 설치할 수 있는 제어 PC에서 수행할 수 있습니다.</p>
+  <pre><code>colcon build --symlink-install --parallel-workers 1 --cmake-args -DBUILD_TESTING=OFF
+source install/local_setup.bash
+ros2 pkg prefix turtlebot3_manipulation_bringup</code></pre>
+  <p>SSH가 끊겨도 빌드를 이어가려면 <code>tmux</code>에서 실행하고 로그를 남깁니다. 같은 빌드·설치 디렉터리에 동시에 두 빌드를 실행하면 생성 파일이나 심볼릭 링크가 충돌할 수 있습니다.</p>
+
+  <h2 id="firmware">2. OpenCR 연결과 펌웨어 선택</h2>
+  <p>OpenCR USB를 연결한 컴퓨터에서 포트를 확인합니다. Wizard 또는 업로더가 포트를 열기 전에 같은 포트를 쓰는 ROS 노드를 종료합니다. 권한이 없으면 시리얼 장치 그룹을 확인하고, 그룹을 추가한 후 새 세션으로 로그인합니다.</p>
+  <pre><code>ls -l /dev/serial/by-id/
+id -nG
+fuser -v /dev/ttyACM0</code></pre>
+  <ul>
+    <li><strong>개별 모터를 읽을 때</strong>는 OpenCR의 <code>usb_to_dxl</code> 예제로 USB에서 DYNAMIXEL 버스로 연결합니다.</li>
+    <li><strong>ROS로 제어할 때</strong>는 해당 로봇에 맞는 제어용 펌웨어를 사용합니다. TurtleBot3와 OpenMANIPULATOR-X 조합에서는 ROBOTIS의 ROS 2 <code>turtlebot3_manipulation.opencr</code>가 예시입니다.</li>
+    <li>파일 확장자와 압축 형식이 다르면 <code>file</code>로 확인하고 <code>tar -xf</code>로 풉니다. <code>file opencr_update/opencr_ld_shell_*</code>로 업로더의 실행 아키텍처도 확인합니다. 32비트 ARM 업로더가 실행되지 않는 arm64 환경에서는 호환되는 x86-64 PC나 지원되는 업로더를 사용합니다.</li>
+    <li>업로드할 때 팔 주변을 비우고 바퀴를 띄웁니다. CRC 확인, <code>jump_to_fw</code>, USB 포트 재인식까지 확인한 뒤 다음 단계로 갑니다.</li>
+  </ul>
+  <p><a href="https://emanual.robotis.com/docs/en/platform/turtlebot3/manipulation/#opencr-setup">ROBOTIS OpenCR 펌웨어 절차</a></p>
+
+  <h2 id="wizard">3. DYNAMIXEL 검색과 위치 기록</h2>
+  <ol>
+    <li>Wizard를 실행한 컴퓨터에 OpenCR USB를 연결합니다. 모터의 외부 전원과 버스 케이블을 확인합니다. USB 포트가 보여도 모터에 전원이 공급되지 않으면 검색되지 않을 수 있습니다.</li>
+    <li>설치 문서나 기존 설정에 있는 프로토콜과 속도로 검색합니다. Protocol 2.0과 1 Mbps는 한 가지 예시입니다.</li>
+    <li>각 모터의 물리 관절, ID, 모델, Operating Mode, Homing Offset, Present Position을 기록합니다. ID를 바꾸기 전에 실제 연결과 펌웨어의 ID 매핑부터 대조합니다.</li>
+    <li>가동 범위를 측정할 때는 실제 안전한 양 끝과 기준 자세를 기록합니다. 각도와 틱을 구별하고, Extended Position 모드에서는 회전수를 포함한 값을 기록합니다. 그리퍼의 물리적 양 끝과 평상시 명령할 열기·닫기 위치도 따로 기록합니다.</li>
+  </ol>
+  <p>전원을 유지한 채 토크만 풀면 팔이 자체 무게로 내려갈 수 있습니다. 받침대로 지지한 뒤 해당 펌웨어에서 토크 명령이 어느 모터까지 적용되는지 확인합니다. 토크를 다시 켜기 전에는 이전 목표 위치가 남아 있는지 확인합니다. <a href="https://emanual.robotis.com/docs/en/software/dynamixel/dynamixel_wizard2/">DYNAMIXEL Wizard 문서</a></p>
+
+  <h2 id="calibration">4. 실측 범위를 ROS에 반영</h2>
+  <ul>
+    <li><strong>드라이버</strong>에서 틱을 rad 또는 m로 읽는 방향·영점·계수와 ROS 목표값을 틱으로 쓰는 역변환을 맞춥니다. 멀티턴 값은 해당 모드의 의미를 유지합니다.</li>
+    <li><strong>URDF와 ros2_control</strong>에서 같은 좌표계의 위치 제한을 사용합니다. 영점을 바꾸면 링크의 기준 자세와 MoveIt의 명명 자세도 함께 확인합니다.</li>
+    <li><strong>MoveIt</strong>에서 실제 기준 자세를 <code>nominal</code> 같은 이름으로 저장할 수 있습니다. 이름을 붙인 자세는 엔코더 영점과 별개의 설정입니다.</li>
+    <li><strong>OpenCR과 모터</strong>에서는 부팅 시 Operating Mode를 변경하는 코드가 있는지 확인합니다. 모델과 모드에 따라 모터 제어 테이블의 위치 제한 적용 방식이 달라집니다. 모드 변경이나 공장 초기화는 필요한 경우에만 수행합니다.</li>
+  </ul>
+  <p>기동 직후 <code>Joint position is out of bounds</code>가 나오면 실물 자세와 축별 원시 위치부터 읽고 ROS 환산값을 대조합니다. 단일 자세 측정만으로 물리 가동 한계를 결정할 수 없습니다.</p>
+
+  <h2 id="deploy">5. 빌드 배포와 첫 실물 기동</h2>
+  <p>수정한 소스와 설정을 파이의 같은 작업 버전에 반영하고, description·hardware·MoveIt config 등 변경된 패키지를 다시 빌드합니다. 설치된 Xacro와 SRDF를 확인해야 실제 launch가 새 설정을 읽는지 알 수 있습니다. 빌드 위치를 따로 지정했다면 해당 <code>install/local_setup.bash</code>를 사용합니다.</p>
+  <pre><code>source /opt/ros/lyrical/setup.bash
+source install/local_setup.bash
+export ROS_DOMAIN_ID=42
+ros2 launch turtlebot3_manipulation_bringup robot.launch.py mode:=mock</code></pre>
+  <p>먼저 별도 도메인에서 <code>mock</code>으로 컨트롤러와 <code>/joint_states</code>를 확인합니다. 실제 기동 전에는 mock을 종료하고 바퀴와 팔의 이동 경로를 비웁니다. 아래 포트는 실제 장치 링크에 맞게 바꿉니다.</p>
+  <pre><code>ros2 launch turtlebot3_manipulation_bringup robot.launch.py \
+  mode:=hardware opencr_port:=/dev/ttyACM0 lidar_port:=/dev/ttyUSB0</code></pre>
+
+  <h2 id="check">6. 센서·관절·제어 주기 검증</h2>
+  <pre><code>ros2 control list_controllers
+ros2 topic echo /joint_states --once
+ros2 topic echo /scan sensor_msgs/msg/LaserScan \
+  --field header.frame_id --once --qos-reliability best_effort
+ros2 topic list -t</code></pre>
+  <table>
+    <thead><tr><th>관찰</th><th>다음 확인</th></tr></thead>
+    <tbody>
+      <tr><td>OpenCR 포트가 없음</td><td>USB가 실제로 어느 컴퓨터에 꽂혔는지 확인하고 재연결 뒤 포트를 다시 찾습니다.</td></tr>
+      <tr><td>포트는 보이지만 모터가 0개</td><td>중계 펌웨어, 외부 전원, 프로토콜·속도, 케이블 및 중복 ID를 확인합니다.</td></tr>
+      <tr><td>팔·그리퍼 컨트롤러가 비활성</td><td>위치 제한 오류와 원시 틱을 확인하고 기동 자세, 영점, 모드를 대조합니다.</td></tr>
+      <tr><td>카메라에서 <code>Permission denied</code></td><td><code>ls -l /dev/video*</code>와 <code>id -nG</code>로 접근 권한을 확인합니다. 장치 그룹을 추가했으면 SSH에 다시 접속한 뒤 카메라만 시험합니다.</td></tr>
+      <tr><td>제어 주기 초과 또는 관절이 목표에 도달하지 않음</td><td>다음 축의 동작 시험을 멈추고 통신 응답, 실제 관절 위치, 기계적 간섭과 읽기·쓰기 시간을 확인합니다.</td></tr>
+    </tbody>
+  </table>
+  <p>센서와 컨트롤러가 정상이라면 한 번에 한 축만 작은 각도로 시험해 목표 도달과 원위치 복귀를 각각 확인합니다. 지도 작성과 Nav2 주행은 LiDAR, 오도메트리, TF를 확인한 다음 진행합니다. 작업을 마칠 때는 ROS 노드를 종료하고 파이에서 <code>sudo systemctl poweroff</code>를 실행한 뒤 전원을 분리합니다.</p>
+  <p><a href="../bee/opencr-dynamixel-check.md">OpenCR과 DYNAMIXEL 작업 사례</a></p>
+</main>
+</body>
+</html>

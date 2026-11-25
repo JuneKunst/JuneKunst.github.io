@@ -74,6 +74,7 @@ ls -l /dev/serial/by-id/
 - [DYNAMIXEL Wizard 2.0 검색 및 ID 검사](https://emanual.robotis.com/docs/en/software/dynamixel/dynamixel_wizard2/#id-inspection)
 
 ## 제어 펌웨어 복원과 Raspberry Pi 배포
+재현할 때는 [TurtleBot3와 OpenCR 실물 기동 가이드](../reference/turtlebot3-opencr-bringup.html)의 준비, 보정, 검증 순서를 참고한다.
 
 Wizard에서 매니퓰레이터의 실제 ID를 다시 확인했다. 팔은 베이스 쪽부터 11, 12, 13, 14이고, **15번 모터 하나가 그리퍼 양쪽 핑거를 함께 구동**한다. Wizard에서 11번과 15번은 Extended Position, 12–14번은 Position 모드로 설정했다. 확인한 제어 펌웨어 소스에는 초기화 때 모드 레지스터를 덮어쓰는 코드가 없었다. 실제 보드에서 부팅 전후의 모드 레지스터를 대조하는 검증은 남아 있다.
 
