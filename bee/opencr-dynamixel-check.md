@@ -37,5 +37,37 @@ Wizard를 닫아 포트를 비운 뒤 ID 11과 12를 개별 PING했다. 1 Mbps�
 
 이번 작업에서는 모터의 ID나 설정을 변경하지 않았다. 실제 주행이나 관절 제어를 재개할 때는 OpenCR에 해당 제어 펌웨어를 다시 올려야 한다.
 
+## PC에서 라즈베리 파이 SSH 접속까지
+
+먼저 PC 터미널에서 OpenCR이 잡히는지 확인한다. 아래 명령에서 시리얼 포트 번호는 연결할 때 달라질 수 있다.
+
+```bash
+lsusb
+ls -l /dev/serial/by-id/
+journalctl -k -b --no-pager | grep -Ei 'opencr|ttyACM' | tail -20
+```
+
+Wizard 점검을 마치면 앱을 닫는다. 라즈베리 파이에서 OpenCR을 사용할 때는 OpenCR USB를 파이에 연결한다. PC와 파이가 같은 네트워크에 있는지 확인한 뒤, PC에서 아래 순서로 실행한다.
+
+```bash
+# 실제 라즈베리 파이의 호스트명과 계정명으로 바꾼다.
+PI_HOST='raspberrypi.local'
+PI_USER='your-user'
+
+getent hosts "$PI_HOST"
+ssh -o ConnectTimeout=5 "$PI_USER@$PI_HOST"
+```
+
+`.local` 이름이 조회되지 않으면 라즈베리 파이 자체 터미널에서 `hostname -I`를 실행해 LAN IP를 확인한다. PC에서 `PI_HOST`에 그 IP를 넣고 같은 SSH 명령을 다시 실행한다.
+
+접속 후에는 아래 명령으로 로그인한 장비와 OpenCR 포트를 확인한다.
+
+```bash
+hostname
+whoami
+lsusb
+ls -l /dev/serial/by-id/
+```
+
 - [ROBOTIS OpenCR 연결 가이드](https://emanual.robotis.com/docs/en/software/dynamixel/dynamixel_workbench/#opencr)
 - [DYNAMIXEL Wizard 2.0 검색 및 ID 검사](https://emanual.robotis.com/docs/en/software/dynamixel/dynamixel_wizard2/#id-inspection)
