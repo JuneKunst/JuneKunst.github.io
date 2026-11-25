@@ -35,6 +35,7 @@ const MENU = [
   ]},
   { group: '실기', items: [
     { href: 'debug-guide.html', title: '실기 디버깅', desc: '기록(rosbag · 블랙박스) · 보기(PlotJuggler · Lichtblick) · 증상별 고칠 곳', updated: '11-09' },
+    { href: 'opencr-dynamixel-check.html', title: 'OpenCR과 DYNAMIXEL 점검', desc: '바퀴 통신 복구 · 매니퓰레이터 ID 11·12 미응답 점검', updated: '11-25' },
   ]},
 ];
 
