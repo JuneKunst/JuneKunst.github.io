@@ -72,3 +72,34 @@ ls -l /dev/serial/by-id/
 
 - [ROBOTIS OpenCR 연결 가이드](https://emanual.robotis.com/docs/en/software/dynamixel/dynamixel_workbench/#opencr)
 - [DYNAMIXEL Wizard 2.0 검색 및 ID 검사](https://emanual.robotis.com/docs/en/software/dynamixel/dynamixel_wizard2/#id-inspection)
+
+## 제어 펌웨어 복원과 Raspberry Pi 배포
+
+Wizard에서 매니퓰레이터의 실제 ID를 다시 확인했다. 팔은 베이스 쪽부터 11, 12, 13, 14이고, **15번 모터 하나가 그리퍼 양쪽 핑거를 함께 구동**한다. Wizard에서 11번과 15번은 Extended Position, 12–14번은 Position 모드로 설정했다. 확인한 제어 펌웨어 소스에는 초기화 때 모드 레지스터를 덮어쓰는 코드가 없었다. 실제 보드에서 부팅 전후의 모드 레지스터를 대조하는 검증은 남아 있다.
+
+OpenCR에 ROS 2용 `turtlebot3_manipulation.opencr`을 다시 올렸다. 업로더의 CRC 일치와 `jump_to_fw`, USB 포트 재인식, OpenCR 제어 테이블 응답을 확인했다. ROBOTIS 배포 파일은 이름이 `.tar.bz2`였지만 실제로는 gzip이었다. Linux에서 `file`로 확인하고 `tar -xf`로 풀었다. 이 파일의 ARM 업로더는 32비트 실행 환경을 요구해, 이번에는 x86-64 제어 PC에서 업로드했다.
+
+### 그리퍼 보정과 명명 자세
+
+그리퍼 모터 각도의 물리 범위는 −51.0°~233.8°로 잡았다. 열기 목표인 90.9°를 ROS 관절 좌표의 0 m로 두고, 닫기 목표인 233.8°를 약 −37.4 mm로 환산했다. 드라이버의 읽기·쓰기, URDF와 ros2_control의 위치 제한, MoveIt의 열기·닫기 목표를 맞췄다. 이 값은 ROS의 핑거 관절 좌표다. 핑거 사이 간격은 별도 실측이 필요하다.
+
+현재 자세에서 팔과 그리퍼를 각각 MoveIt의 `nominal` 자세로 저장했다. 팔의 기존 좌표계와 위치 제한은 유지했다. 제어 PC에서 한 축씩 약 5° 이동하는 시험에서는 `joint1`과 `joint2`의 이동 및 복귀를 확인했다. `joint3`는 제한 시간 내 목표에 도달하지 못했고 복귀 명령 뒤에도 시작 위치와 차이가 남았다. `joint4`는 이번에 시험하지 않았다.
+
+파이에서 Cartographer를 제외한 7개 패키지를 먼저 빌드했다. 이후 보정 변경이 있는 description, hardware, MoveIt config 패키지 3개를 다시 빌드했다. 설치된 SRDF의 `nominal` 정의와 Xacro로 생성한 URDF의 그리퍼 제한까지 확인했다.
+
+### 파이에 다시 연결한 뒤 확인한 항목
+
+| 항목 | 결과 |
+| --- | --- |
+| OpenCR | USB 시리얼 포트 재인식. OpenCR 모델 20480 응답 |
+| 팔 4축과 그리퍼 | 모터 명령 없이 위치를 세 번 읽었다. 세 번 모두 같은 위치였고, 배포된 위치 제한 안에 있었다 |
+| LDS-03 LiDAR | 드라이버를 단독 실행해 `/scan` 메시지의 `base_scan` 프레임을 확인 |
+| D435 | 앞선 단독 시험에서 USB 3.2 연결과 ROS 2 컬러 영상 메시지 수신 확인 |
+
+Linux에서 시리얼 경로를 확인하려면 `ls -l /dev/serial/by-id/`를 실행한다. ROS 환경에서 LiDAR가 발행 중이라면 아래 명령으로 메시지 한 건을 확인할 수 있다.
+
+```bash
+ros2 topic echo /scan sensor_msgs/msg/LaserScan --field header.frame_id --once --qos-reliability best_effort
+```
+
+파이에서의 전체 실물 기동과 동작은 아직 확인하지 않았다. `joint3` 응답과 이전에 약 180~197 ms까지 늘어난 제어 주기를 확인한 뒤 통합 시험을 진행한다. 지도 작성과 Nav2 주행도 별도 검증이 남아 있다.
